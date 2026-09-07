@@ -1,12 +1,19 @@
 import type { CSSProperties, PointerEvent as ReactPointerEvent } from 'react'
 import { getAssetUrl } from '../../lib/assetStore'
 import { startPointerDrag } from '../../lib/pointerDrag'
-import { useEditorStore } from '../../store/editorStore'
+import { collectLayerRects, snapPosition } from '../../lib/snap'
+import { useCurrentThumbnail, useEditorStore } from '../../store/editorStore'
 import type { Layer } from '../../types/editor'
+
+/** 画面上でのスナップ距離(px) */
+const SNAP_THRESHOLD = 8
 
 export default function LayerView({ layer, scale }: { layer: Layer; scale: number }) {
   const select = useEditorStore((s) => s.select)
   const updateLayer = useEditorStore((s) => s.updateLayer)
+  const snapEnabled = useEditorStore((s) => s.snapEnabled)
+  const setGuides = useEditorStore((s) => s.setGuides)
+  const { canvas } = useCurrentThumbnail()
 
   if (!layer.visible) return null
 
@@ -16,15 +23,41 @@ export default function LayerView({ layer, scale }: { layer: Layer; scale: numbe
     select(layer.id)
     const startX = layer.x
     const startY = layer.y
-    startPointerDrag(event, (dx, dy, moveEvent) => {
-      let x = startX + dx / scale
-      let y = startY + dy / scale
-      if (moveEvent.shiftKey) {
-        if (Math.abs(dx) > Math.abs(dy)) y = startY
-        else x = startX
-      }
-      updateLayer(layer.id, { x: Math.round(x), y: Math.round(y) })
-    })
+
+    // スナップ用に、他レイヤーの矩形と自分の実寸をドラッグ開始時に一度だけ集める
+    const element = event.currentTarget as HTMLElement
+    const surface = element.offsetParent as HTMLElement | null
+    const height = element.offsetHeight
+    const targets = surface ? collectLayerRects(surface, layer.id) : []
+    // 回転していると矩形が合わないのでスナップしない
+    const canSnap = snapEnabled && layer.rotation === 0
+
+    startPointerDrag(
+      event,
+      (dx, dy, moveEvent) => {
+        let x = startX + dx / scale
+        let y = startY + dy / scale
+        if (moveEvent.shiftKey) {
+          if (Math.abs(dx) > Math.abs(dy)) y = startY
+          else x = startX
+        }
+
+        if (canSnap && !moveEvent.altKey) {
+          const snapped = snapPosition(
+            { x, y, width: layer.width, height },
+            targets,
+            canvas,
+            SNAP_THRESHOLD / scale,
+          )
+          x = snapped.x
+          y = snapped.y
+          setGuides({ x: snapped.guidesX, y: snapped.guidesY })
+        }
+
+        updateLayer(layer.id, { x: Math.round(x), y: Math.round(y) })
+      },
+      () => setGuides({ x: [], y: [] }),
+    )
   }
 
   const base: CSSProperties = {

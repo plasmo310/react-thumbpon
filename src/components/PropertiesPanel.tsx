@@ -1,15 +1,17 @@
 import { useRef, useState } from 'react'
 import { addFontFiles, canQueryLocalFonts, queryLocalFonts } from '../lib/fontStore'
-import { useCurrentThumbnail, useEditorStore } from '../store/editorStore'
+import { extractTextStyle, useCurrentThumbnail, useEditorStore } from '../store/editorStore'
 import {
   FONT_WEIGHTS,
   type BackgroundFit,
   type BackgroundType,
   type Layer,
   type TextAlign,
+  type TextLayer,
 } from '../types/editor'
 import {
   ColorInput,
+  IconButton,
   NumberInput,
   Row,
   SegmentedControl,
@@ -93,9 +95,69 @@ function FontLoader() {
   )
 }
 
+
+/** プリセットの適用・保存・削除をまとめた行 */
+function PresetRow({
+  presets,
+  onApply,
+  onSave,
+  onRemove,
+}: {
+  presets: { id: string; name: string }[]
+  onApply: (id: string) => void
+  onSave: (name: string) => void
+  onRemove: (id: string) => void
+}) {
+  const [selected, setSelected] = useState('')
+
+  return (
+    <Row label="プリセット">
+      <select
+        className="min-w-0 flex-1 cursor-pointer rounded-md border border-line bg-white px-2 py-1 text-xs outline-none focus:border-accent"
+        value={selected}
+        onChange={(e) => {
+          setSelected(e.target.value)
+          if (e.target.value) onApply(e.target.value)
+        }}
+      >
+        <option value="">選択…</option>
+        {presets.map((preset) => (
+          <option key={preset.id} value={preset.id}>
+            {preset.name}
+          </option>
+        ))}
+      </select>
+      <IconButton
+        title="今の設定をプリセットとして保存"
+        onClick={() => {
+          const name = window.prompt('プリセット名')?.trim()
+          if (name) onSave(name)
+        }}
+      >
+        ＋
+      </IconButton>
+      {selected && (
+        <IconButton
+          title="このプリセットを削除"
+          onClick={() => {
+            onRemove(selected)
+            setSelected('')
+          }}
+        >
+          🗑
+        </IconButton>
+      )}
+    </Row>
+  )
+}
+
 export function LayerProperties({ layer }: { layer: Layer }) {
   const updateLayer = useEditorStore((s) => s.updateLayer)
   const fonts = useEditorStore((s) => s.fonts)
+  const textPresets = useEditorStore((s) => s.textPresets)
+  const addTextPreset = useEditorStore((s) => s.addTextPreset)
+  const applyTextPreset = useEditorStore((s) => s.applyTextPreset)
+  const removeTextPreset = useEditorStore((s) => s.removeTextPreset)
   const patch = (values: Partial<Layer>) => updateLayer(layer.id, values)
 
   return (
@@ -149,6 +211,12 @@ export function LayerProperties({ layer }: { layer: Layer }) {
       {layer.type === 'text' && (
         <>
           <div className="mt-1 border-t border-line pt-2" />
+          <PresetRow
+            presets={textPresets}
+            onApply={(id) => applyTextPreset(id, layer.id)}
+            onSave={(name) => addTextPreset(name, extractTextStyle(layer as TextLayer))}
+            onRemove={removeTextPreset}
+          />
           <Row label="テキスト">
             <TextArea value={layer.text} onChange={(text) => updateLayer(layer.id, { text })} />
           </Row>
@@ -243,9 +311,19 @@ export function BackgroundProperties() {
   const { background } = useCurrentThumbnail()
   const setBackground = useEditorStore((s) => s.setBackground)
   const assets = useEditorStore((s) => s.assets)
+  const backgroundPresets = useEditorStore((s) => s.backgroundPresets)
+  const addBackgroundPreset = useEditorStore((s) => s.addBackgroundPreset)
+  const applyBackgroundPreset = useEditorStore((s) => s.applyBackgroundPreset)
+  const removeBackgroundPreset = useEditorStore((s) => s.removeBackgroundPreset)
 
   return (
     <div className={wrapper}>
+      <PresetRow
+        presets={backgroundPresets}
+        onApply={applyBackgroundPreset}
+        onSave={addBackgroundPreset}
+        onRemove={removeBackgroundPreset}
+      />
       <Row label="種類">
         <SegmentedControl<BackgroundType>
           value={background.type}

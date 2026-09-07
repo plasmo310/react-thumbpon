@@ -12,7 +12,11 @@ import {
   type ImageLayer,
   type Layer,
   type TextLayer,
+  type TextPreset,
+  type TextStyle,
   type Thumbnail,
+  type BackgroundPreset,
+  TEXT_STYLE_KEYS,
 } from '../types/editor'
 import { deleteAsset, loadAssets, readImageSize, saveAsset } from '../lib/assetStore'
 import { fitInto } from '../lib/geometry'
@@ -52,6 +56,11 @@ type EditorState = {
   fonts: FontEntry[]
   clipboard: Thumbnail | null
   ready: boolean
+  snapEnabled: boolean
+  /** ドラッグ中に表示するスナップガイド。永続化しない */
+  guides: { x: number[]; y: number[] }
+  textPresets: TextPreset[]
+  backgroundPresets: BackgroundPreset[]
 
   // --- thumbnail / folder ---
   selectThumbnail: (id: string) => void
@@ -88,11 +97,29 @@ type EditorState = {
   setFonts: (fonts: FontEntry[]) => void
   addFonts: (fonts: FontEntry[]) => void
 
+  // --- snap ---
+  setSnapEnabled: (enabled: boolean) => void
+  setGuides: (guides: { x: number[]; y: number[] }) => void
+
+  // --- preset ---
+  addTextPreset: (name: string, style: TextStyle) => void
+  applyTextPreset: (presetId: string, layerId: string) => void
+  removeTextPreset: (presetId: string) => void
+  addBackgroundPreset: (name: string) => void
+  applyBackgroundPreset: (presetId: string) => void
+  removeBackgroundPreset: (presetId: string) => void
+  setPresets: (presets: {
+    textPresets?: TextPreset[]
+    backgroundPresets?: BackgroundPreset[]
+  }) => void
+
   // --- project ---
   loadProject: (data: {
     folders: Folder[]
     thumbnails: Thumbnail[]
     currentThumbnailId?: string | null
+    textPresets?: TextPreset[]
+    backgroundPresets?: BackgroundPreset[]
   }) => void
   setReady: (ready: boolean) => void
 }
@@ -135,6 +162,10 @@ export const useEditorStore = create<EditorState>((set, get) => {
     fonts: BUILTIN_FONTS,
     clipboard: null,
     ready: false,
+    snapEnabled: true,
+    guides: { x: [], y: [] },
+    textPresets: [],
+    backgroundPresets: [],
 
     selectThumbnail: (id) => set({ currentThumbnailId: id, selectedId: null }),
 
@@ -170,8 +201,11 @@ export const useEditorStore = create<EditorState>((set, get) => {
       if (thumbnails.length <= 1) return
       const index = thumbnails.findIndex((t) => t.id === id)
       const next = thumbnails.filter((t) => t.id !== id)
+      // 削除したら「ひとつ上」のサムネイルへ移る
       const nextCurrent =
-        currentThumbnailId === id ? next[Math.min(index, next.length - 1)].id : currentThumbnailId
+        currentThumbnailId === id
+          ? next[Math.max(0, index - 1)].id
+          : currentThumbnailId
       set({ thumbnails: next, currentThumbnailId: nextCurrent, selectedId: null })
     },
 
@@ -376,20 +410,82 @@ export const useEditorStore = create<EditorState>((set, get) => {
         return { fonts: [...s.fonts, ...fonts.filter((f) => !known.has(f.family))] }
       }),
 
-    loadProject: ({ folders, thumbnails, currentThumbnailId }) => {
+    setSnapEnabled: (snapEnabled) => set({ snapEnabled, guides: { x: [], y: [] } }),
+
+    /** ドラッグ中に毎フレーム呼ばれるので、変化が無ければ更新しない */
+    setGuides: (guides) =>
+      set((s) => {
+        const same = (a: number[], b: number[]) =>
+          a.length === b.length && a.every((v, i) => v === b[i])
+        if (same(s.guides.x, guides.x) && same(s.guides.y, guides.y)) return s
+        return { guides }
+      }),
+
+    addTextPreset: (name, style) =>
+      set((s) => ({ textPresets: [...s.textPresets, { id: createId(), name, style }] })),
+
+    applyTextPreset: (presetId, layerId) => {
+      const preset = get().textPresets.find((p) => p.id === presetId)
+      if (!preset) return
+      patchLayers((layers) =>
+        layers.map((l) => (l.id === layerId && l.type === 'text' ? { ...l, ...preset.style } : l)),
+      )
+    },
+
+    removeTextPreset: (presetId) =>
+      set((s) => ({ textPresets: s.textPresets.filter((p) => p.id !== presetId) })),
+
+    addBackgroundPreset: (name) => {
+      const thumbnail = current()
+      if (!thumbnail) return
+      set((s) => ({
+        backgroundPresets: [
+          ...s.backgroundPresets,
+          { id: createId(), name, background: { ...thumbnail.background } },
+        ],
+      }))
+    },
+
+    applyBackgroundPreset: (presetId) => {
+      const preset = get().backgroundPresets.find((p) => p.id === presetId)
+      if (!preset) return
+      patchCurrent((t) => ({ ...t, background: { ...preset.background } }))
+    },
+
+    removeBackgroundPreset: (presetId) =>
+      set((s) => ({ backgroundPresets: s.backgroundPresets.filter((p) => p.id !== presetId) })),
+
+    setPresets: ({ textPresets, backgroundPresets }) =>
+      set((s) => ({
+        textPresets: textPresets ?? s.textPresets,
+        backgroundPresets: backgroundPresets ?? s.backgroundPresets,
+      })),
+
+    loadProject: ({ folders, thumbnails, currentThumbnailId, textPresets, backgroundPresets }) => {
       const list = thumbnails.length > 0 ? thumbnails : [createThumbnail('サムネイル 1')]
       const wanted = list.find((t) => t.id === currentThumbnailId)
-      set({
+      set((s) => ({
         folders,
         thumbnails: list,
         currentThumbnailId: (wanted ?? list[0]).id,
         selectedId: null,
-      })
+        textPresets: textPresets ?? s.textPresets,
+        backgroundPresets: backgroundPresets ?? s.backgroundPresets,
+      }))
     },
 
     setReady: (ready) => set({ ready }),
   }
 })
+
+/** テキストレイヤーから見た目だけを取り出す */
+export function extractTextStyle(layer: TextLayer): TextStyle {
+  const style = {} as TextStyle
+  for (const key of TEXT_STYLE_KEYS) {
+    Object.assign(style, { [key]: layer[key] })
+  }
+  return style
+}
 
 function cloneThumbnail(source: Thumbnail, name: string): Thumbnail {
   return {

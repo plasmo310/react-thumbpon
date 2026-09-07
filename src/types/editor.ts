@@ -90,14 +90,50 @@ export type Folder = { id: string; name: string; collapsed: boolean }
 export type FontSource = 'builtin' | 'local' | 'file'
 export type FontEntry = { id: string; family: string; label: string; source: FontSource }
 
-/** プロジェクトファイル(.thumbpon.json)の中身 */
+/** テキストレイヤーの見た目だけを抜き出したもの。プリセットの中身になる */
+export type TextStyle = Pick<
+  TextLayer,
+  | 'fontFamily'
+  | 'fontSize'
+  | 'fontWeight'
+  | 'fontStyle'
+  | 'textAlign'
+  | 'letterSpacing'
+  | 'lineHeight'
+  | 'color'
+  | 'strokeWidth'
+  | 'strokeColor'
+>
+
+export const TEXT_STYLE_KEYS: (keyof TextStyle)[] = [
+  'fontFamily',
+  'fontSize',
+  'fontWeight',
+  'fontStyle',
+  'textAlign',
+  'letterSpacing',
+  'lineHeight',
+  'color',
+  'strokeWidth',
+  'strokeColor',
+]
+
+export type TextPreset = { id: string; name: string; style: TextStyle }
+export type BackgroundPreset = { id: string; name: string; background: Background }
+
+/** 素材は JSON なら dataUrl、ZIP なら zip 内のパス(file)で持つ */
+export type ProjectAssetEntry = { meta: AssetMeta; dataUrl?: string; file?: string }
+
+/** プロジェクトファイル(.thumbpon.json / .thumbpon.zip)の中身 */
 export type ProjectFile = {
   format: 'thumbpon-project'
   version: 1
   folders: Folder[]
   thumbnails: Thumbnail[]
   currentThumbnailId: string | null
-  assets: { meta: AssetMeta; dataUrl: string }[]
+  assets: ProjectAssetEntry[]
+  textPresets?: TextPreset[]
+  backgroundPresets?: BackgroundPreset[]
 }
 
 /** 背景行を選択状態として表すための予約 id */

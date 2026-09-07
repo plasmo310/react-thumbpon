@@ -175,14 +175,6 @@ export default function LayerPanel() {
           setDropMark(null)
         }}
       >
-        {layers.length === 0 && (
-          <p className="px-1 py-6 text-center text-[11px] leading-relaxed text-ink-sub">
-            画像をキャンバスにドラッグするか
-            <br />
-            「＋ テキスト」から追加してください
-          </p>
-        )}
-
         <div
           className={`mb-1 overflow-hidden rounded-md border transition ${
             backgroundSelected ? 'border-accent bg-accent-soft' : 'border-transparent bg-white'

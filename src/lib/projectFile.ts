@@ -1,6 +1,22 @@
+import { strFromU8, strToU8, unzipSync, zipSync } from 'fflate'
 import { getAssetBlob, replaceAssets } from './assetStore'
 import { useEditorStore } from '../store/editorStore'
-import type { AssetMeta, ProjectFile, Thumbnail } from '../types/editor'
+import type { AssetMeta, ProjectAssetEntry, ProjectFile } from '../types/editor'
+
+export type ProjectFormat = 'zip' | 'json'
+
+const EXTENSION_BY_MIME: Record<string, string> = {
+  'image/png': '.png',
+  'image/jpeg': '.jpg',
+  'image/webp': '.webp',
+  'image/gif': '.gif',
+  'image/svg+xml': '.svg',
+}
+
+function extensionFor(meta: AssetMeta): string {
+  const fromName = /\.[a-z0-9]+$/i.exec(meta.name)?.[0]
+  return EXTENSION_BY_MIME[meta.mime] ?? fromName ?? '.bin'
+}
 
 function blobToDataUrl(blob: Blob): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -16,33 +32,75 @@ async function dataUrlToBlob(dataUrl: string): Promise<Blob> {
   return response.blob()
 }
 
-export async function buildProjectFile(): Promise<ProjectFile> {
-  const { folders, thumbnails, currentThumbnailId, assets } = useEditorStore.getState()
-  const entries: ProjectFile['assets'] = []
-  for (const meta of assets) {
-    const blob = await getAssetBlob(meta.id)
-    if (!blob) continue
-    entries.push({ meta, dataUrl: await blobToDataUrl(blob) })
-  }
+function baseProject(): Omit<ProjectFile, 'assets'> {
+  const { folders, thumbnails, currentThumbnailId, textPresets, backgroundPresets } =
+    useEditorStore.getState()
   return {
     format: 'thumbpon-project',
     version: 1,
     folders,
     thumbnails,
     currentThumbnailId,
-    assets: entries,
+    textPresets,
+    backgroundPresets,
   }
 }
 
-export async function downloadProject() {
-  const project = await buildProjectFile()
-  const blob = new Blob([JSON.stringify(project)], { type: 'application/json' })
+function download(blob: Blob, filename: string) {
   const url = URL.createObjectURL(blob)
   const link = document.createElement('a')
   link.href = url
-  link.download = `thumbpon-project-${new Date().toISOString().slice(0, 10)}.thumbpon.json`
+  link.download = filename
   link.click()
   URL.revokeObjectURL(url)
+}
+
+const stamp = () => new Date().toISOString().slice(0, 10)
+
+/**
+ * ZIP 形式で保存する。画像は元のバイト列のまま assets/ に入るので、
+ * base64 で埋め込む JSON 形式より約 1/1.33 のサイズで済む。
+ */
+async function downloadZip() {
+  const { assets } = useEditorStore.getState()
+  const files: Record<string, Uint8Array | [Uint8Array, { level: 0 | 6 }]> = {}
+  const entries: ProjectAssetEntry[] = []
+
+  for (const meta of assets) {
+    const blob = await getAssetBlob(meta.id)
+    if (!blob) continue
+    const path = `assets/${meta.id}${extensionFor(meta)}`
+    // 画像は既に圧縮済みなので再圧縮しない
+    files[path] = [new Uint8Array(await blob.arrayBuffer()), { level: 0 }]
+    entries.push({ meta, file: path })
+  }
+
+  const project: ProjectFile = { ...baseProject(), assets: entries }
+  files['project.json'] = [strToU8(JSON.stringify(project, null, 2)), { level: 6 }]
+
+  const zipped = zipSync(files)
+  download(new Blob([zipped as BlobPart], { type: 'application/zip' }), `thumbpon-${stamp()}.thumbpon.zip`)
+}
+
+/** JSON 単体で保存する。画像は dataURL として埋め込まれる */
+async function downloadJson() {
+  const { assets } = useEditorStore.getState()
+  const entries: ProjectAssetEntry[] = []
+  for (const meta of assets) {
+    const blob = await getAssetBlob(meta.id)
+    if (!blob) continue
+    entries.push({ meta, dataUrl: await blobToDataUrl(blob) })
+  }
+  const project: ProjectFile = { ...baseProject(), assets: entries }
+  download(
+    new Blob([JSON.stringify(project)], { type: 'application/json' }),
+    `thumbpon-${stamp()}.thumbpon.json`,
+  )
+}
+
+export async function downloadProject(format: ProjectFormat) {
+  if (format === 'zip') await downloadZip()
+  else await downloadJson()
 }
 
 function isProjectFile(value: unknown): value is ProjectFile {
@@ -56,20 +114,41 @@ function isProjectFile(value: unknown): value is ProjectFile {
 }
 
 export async function importProjectFile(file: File) {
-  const parsed: unknown = JSON.parse(await file.text())
-  if (!isProjectFile(parsed)) throw new Error('サムネぽんのプロジェクトファイルではありません')
+  const buffer = new Uint8Array(await file.arrayBuffer())
+  const isZip = buffer[0] === 0x50 && buffer[1] === 0x4b
+
+  let project: unknown
+  let unzipped: Record<string, Uint8Array> | null = null
+
+  if (isZip) {
+    unzipped = unzipSync(buffer)
+    const json = unzipped['project.json']
+    if (!json) throw new Error('project.json が見つかりません')
+    project = JSON.parse(strFromU8(json))
+  } else {
+    project = JSON.parse(strFromU8(buffer))
+  }
+
+  if (!isProjectFile(project)) throw new Error('サムネぽんのプロジェクトファイルではありません')
 
   const entries: { meta: AssetMeta; blob: Blob }[] = []
-  for (const asset of parsed.assets ?? []) {
-    entries.push({ meta: asset.meta, blob: await dataUrlToBlob(asset.dataUrl) })
+  for (const asset of project.assets ?? []) {
+    if (asset.file && unzipped) {
+      const bytes = unzipped[asset.file]
+      if (!bytes) continue
+      entries.push({ meta: asset.meta, blob: new Blob([bytes as BlobPart], { type: asset.meta.mime }) })
+    } else if (asset.dataUrl) {
+      entries.push({ meta: asset.meta, blob: await dataUrlToBlob(asset.dataUrl) })
+    }
   }
-  const assets = await replaceAssets(entries)
 
-  const thumbnails: Thumbnail[] = parsed.thumbnails
+  const assets = await replaceAssets(entries)
   useEditorStore.setState({ assets })
   useEditorStore.getState().loadProject({
-    folders: parsed.folders,
-    thumbnails,
-    currentThumbnailId: parsed.currentThumbnailId,
+    folders: project.folders,
+    thumbnails: project.thumbnails,
+    currentThumbnailId: project.currentThumbnailId,
+    textPresets: project.textPresets,
+    backgroundPresets: project.backgroundPresets,
   })
 }

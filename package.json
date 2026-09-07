@@ -10,6 +10,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "fflate": "^0.8.3",
     "html-to-image": "^1.11.13",
     "idb-keyval": "^6.2.2",
     "react": "^19.1.1",

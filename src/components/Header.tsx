@@ -1,14 +1,16 @@
 import { useRef, useState } from 'react'
 import { exportPng } from '../lib/exportImage'
-import { downloadProject, importProjectFile } from '../lib/projectFile'
+import { downloadProject, importProjectFile, type ProjectFormat } from '../lib/projectFile'
 import { useCurrentThumbnail, useEditorStore } from '../store/editorStore'
 import { CANVAS_PRESETS, CUSTOM_PRESET_ID } from '../types/editor'
+import { NumberInput } from './ui/Field'
 
 export default function Header() {
-  const { canvas } = useCurrentThumbnail()
+  const { canvas, name } = useCurrentThumbnail()
   const setCanvasSize = useEditorStore((s) => s.setCanvasSize)
   const [exporting, setExporting] = useState(false)
   const [customMode, setCustomMode] = useState(false)
+  const [saveFormat, setSaveFormat] = useState<ProjectFormat>('zip')
   const projectInputRef = useRef<HTMLInputElement>(null)
 
   const matched = CANVAS_PRESETS.find(
@@ -20,7 +22,7 @@ export default function Header() {
   const handleExport = async () => {
     setExporting(true)
     try {
-      await exportPng(canvas)
+      await exportPng(canvas, name)
     } catch (error) {
       console.error(error)
       window.alert(`書き出しに失敗しました\n${error instanceof Error ? error.message : error}`)
@@ -76,31 +78,40 @@ export default function Header() {
 
         {showCustom && (
           <div className="flex items-center gap-1 text-xs text-ink-sub">
-            <input
-              type="number"
-              min={1}
-              className="w-20 rounded-md border border-line px-2 py-1.5 text-xs outline-none focus:border-accent"
-              value={canvas.width}
-              onChange={(e) =>
-                setCanvasSize({ width: Math.max(1, Number(e.target.value) || 1), height: canvas.height })
-              }
-            />
+            <div className="w-20">
+              <NumberInput
+                value={canvas.width}
+                min={1}
+                onChange={(width) => setCanvasSize({ width, height: canvas.height })}
+              />
+            </div>
             ×
-            <input
-              type="number"
-              min={1}
-              className="w-20 rounded-md border border-line px-2 py-1.5 text-xs outline-none focus:border-accent"
-              value={canvas.height}
-              onChange={(e) =>
-                setCanvasSize({ width: canvas.width, height: Math.max(1, Number(e.target.value) || 1) })
-              }
-            />
+            <div className="w-20">
+              <NumberInput
+                value={canvas.height}
+                min={1}
+                onChange={(height) => setCanvasSize({ width: canvas.width, height })}
+              />
+            </div>
           </div>
         )}
 
         <div className="mx-1 h-5 w-px bg-line" />
 
-        <button type="button" className={buttonClass} onClick={() => void downloadProject()}>
+        <select
+          className="cursor-pointer rounded-md border border-line bg-white px-2 py-1.5 text-xs outline-none focus:border-accent"
+          value={saveFormat}
+          onChange={(e) => setSaveFormat(e.target.value as ProjectFormat)}
+          title="ZIPは画像を画像ファイルのまま格納するので軽い"
+        >
+          <option value="zip">ZIP</option>
+          <option value="json">JSON</option>
+        </select>
+        <button
+          type="button"
+          className={buttonClass}
+          onClick={() => void downloadProject(saveFormat)}
+        >
           保存
         </button>
         <button
@@ -113,7 +124,7 @@ export default function Header() {
         <input
           ref={projectInputRef}
           type="file"
-          accept=".json,application/json"
+          accept=".json,.zip,application/json,application/zip"
           hidden
           onChange={(event) => {
             void handleImport(event.target.files?.[0])

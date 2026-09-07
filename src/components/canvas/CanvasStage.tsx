@@ -15,6 +15,8 @@ export default function CanvasStage() {
   const select = useEditorStore((s) => s.select)
   const addImageLayer = useEditorStore((s) => s.addImageLayer)
   const addAssetFiles = useEditorStore((s) => s.addAssetFiles)
+  const snapEnabled = useEditorStore((s) => s.snapEnabled)
+  const setSnapEnabled = useEditorStore((s) => s.setSnapEnabled)
 
   useEffect(() => {
     const element = stageRef.current
@@ -110,8 +112,22 @@ export default function CanvasStage() {
         <div className="pointer-events-none absolute inset-3 rounded-lg border-2 border-dashed border-accent bg-accent-soft/40" />
       )}
 
-      <div className="pointer-events-none absolute bottom-3 right-4 text-[11px] text-ink-sub">
-        {canvas.width} × {canvas.height} ・ {Math.round(scale * 100)}%
+      <div className="absolute bottom-3 right-4 flex items-center gap-3 text-[11px] text-ink-sub">
+        <button
+          type="button"
+          onClick={() => setSnapEnabled(!snapEnabled)}
+          title="他のレイヤーやキャンバス中央に吸着する（Altを押しながらドラッグで一時的に無効）"
+          className={`rounded-md border px-2 py-1 transition ${
+            snapEnabled
+              ? 'border-accent bg-accent-soft text-accent-hover'
+              : 'border-line bg-white hover:border-accent'
+          }`}
+        >
+          スナップ {snapEnabled ? 'ON' : 'OFF'}
+        </button>
+        <span className="pointer-events-none">
+          {canvas.width} × {canvas.height} ・ {Math.round(scale * 100)}%
+        </span>
       </div>
     </div>
   )

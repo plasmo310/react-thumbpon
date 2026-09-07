@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import type { ReactNode } from 'react'
 
 const inputBase =
@@ -12,6 +13,10 @@ export function Row({ label, children }: { label: string; children: ReactNode })
   )
 }
 
+/**
+ * 入力中は文字列のまま保持する。
+ * 「0を消して打ち直す」ができるよう、範囲の丸めはフォーカスが外れた時にだけ行う。
+ */
 export function NumberInput({
   value,
   onChange,
@@ -25,17 +30,34 @@ export function NumberInput({
   min?: number
   max?: number
 }) {
+  const [draft, setDraft] = useState<string | null>(null)
+  const safeValue = Number.isFinite(value) ? value : 0
+
   return (
     <input
       type="number"
       className={inputBase}
-      value={Number.isFinite(value) ? value : 0}
+      value={draft ?? String(safeValue)}
       step={step}
       min={min}
       max={max}
       onChange={(e) => {
-        const next = Number(e.target.value)
-        if (Number.isFinite(next)) onChange(next)
+        const text = e.target.value
+        setDraft(text)
+        // 入力途中でも数値として読めるならそのまま反映する（丸めはしない）
+        const next = Number(text)
+        if (text.trim() !== '' && Number.isFinite(next)) onChange(next)
+      }}
+      onBlur={() => {
+        if (draft === null) return
+        const next = Number(draft)
+        if (draft.trim() !== '' && Number.isFinite(next)) {
+          let fixed = next
+          if (min !== undefined) fixed = Math.max(min, fixed)
+          if (max !== undefined) fixed = Math.min(max, fixed)
+          if (fixed !== safeValue) onChange(fixed)
+        }
+        setDraft(null)
       }}
     />
   )

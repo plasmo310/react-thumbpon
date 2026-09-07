@@ -7,6 +7,8 @@ import { BACKGROUND_ID, type Background } from '../../types/editor'
 import LayerView from './LayerView'
 import SelectionOverlay from './SelectionOverlay'
 
+const GUIDE_COLOR = '#FF3B8B'
+
 function backgroundStyle(background: Background): CSSProperties {
   if (background.type === 'gradient') {
     return {
@@ -31,6 +33,7 @@ export default function CanvasSurface({ scale }: { scale: number }) {
   const surfaceRef = useRef<HTMLDivElement>(null)
   const { canvas, background, layers } = useCurrentThumbnail()
   const select = useEditorStore((s) => s.select)
+  const guides = useEditorStore((s) => s.guides)
 
   useEffect(() => {
     registerSurface(surfaceRef.current)
@@ -56,6 +59,37 @@ export default function CanvasSurface({ scale }: { scale: number }) {
         <LayerView key={layer.id} layer={layer} scale={scale} />
       ))}
       <SelectionOverlay scale={scale} />
+
+      {guides.x.map((x) => (
+        <div
+          key={`gx-${x}`}
+          data-export-ignore="true"
+          style={{
+            position: 'absolute',
+            left: x,
+            top: 0,
+            height: canvas.height,
+            width: Math.max(1, 1 / scale),
+            background: GUIDE_COLOR,
+            pointerEvents: 'none',
+          }}
+        />
+      ))}
+      {guides.y.map((y) => (
+        <div
+          key={`gy-${y}`}
+          data-export-ignore="true"
+          style={{
+            position: 'absolute',
+            top: y,
+            left: 0,
+            width: canvas.width,
+            height: Math.max(1, 1 / scale),
+            background: GUIDE_COLOR,
+            pointerEvents: 'none',
+          }}
+        />
+      ))}
     </div>
   )
 }
