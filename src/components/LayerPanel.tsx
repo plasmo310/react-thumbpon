@@ -1,9 +1,30 @@
-import { useEditorStore } from '../store/editorStore'
+import { useState } from 'react'
+import { useCurrentThumbnail, useEditorStore } from '../store/editorStore'
 import { BACKGROUND_ID, type Layer } from '../types/editor'
 import { BackgroundProperties, LayerProperties } from './PropertiesPanel'
 import { IconButton } from './ui/Field'
 
-function LayerRow({ layer, index, total }: { layer: Layer; index: number; total: number }) {
+const LAYER_DND_TYPE = 'application/x-thumbpon-layer'
+
+type DropMark = { index: number; position: 'before' | 'after' } | null
+
+function LayerRow({
+  layer,
+  index,
+  total,
+  dropMark,
+  onDragStart,
+  onDragOver,
+  onDrop,
+}: {
+  layer: Layer
+  index: number
+  total: number
+  dropMark: DropMark
+  onDragStart: (index: number) => void
+  onDragOver: (index: number, event: React.DragEvent) => void
+  onDrop: () => void
+}) {
   const selectedId = useEditorStore((s) => s.selectedId)
   const select = useEditorStore((s) => s.select)
   const updateLayer = useEditorStore((s) => s.updateLayer)
@@ -12,12 +33,27 @@ function LayerRow({ layer, index, total }: { layer: Layer; index: number; total:
   const moveLayer = useEditorStore((s) => s.moveLayer)
 
   const selected = selectedId === layer.id
+  const markBefore = dropMark?.index === index && dropMark.position === 'before'
+  const markAfter = dropMark?.index === index && dropMark.position === 'after'
 
   return (
     <li
       className={`overflow-hidden rounded-md border transition ${
         selected ? 'border-accent bg-accent-soft' : 'border-transparent bg-white hover:bg-app'
+      } ${markBefore ? 'border-t-2 border-t-accent' : ''} ${
+        markAfter ? 'border-b-2 border-b-accent' : ''
       }`}
+      draggable
+      onDragStart={(event) => {
+        event.dataTransfer.setData(LAYER_DND_TYPE, String(index))
+        event.dataTransfer.effectAllowed = 'move'
+        onDragStart(index)
+      }}
+      onDragOver={(event) => onDragOver(index, event)}
+      onDrop={(event) => {
+        event.preventDefault()
+        onDrop()
+      }}
     >
       {/* 行内にボタンを含むため button ではなく div にする */}
       <div
@@ -27,7 +63,7 @@ function LayerRow({ layer, index, total }: { layer: Layer; index: number; total:
         onKeyDown={(e) => {
           if (e.key === 'Enter' || e.key === ' ') select(layer.id)
         }}
-        className="flex w-full cursor-pointer items-center gap-2 px-2 py-1.5 text-left"
+        className="flex w-full cursor-grab items-center gap-2 px-2 py-1.5 text-left"
       >
         <span
           className={`flex h-5 w-5 shrink-0 items-center justify-center rounded text-[10px] font-bold ${
@@ -62,14 +98,14 @@ function LayerRow({ layer, index, total }: { layer: Layer; index: number; total:
       {selected && (
         <>
           <div className="flex items-center gap-1 border-t border-line bg-app px-2 py-1">
+            <IconButton title="背面へ" onClick={() => moveLayer(layer.id, -1)} active={index > 0}>
+              ↑
+            </IconButton>
             <IconButton
               title="前面へ"
               onClick={() => moveLayer(layer.id, 1)}
               active={index < total - 1}
             >
-              ↑
-            </IconButton>
-            <IconButton title="背面へ" onClick={() => moveLayer(layer.id, -1)} active={index > 0}>
               ↓
             </IconButton>
             <IconButton title="複製" onClick={() => duplicateLayer(layer.id)}>
@@ -88,17 +124,41 @@ function LayerRow({ layer, index, total }: { layer: Layer; index: number; total:
 }
 
 export default function LayerPanel() {
-  const layers = useEditorStore((s) => s.layers)
+  const { layers } = useCurrentThumbnail()
   const selectedId = useEditorStore((s) => s.selectedId)
   const select = useEditorStore((s) => s.select)
   const addTextLayer = useEditorStore((s) => s.addTextLayer)
+  const reorderLayer = useEditorStore((s) => s.reorderLayer)
+
+  const [dragIndex, setDragIndex] = useState<number | null>(null)
+  const [dropMark, setDropMark] = useState<DropMark>(null)
 
   const backgroundSelected = selectedId === BACKGROUND_ID
+
+  const handleDragOver = (index: number, event: React.DragEvent) => {
+    if (!event.dataTransfer.types.includes(LAYER_DND_TYPE)) return
+    event.preventDefault()
+    const rect = event.currentTarget.getBoundingClientRect()
+    const after = event.clientY > rect.top + rect.height / 2
+    setDropMark({ index, position: after ? 'after' : 'before' })
+  }
+
+  const handleDrop = () => {
+    if (dragIndex !== null && dropMark) {
+      const insertIndex = dropMark.position === 'after' ? dropMark.index + 1 : dropMark.index
+      reorderLayer(dragIndex, insertIndex)
+    }
+    setDragIndex(null)
+    setDropMark(null)
+  }
 
   return (
     <section className="flex min-h-0 flex-1 flex-col">
       <div className="flex h-10 shrink-0 items-center justify-between border-b border-line px-3">
-        <h2 className="text-xs font-bold">レイヤー</h2>
+        <h2 className="text-xs font-bold">
+          レイヤー
+          <span className="ml-2 font-normal text-[10px] text-ink-sub">下が前面</span>
+        </h2>
         <button
           type="button"
           onClick={addTextLayer}
@@ -108,26 +168,23 @@ export default function LayerPanel() {
         </button>
       </div>
 
-      <div className="min-h-0 flex-1 overflow-y-auto p-2">
+      <div
+        className="min-h-0 flex-1 overflow-y-auto p-2"
+        onDragEnd={() => {
+          setDragIndex(null)
+          setDropMark(null)
+        }}
+      >
         {layers.length === 0 && (
           <p className="px-1 py-6 text-center text-[11px] leading-relaxed text-ink-sub">
-            素材をキャンバスにドラッグするか
+            画像をキャンバスにドラッグするか
             <br />
             「＋ テキスト」から追加してください
           </p>
         )}
-        <ul className="flex flex-col gap-1">
-          {/* 配列の末尾が最前面なので、表示は逆順にする */}
-          {layers
-            .map((layer, index) => ({ layer, index }))
-            .reverse()
-            .map(({ layer, index }) => (
-              <LayerRow key={layer.id} layer={layer} index={index} total={layers.length} />
-            ))}
-        </ul>
 
         <div
-          className={`mt-1 overflow-hidden rounded-md border transition ${
+          className={`mb-1 overflow-hidden rounded-md border transition ${
             backgroundSelected ? 'border-accent bg-accent-soft' : 'border-transparent bg-white'
           }`}
         >
@@ -143,6 +200,23 @@ export default function LayerPanel() {
           </button>
           {backgroundSelected && <BackgroundProperties />}
         </div>
+
+        {/* 配列の末尾が最前面。一覧も配列順に並べるので「下が前面」になる */}
+        <ul className="flex flex-col gap-1">
+          {layers.map((layer, index) => (
+            <LayerRow
+              key={layer.id}
+              layer={layer}
+              index={index}
+              total={layers.length}
+              dropMark={dropMark}
+              onDragStart={setDragIndex}
+              onDragOver={handleDragOver}
+              onDrop={handleDrop}
+            />
+          ))}
+        </ul>
+
       </div>
     </section>
   )

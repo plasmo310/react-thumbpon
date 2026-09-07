@@ -25,7 +25,7 @@ export default function AssetPanel() {
 
   return (
     <section
-      className={`flex h-[42%] shrink-0 flex-col border-t transition ${
+      className={`flex h-[26%] shrink-0 flex-col border-t transition ${
         dragOver ? 'border-accent bg-accent-soft' : 'border-line'
       }`}
       onDragOver={(event) => {

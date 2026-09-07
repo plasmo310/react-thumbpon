@@ -1,16 +1,21 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { exportPng } from '../lib/exportImage'
-import { useEditorStore } from '../store/editorStore'
-import { CANVAS_PRESETS } from '../types/editor'
+import { downloadProject, importProjectFile } from '../lib/projectFile'
+import { useCurrentThumbnail, useEditorStore } from '../store/editorStore'
+import { CANVAS_PRESETS, CUSTOM_PRESET_ID } from '../types/editor'
 
 export default function Header() {
-  const canvas = useEditorStore((s) => s.canvas)
+  const { canvas } = useCurrentThumbnail()
   const setCanvasSize = useEditorStore((s) => s.setCanvasSize)
   const [exporting, setExporting] = useState(false)
+  const [customMode, setCustomMode] = useState(false)
+  const projectInputRef = useRef<HTMLInputElement>(null)
 
-  const currentPreset =
-    CANVAS_PRESETS.find((p) => p.width === canvas.width && p.height === canvas.height) ??
-    CANVAS_PRESETS[0]
+  const matched = CANVAS_PRESETS.find(
+    (p) => p.width === canvas.width && p.height === canvas.height,
+  )
+  const presetValue = matched && !customMode ? matched.id : CUSTOM_PRESET_ID
+  const showCustom = presetValue === CUSTOM_PRESET_ID
 
   const handleExport = async () => {
     setExporting(true)
@@ -18,26 +23,47 @@ export default function Header() {
       await exportPng(canvas)
     } catch (error) {
       console.error(error)
-      window.alert('書き出しに失敗しました')
+      window.alert(`書き出しに失敗しました\n${error instanceof Error ? error.message : error}`)
     } finally {
       setExporting(false)
     }
   }
 
+  const handleImport = async (file: File | undefined) => {
+    if (!file) return
+    if (!window.confirm('現在の内容を破棄してプロジェクトを読み込みます。よろしいですか？')) return
+    try {
+      await importProjectFile(file)
+    } catch (error) {
+      console.error(error)
+      window.alert(`読み込みに失敗しました\n${error instanceof Error ? error.message : error}`)
+    }
+  }
+
+  const buttonClass =
+    'rounded-md border border-line px-3 py-1.5 text-xs text-ink-sub transition hover:border-accent hover:text-accent'
+
   return (
     <header className="flex h-14 shrink-0 items-center justify-between border-b border-line bg-panel px-5">
       <div className="flex items-baseline gap-2">
-        <h1 className="text-base font-bold tracking-wide">サムネぽん</h1>
+        <h1 className="text-base font-bold tracking-wide">サムネぽん！</h1>
         <span className="text-[11px] text-ink-sub">ThumbPon</span>
       </div>
 
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2">
         <select
           className="cursor-pointer rounded-md border border-line bg-white px-3 py-1.5 text-xs outline-none focus:border-accent"
-          value={currentPreset.id}
+          value={presetValue}
           onChange={(e) => {
+            if (e.target.value === CUSTOM_PRESET_ID) {
+              setCustomMode(true)
+              return
+            }
             const preset = CANVAS_PRESETS.find((p) => p.id === e.target.value)
-            if (preset) setCanvasSize({ width: preset.width, height: preset.height })
+            if (preset) {
+              setCustomMode(false)
+              setCanvasSize({ width: preset.width, height: preset.height })
+            }
           }}
         >
           {CANVAS_PRESETS.map((preset) => (
@@ -45,7 +71,55 @@ export default function Header() {
               {preset.label}
             </option>
           ))}
+          <option value={CUSTOM_PRESET_ID}>カスタム</option>
         </select>
+
+        {showCustom && (
+          <div className="flex items-center gap-1 text-xs text-ink-sub">
+            <input
+              type="number"
+              min={1}
+              className="w-20 rounded-md border border-line px-2 py-1.5 text-xs outline-none focus:border-accent"
+              value={canvas.width}
+              onChange={(e) =>
+                setCanvasSize({ width: Math.max(1, Number(e.target.value) || 1), height: canvas.height })
+              }
+            />
+            ×
+            <input
+              type="number"
+              min={1}
+              className="w-20 rounded-md border border-line px-2 py-1.5 text-xs outline-none focus:border-accent"
+              value={canvas.height}
+              onChange={(e) =>
+                setCanvasSize({ width: canvas.width, height: Math.max(1, Number(e.target.value) || 1) })
+              }
+            />
+          </div>
+        )}
+
+        <div className="mx-1 h-5 w-px bg-line" />
+
+        <button type="button" className={buttonClass} onClick={() => void downloadProject()}>
+          保存
+        </button>
+        <button
+          type="button"
+          className={buttonClass}
+          onClick={() => projectInputRef.current?.click()}
+        >
+          読込
+        </button>
+        <input
+          ref={projectInputRef}
+          type="file"
+          accept=".json,application/json"
+          hidden
+          onChange={(event) => {
+            void handleImport(event.target.files?.[0])
+            event.target.value = ''
+          }}
+        />
 
         <button
           type="button"

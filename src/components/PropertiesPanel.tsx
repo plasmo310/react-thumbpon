@@ -1,6 +1,7 @@
-import { useEditorStore } from '../store/editorStore'
+import { useRef, useState } from 'react'
+import { addFontFiles, canQueryLocalFonts, queryLocalFonts } from '../lib/fontStore'
+import { useCurrentThumbnail, useEditorStore } from '../store/editorStore'
 import {
-  FONT_OPTIONS,
   FONT_WEIGHTS,
   type BackgroundFit,
   type BackgroundType,
@@ -20,8 +21,81 @@ import {
 
 const wrapper = 'flex flex-col gap-2 border-t border-line bg-app px-3 py-3'
 
+/** ローカルフォントの読み込み（一覧取得 / フォントファイル追加） */
+function FontLoader() {
+  const addFonts = useEditorStore((s) => s.addFonts)
+  const inputRef = useRef<HTMLInputElement>(null)
+  const [busy, setBusy] = useState(false)
+
+  const loadLocalFonts = async () => {
+    setBusy(true)
+    try {
+      addFonts(await queryLocalFonts())
+    } catch (error) {
+      console.error(error)
+      window.alert(
+        `ローカルフォントを読み込めませんでした\n${error instanceof Error ? error.message : error}`,
+      )
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const loadFontFiles = async (files: FileList | null) => {
+    if (!files || files.length === 0) return
+    setBusy(true)
+    try {
+      const added = await addFontFiles(Array.from(files))
+      if (added.length === 0) window.alert('追加できるフォントがありませんでした')
+      else addFonts(added)
+    } catch (error) {
+      console.error(error)
+      window.alert(
+        `フォントを読み込めませんでした\n${error instanceof Error ? error.message : error}`,
+      )
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  return (
+    <div className="flex gap-1">
+      {canQueryLocalFonts() && (
+        <button
+          type="button"
+          disabled={busy}
+          onClick={() => void loadLocalFonts()}
+          className="flex-1 rounded-md border border-line px-2 py-1 text-[11px] text-ink-sub transition hover:border-accent hover:text-accent disabled:opacity-50"
+        >
+          PCのフォントを読み込む
+        </button>
+      )}
+      <button
+        type="button"
+        disabled={busy}
+        onClick={() => inputRef.current?.click()}
+        className="flex-1 rounded-md border border-line px-2 py-1 text-[11px] text-ink-sub transition hover:border-accent hover:text-accent disabled:opacity-50"
+      >
+        フォントファイル追加
+      </button>
+      <input
+        ref={inputRef}
+        type="file"
+        accept=".ttf,.otf,.woff,.woff2,font/*"
+        multiple
+        hidden
+        onChange={(event) => {
+          void loadFontFiles(event.target.files)
+          event.target.value = ''
+        }}
+      />
+    </div>
+  )
+}
+
 export function LayerProperties({ layer }: { layer: Layer }) {
   const updateLayer = useEditorStore((s) => s.updateLayer)
+  const fonts = useEditorStore((s) => s.fonts)
   const patch = (values: Partial<Layer>) => updateLayer(layer.id, values)
 
   return (
@@ -81,10 +155,11 @@ export function LayerProperties({ layer }: { layer: Layer }) {
           <Row label="フォント">
             <Select
               value={layer.fontFamily}
-              options={FONT_OPTIONS.map((f) => ({ label: f.label, value: f.value }))}
+              options={fonts.map((f) => ({ label: f.label, value: f.family }))}
               onChange={(fontFamily) => updateLayer(layer.id, { fontFamily })}
             />
           </Row>
+          <FontLoader />
           <div className="flex gap-2">
             <Row label="サイズ">
               <NumberInput
@@ -142,6 +217,22 @@ export function LayerProperties({ layer }: { layer: Layer }) {
           <Row label="色">
             <ColorInput value={layer.color} onChange={(color) => updateLayer(layer.id, { color })} />
           </Row>
+          <Row label="縁取り">
+            <NumberInput
+              value={layer.strokeWidth}
+              min={0}
+              step={0.5}
+              onChange={(strokeWidth) => updateLayer(layer.id, { strokeWidth })}
+            />
+          </Row>
+          {layer.strokeWidth > 0 && (
+            <Row label="縁の色">
+              <ColorInput
+                value={layer.strokeColor}
+                onChange={(strokeColor) => updateLayer(layer.id, { strokeColor })}
+              />
+            </Row>
+          )}
         </>
       )}
     </div>
@@ -149,7 +240,7 @@ export function LayerProperties({ layer }: { layer: Layer }) {
 }
 
 export function BackgroundProperties() {
-  const background = useEditorStore((s) => s.background)
+  const { background } = useCurrentThumbnail()
   const setBackground = useEditorStore((s) => s.setBackground)
   const assets = useEditorStore((s) => s.assets)
 

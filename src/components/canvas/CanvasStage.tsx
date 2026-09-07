@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { useEditorStore } from '../../store/editorStore'
+import { useCurrentThumbnail, useEditorStore } from '../../store/editorStore'
 import { ASSET_DND_TYPE } from '../AssetPanel'
 import CanvasSurface from './CanvasSurface'
 
@@ -9,10 +9,12 @@ export default function CanvasStage() {
   const stageRef = useRef<HTMLDivElement>(null)
   const surfaceWrapRef = useRef<HTMLDivElement>(null)
   const [scale, setScale] = useState(1)
+  const [dropActive, setDropActive] = useState(false)
 
-  const canvas = useEditorStore((s) => s.canvas)
+  const { canvas } = useCurrentThumbnail()
   const select = useEditorStore((s) => s.select)
   const addImageLayer = useEditorStore((s) => s.addImageLayer)
+  const addAssetFiles = useEditorStore((s) => s.addAssetFiles)
 
   useEffect(() => {
     const element = stageRef.current
@@ -31,21 +33,53 @@ export default function CanvasStage() {
     return () => observer.disconnect()
   }, [canvas.width, canvas.height])
 
-  const handleDrop = useCallback(
-    (event: React.DragEvent) => {
-      const assetId = event.dataTransfer.getData(ASSET_DND_TYPE)
-      if (!assetId) return
-      event.preventDefault()
+  /** ドロップ位置をキャンバス実寸座標に変換する */
+  const toCanvasPoint = useCallback(
+    (clientX: number, clientY: number) => {
       const wrap = surfaceWrapRef.current
-      if (!wrap) return
+      if (!wrap) return undefined
       const rect = wrap.getBoundingClientRect()
-      addImageLayer(assetId, {
-        x: (event.clientX - rect.left) / scale,
-        y: (event.clientY - rect.top) / scale,
-      })
+      return { x: (clientX - rect.left) / scale, y: (clientY - rect.top) / scale }
     },
-    [addImageLayer, scale],
+    [scale],
   )
+
+  const handleDrop = useCallback(
+    async (event: React.DragEvent) => {
+      const { dataTransfer } = event
+      const point = toCanvasPoint(event.clientX, event.clientY)
+      setDropActive(false)
+
+      // 素材パネルからのドラッグ
+      const assetId = dataTransfer.getData(ASSET_DND_TYPE)
+      if (assetId) {
+        event.preventDefault()
+        addImageLayer(assetId, point)
+        return
+      }
+
+      // OSからの画像ファイルのドロップ
+      const files = Array.from(dataTransfer.files).filter((f) => f.type.startsWith('image/'))
+      if (files.length === 0) return
+      event.preventDefault()
+      try {
+        const added = await addAssetFiles(files)
+        added.forEach((asset, index) =>
+          addImageLayer(
+            asset.id,
+            point ? { x: point.x + index * 24, y: point.y + index * 24 } : undefined,
+          ),
+        )
+      } catch (error) {
+        console.error(error)
+        window.alert(`画像の追加に失敗しました\n${error instanceof Error ? error.message : error}`)
+      }
+    },
+    [addAssetFiles, addImageLayer, toCanvasPoint],
+  )
+
+  const acceptsDrag = (event: React.DragEvent) =>
+    event.dataTransfer.types.includes(ASSET_DND_TYPE) || event.dataTransfer.types.includes('Files')
 
   return (
     <div
@@ -55,9 +89,14 @@ export default function CanvasStage() {
         if (event.target === event.currentTarget) select(null)
       }}
       onDragOver={(event) => {
-        if (event.dataTransfer.types.includes(ASSET_DND_TYPE)) event.preventDefault()
+        if (!acceptsDrag(event)) return
+        event.preventDefault()
+        setDropActive(true)
       }}
-      onDrop={handleDrop}
+      onDragLeave={(event) => {
+        if (event.target === event.currentTarget) setDropActive(false)
+      }}
+      onDrop={(event) => void handleDrop(event)}
     >
       <div
         ref={surfaceWrapRef}
@@ -66,6 +105,11 @@ export default function CanvasStage() {
       >
         <CanvasSurface scale={scale} />
       </div>
+
+      {dropActive && (
+        <div className="pointer-events-none absolute inset-3 rounded-lg border-2 border-dashed border-accent bg-accent-soft/40" />
+      )}
+
       <div className="pointer-events-none absolute bottom-3 right-4 text-[11px] text-ink-sub">
         {canvas.width} × {canvas.height} ・ {Math.round(scale * 100)}%
       </div>

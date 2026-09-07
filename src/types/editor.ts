@@ -7,6 +7,8 @@ export const CANVAS_PRESETS: CanvasPreset[] = [
   { id: 'svga', label: '800 × 600', width: 800, height: 600 },
 ]
 
+export const CUSTOM_PRESET_ID = 'custom'
+
 export type TextAlign = 'left' | 'center' | 'right'
 
 export type LayerBase = {
@@ -42,6 +44,9 @@ export type TextLayer = LayerBase & {
   letterSpacing: number
   lineHeight: number
   color: string
+  /** 縁取り。0で無効 */
+  strokeWidth: number
+  strokeColor: string
 }
 
 export type Layer = ImageLayer | TextLayer
@@ -70,17 +75,50 @@ export type AssetMeta = {
   createdAt: number
 }
 
+/** 1枚のサムネイル。キャンバスサイズもサムネイルごとに持つ */
+export type Thumbnail = {
+  id: string
+  name: string
+  folderId: string | null
+  canvas: CanvasSize
+  background: Background
+  layers: Layer[]
+}
+
+export type Folder = { id: string; name: string; collapsed: boolean }
+
+export type FontSource = 'builtin' | 'local' | 'file'
+export type FontEntry = { id: string; family: string; label: string; source: FontSource }
+
+/** プロジェクトファイル(.thumbpon.json)の中身 */
+export type ProjectFile = {
+  format: 'thumbpon-project'
+  version: 1
+  folders: Folder[]
+  thumbnails: Thumbnail[]
+  currentThumbnailId: string | null
+  assets: { meta: AssetMeta; dataUrl: string }[]
+}
+
 /** 背景行を選択状態として表すための予約 id */
 export const BACKGROUND_ID = '__background__'
 
-export type FontOption = { label: string; value: string }
-
-export const FONT_OPTIONS: FontOption[] = [
-  { label: 'Noto Sans JP', value: '"Noto Sans JP", sans-serif' },
-  { label: 'ゴシック体', value: '"Hiragino Kaku Gothic ProN", "Yu Gothic", "Meiryo", sans-serif' },
-  { label: '明朝体', value: '"Hiragino Mincho ProN", "Yu Mincho", "MS Mincho", serif' },
-  { label: 'System UI', value: 'system-ui, sans-serif' },
-  { label: 'Monospace', value: 'ui-monospace, "Consolas", monospace' },
+export const BUILTIN_FONTS: FontEntry[] = [
+  { id: 'noto', family: '"Noto Sans JP", sans-serif', label: 'Noto Sans JP', source: 'builtin' },
+  {
+    id: 'gothic',
+    family: '"Hiragino Kaku Gothic ProN", "Yu Gothic", "Meiryo", sans-serif',
+    label: 'ゴシック体',
+    source: 'builtin',
+  },
+  {
+    id: 'mincho',
+    family: '"Hiragino Mincho ProN", "Yu Mincho", "MS Mincho", serif',
+    label: '明朝体',
+    source: 'builtin',
+  },
+  { id: 'system', family: 'system-ui, sans-serif', label: 'System UI', source: 'builtin' },
+  { id: 'mono', family: 'ui-monospace, "Consolas", monospace', label: 'Monospace', source: 'builtin' },
 ]
 
 export const FONT_WEIGHTS = [400, 700, 900]

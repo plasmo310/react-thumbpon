@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react'
 import type { CSSProperties } from 'react'
 import { getAssetUrl } from '../../lib/assetStore'
 import { registerSurface } from '../../lib/exportImage'
-import { useEditorStore } from '../../store/editorStore'
+import { useCurrentThumbnail, useEditorStore } from '../../store/editorStore'
 import { BACKGROUND_ID, type Background } from '../../types/editor'
 import LayerView from './LayerView'
 import SelectionOverlay from './SelectionOverlay'
@@ -29,9 +29,7 @@ function backgroundStyle(background: Background): CSSProperties {
 
 export default function CanvasSurface({ scale }: { scale: number }) {
   const surfaceRef = useRef<HTMLDivElement>(null)
-  const canvas = useEditorStore((s) => s.canvas)
-  const background = useEditorStore((s) => s.background)
-  const layers = useEditorStore((s) => s.layers)
+  const { canvas, background, layers } = useCurrentThumbnail()
   const select = useEditorStore((s) => s.select)
 
   useEffect(() => {

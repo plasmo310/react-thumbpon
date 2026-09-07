@@ -1,12 +1,7 @@
-import { createStore, del, get, set } from 'idb-keyval'
+import { del, get, set } from 'idb-keyval'
+import { kv } from './db'
 import type { AssetMeta } from '../types/editor'
 
-/**
- * idb-keyval の createStore は「DBを version 1 で開いて upgrade 時に objectStore を作る」ため、
- * 同じDB名で複数回呼ぶと2つ目の objectStore が作られず NotFoundError になる。
- * そのため objectStore は1つだけにして、キーの接頭辞で blob とメタを分ける。
- */
-const store = createStore('thumbpon-assets', 'kv')
 const META_KEY = 'meta:list'
 const blobKey = (id: string) => `blob:${id}`
 
@@ -25,30 +20,50 @@ function cacheUrl(id: string, blob: Blob) {
 }
 
 export async function loadAssets(): Promise<AssetMeta[]> {
-  const metas = (await get<AssetMeta[]>(META_KEY, store)) ?? []
+  const metas = (await get<AssetMeta[]>(META_KEY, kv)) ?? []
   const available: AssetMeta[] = []
   for (const meta of metas) {
-    const blob = await get<Blob>(blobKey(meta.id), store)
+    const blob = await get<Blob>(blobKey(meta.id), kv)
     if (!blob) continue
     cacheUrl(meta.id, blob)
     available.push(meta)
   }
-  if (available.length !== metas.length) await set(META_KEY, available, store)
+  if (available.length !== metas.length) await set(META_KEY, available, kv)
   return available
 }
 
 export async function saveAsset(meta: AssetMeta, blob: Blob, allMetas: AssetMeta[]) {
-  await set(blobKey(meta.id), blob, store)
-  await set(META_KEY, allMetas, store)
+  await set(blobKey(meta.id), blob, kv)
+  await set(META_KEY, allMetas, kv)
   cacheUrl(meta.id, blob)
 }
 
 export async function deleteAsset(id: string, remainingMetas: AssetMeta[]) {
-  await del(blobKey(id), store)
-  await set(META_KEY, remainingMetas, store)
+  await del(blobKey(id), kv)
+  await set(META_KEY, remainingMetas, kv)
   const url = urlCache.get(id)
   if (url) URL.revokeObjectURL(url)
   urlCache.delete(id)
+}
+
+export async function getAssetBlob(id: string): Promise<Blob | undefined> {
+  return get<Blob>(blobKey(id), kv)
+}
+
+/** プロジェクト読み込み時に素材をまるごと入れ替える */
+export async function replaceAssets(entries: { meta: AssetMeta; blob: Blob }[]) {
+  const previous = (await get<AssetMeta[]>(META_KEY, kv)) ?? []
+  for (const meta of previous) await del(blobKey(meta.id), kv)
+  for (const url of urlCache.values()) URL.revokeObjectURL(url)
+  urlCache.clear()
+
+  const metas = entries.map((e) => e.meta)
+  for (const entry of entries) {
+    await set(blobKey(entry.meta.id), entry.blob, kv)
+    cacheUrl(entry.meta.id, entry.blob)
+  }
+  await set(META_KEY, metas, kv)
+  return metas
 }
 
 /** 画像ファイルから自然サイズを読み取る */

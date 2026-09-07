@@ -83,6 +83,10 @@ export default function LayerView({ layer, scale }: { layer: Layer; scale: numbe
         lineHeight: layer.lineHeight,
         whiteSpace: 'pre-wrap',
         wordBreak: 'break-word',
+        // 縁取り。paint-order で文字の外側に描かせる
+        WebkitTextStrokeWidth: layer.strokeWidth > 0 ? `${layer.strokeWidth}px` : undefined,
+        WebkitTextStrokeColor: layer.strokeColor,
+        paintOrder: 'stroke fill',
       }}
       onPointerDown={handlePointerDown}
     >
