@@ -1,0 +1,129 @@
+@startuml package-dependencies
+' サムネぽん / ThumbPon — パッケージ単位の依存関係
+' src/ 配下の import から抽出したもの。さらに粗い全体像は layers.puml を参照
+' エイリアスに header / storage / node などの PlantUML 予約語を使わないこと
+' （行頭に来るとコマンドとして解釈され、その依存が黙って消える）
+
+title サムネぽん / ThumbPon — パッケージ依存関係
+
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName "Hiragino Sans"
+skinparam linetype ortho
+skinparam nodesep 25
+skinparam ranksep 55
+skinparam ArrowColor #9AA1A9
+skinparam ArrowFontColor #7A8088
+skinparam package {
+  BorderColor #B9C0C8
+  BackgroundColor #FAFBFC
+  FontColor #25282D
+  FontStyle bold
+}
+skinparam rectangle {
+  BorderColor #7A8088
+  BackgroundColor #FFFFFF
+  FontColor #25282D
+}
+
+package "app" {
+  rectangle "App.tsx / main.tsx" as cApp #FFF1EB
+}
+
+package "components" {
+  rectangle "header" as cHeader
+  rectangle "thumbnail" as cThumbnail
+  rectangle "layer" as cLayer
+  rectangle "asset" as cAsset
+  rectangle "canvas" as cCanvas
+  rectangle "properties" as cProperties
+  rectangle "ui" as cUi
+}
+
+package "services" {
+  rectangle "workspace / projectFile\nexportImage / shortcuts" as svc
+}
+
+package "store" {
+  rectangle "editorStore\nselectors / helpers" as stCore
+  rectangle "slices\nthumbnail / layer / asset\nfont / preset / ui" as stSlices
+}
+
+package "lib" {
+  rectangle "dom\npointerDrag / layerRect\ndnd / download / notify" as libDom
+  rectangle "storage\ndb / assetRepo / fontRepo" as libStorage
+  rectangle "core\ngeometry / snap / factory" as libCore
+}
+
+package "types" {
+  rectangle "thumbnail / layer / background\nasset / font / preset / project" as tp #F5F6F8
+}
+
+' --- app が組み立てる ---
+cApp -down-> cHeader
+cApp -down-> cThumbnail
+cApp -down-> cLayer
+cApp -down-> cAsset
+cApp -down-> cCanvas
+cApp -down-> svc
+
+' --- components 内 ---
+cLayer -> cProperties
+cHeader -down-> cUi
+cThumbnail -down-> cUi
+cLayer -down-> cUi
+cProperties -down-> cUi
+
+' --- components -> services ---
+cHeader -down-> svc : 保存 / 読込 / 書き出し
+cCanvas -down-> svc : 書き出し対象の登録
+
+' --- components -> store ---
+cHeader -down-> stCore
+cThumbnail -down-> stCore
+cLayer -down-> stCore
+cAsset -down-> stCore
+cCanvas -down-> stCore
+cProperties -down-> stCore
+
+' --- components -> lib ---
+cHeader -down-> libDom
+cThumbnail -down-> libDom
+cLayer -down-> libDom
+cAsset -down-> libDom
+cCanvas -down-> libDom
+cProperties -down-> libDom
+cAsset -down-> libStorage
+cCanvas -down-> libStorage
+cProperties -down-> libStorage
+cCanvas -down-> libCore
+cProperties -down-> libCore
+
+' --- services -> store / lib ---
+svc -down-> stCore
+svc -down-> libDom
+svc -down-> libStorage
+
+' --- store 内と store -> lib ---
+stCore -down-> stSlices
+stSlices -down-> libCore
+stSlices -down-> libStorage
+
+' --- lib 内 ---
+libDom -down-> libCore
+
+' --- types は全パッケージから参照される（矢印は省略） ---
+libCore -down-> tp
+libStorage -down-> tp
+
+legend left
+  **依存は一方向**：types <- lib <- store <- services <- components
+  ====
+  **types** はほとんどのパッケージから参照されるため矢印を省略している
+  （実際に参照していないのは **components/ui**・**components/asset**・**lib/dom** の3つだけ）
+  **lib は store を import しない。** store を使う処理は services に置く（循環するため）
+  **lib/core** は types 以外を import しない。DOMもブラウザAPIも触らないので node で直接検証できる
+  **components/ui** はどこにも依存しない汎用の入力部品
+endlegend
+
+@enduml

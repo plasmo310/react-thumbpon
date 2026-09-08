@@ -1,0 +1,50 @@
+@startuml layers
+' サムネぽん / ThumbPon — 層の依存ルール（最も粗い全体像）
+' パッケージ単位の詳細は package-dependencies.puml を参照
+' エイリアスに header / storage / node などの PlantUML 予約語を使わないこと
+' （行頭に来るとコマンドとして解釈され、その依存が黙って消える）
+
+title サムネぽん / ThumbPon — 層の依存ルール
+
+skinparam backgroundColor #FFFFFF
+skinparam shadowing false
+skinparam defaultFontName "Hiragino Sans"
+skinparam nodesep 20
+skinparam ranksep 45
+skinparam ArrowColor #9AA1A9
+skinparam rectangle {
+  BorderColor #B9C0C8
+  BackgroundColor #FFFFFF
+  FontColor #25282D
+}
+
+rectangle "**components**\n画面に出るもの\nheader / thumbnail / layer / asset\nproperties / canvas / ui" as lComponents #FFF1EB
+rectangle "**services**\nユーザー操作\nworkspace / projectFile / exportImage / shortcuts" as lServices
+rectangle "**store**\nZustand の状態と操作\nslices / helpers / selectors" as lStore
+rectangle "**lib**\n再利用できる道具\ncore / dom / storage" as lLib
+rectangle "**types**\n型と定数" as lTypes #F5F6F8
+
+lComponents -down-> lServices
+lComponents -down-> lStore
+lComponents -down-> lLib
+lComponents -down-> lTypes
+
+lServices -down-> lStore
+lServices -down-> lLib
+lServices -down-> lTypes
+
+lStore -down-> lLib
+lStore -down-> lTypes
+
+lLib -down-> lTypes
+
+note right of lComponents
+  依存は上から下への**一方向**のみ。
+  逆流させない。
+
+  **lib は store を import しない。**
+  store を使う処理は services に置く
+  （置かないと store <-> lib が循環する）。
+end note
+
+@enduml

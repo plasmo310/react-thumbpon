@@ -20,6 +20,7 @@ npm run build      # 型チェック + 本番ビルド（変更後はこれを�
 
 **第1階層＝役割（何に依存してよいか）、第2階層＝関心事（何を扱うか）**の2段で分ける。
 依存は `types → lib → store → services → components` の一方向のみ。逆流させない。
+図は [docs/uml/](docs/uml/)（`layers.puml` が層の全体像、`package-dependencies.puml` が詳細）。
 
 ```
 src/
