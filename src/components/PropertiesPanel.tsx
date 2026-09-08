@@ -8,7 +8,7 @@ import {
   type Layer,
   type TextAlign,
   type TextLayer,
-} from '../types/editor'
+} from '../types'
 import {
   ColorInput,
   IconButton,

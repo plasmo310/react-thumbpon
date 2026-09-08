@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useCurrentThumbnail, useEditorStore } from '../store/editorStore'
-import { BACKGROUND_ID, type Layer } from '../types/editor'
+import { BACKGROUND_ID, type Layer } from '../types'
 import { BackgroundProperties, LayerProperties } from './PropertiesPanel'
 import { IconButton } from './ui/Field'
 

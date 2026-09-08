@@ -17,7 +17,7 @@ import {
   type Thumbnail,
   type BackgroundPreset,
   TEXT_STYLE_KEYS,
-} from '../types/editor'
+} from '../types'
 import { deleteAsset, loadAssets, readImageSize, saveAsset } from '../lib/assetStore'
 import { fitInto } from '../lib/geometry'
 

@@ -1,5 +1,5 @@
 import { toPng } from 'html-to-image'
-import type { CanvasSize } from '../types/editor'
+import type { CanvasSize } from '../types'
 
 let surfaceElement: HTMLElement | null = null
 

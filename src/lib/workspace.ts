@@ -3,7 +3,7 @@ import { kv } from './db'
 import { loadAssets } from './assetStore'
 import { loadStoredFonts } from './fontStore'
 import { useEditorStore } from '../store/editorStore'
-import type { BackgroundPreset, Folder, TextPreset, Thumbnail } from '../types/editor'
+import type { BackgroundPreset, Folder, TextPreset, Thumbnail } from '../types'
 
 const WORKSPACE_KEY = 'project:current'
 

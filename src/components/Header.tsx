@@ -2,7 +2,7 @@ import { useRef, useState } from 'react'
 import { exportPng } from '../lib/exportImage'
 import { downloadProject, importProjectFile, type ProjectFormat } from '../lib/projectFile'
 import { useCurrentThumbnail, useEditorStore } from '../store/editorStore'
-import { CANVAS_PRESETS, CUSTOM_PRESET_ID } from '../types/editor'
+import { CANVAS_PRESETS, CUSTOM_PRESET_ID } from '../types'
 import { NumberInput } from './ui/Field'
 
 export default function Header() {

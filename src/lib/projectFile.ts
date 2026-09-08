@@ -1,7 +1,7 @@
 import { strFromU8, strToU8, unzipSync, zipSync } from 'fflate'
 import { getAssetBlob, replaceAssets } from './assetStore'
 import { useEditorStore } from '../store/editorStore'
-import type { AssetMeta, ProjectAssetEntry, ProjectFile } from '../types/editor'
+import type { AssetMeta, ProjectAssetEntry, ProjectFile } from '../types'
 
 export type ProjectFormat = 'zip' | 'json'
 

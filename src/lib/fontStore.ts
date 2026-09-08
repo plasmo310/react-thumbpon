@@ -1,6 +1,6 @@
 import { get, set } from 'idb-keyval'
 import { kv } from './db'
-import type { FontEntry } from '../types/editor'
+import type { FontEntry } from '../types'
 
 const FONT_LIST_KEY = 'font:list'
 const fontKey = (id: string) => `font:${id}`

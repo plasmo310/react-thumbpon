@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useEditorStore } from '../store/editorStore'
-import type { Thumbnail } from '../types/editor'
+import type { Thumbnail } from '../types'
 import { IconButton } from './ui/Field'
 
 const THUMBNAIL_DND_TYPE = 'application/x-thumbpon-thumbnail'

@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import { useEditorStore } from '../store/editorStore'
-import { BACKGROUND_ID } from '../types/editor'
+import { BACKGROUND_ID } from '../types'
 
 const EDITABLE = ['INPUT', 'TEXTAREA', 'SELECT']
 

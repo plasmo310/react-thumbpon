@@ -1,4 +1,4 @@
-import type { CanvasSize } from '../types/editor'
+import type { CanvasSize } from '../types'
 
 export type SnapRect = { x: number; y: number; width: number; height: number }
 

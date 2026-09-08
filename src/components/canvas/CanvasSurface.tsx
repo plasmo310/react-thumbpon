@@ -3,7 +3,7 @@ import type { CSSProperties } from 'react'
 import { getAssetUrl } from '../../lib/assetStore'
 import { registerSurface } from '../../lib/exportImage'
 import { useCurrentThumbnail, useEditorStore } from '../../store/editorStore'
-import { BACKGROUND_ID, type Background } from '../../types/editor'
+import { BACKGROUND_ID, type Background } from '../../types'
 import LayerView from './LayerView'
 import SelectionOverlay from './SelectionOverlay'
 

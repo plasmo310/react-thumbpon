@@ -3,7 +3,7 @@ import { getAssetUrl } from '../../lib/assetStore'
 import { startPointerDrag } from '../../lib/pointerDrag'
 import { collectLayerRects, snapPosition } from '../../lib/snap'
 import { useCurrentThumbnail, useEditorStore } from '../../store/editorStore'
-import type { Layer } from '../../types/editor'
+import type { Layer } from '../../types'
 
 /** 画面上でのスナップ距離(px) */
 const SNAP_THRESHOLD = 8
