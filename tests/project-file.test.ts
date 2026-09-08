@@ -8,6 +8,7 @@ vi.mock('../src/lib/dom/download', () => ({
   downloadDataUrl: () => {},
 }))
 
+import { zipSync, strToU8, unzipSync } from 'fflate'
 import { blobs, resetAssets, seedAsset } from './helpers/fakeAssetRepo'
 import { exportProjectFile, importProjectFile } from '../src/services/projectFile'
 import { useEditorStore } from '../src/store'
@@ -84,9 +85,9 @@ beforeEach(() => {
 })
 
 describe('exportProjectFile', () => {
-  it('拡張子 .thumbpon の ZIP として書き出す', async () => {
+  it('拡張子 .thumbpon.zip の ZIP として書き出す', async () => {
     await exportProjectFile()
-    expect(downloaded?.filename).toMatch(/^thumbpon-\d{4}-\d{2}-\d{2}\.thumbpon$/)
+    expect(downloaded?.filename).toMatch(/^thumbpon-\d{4}-\d{2}-\d{2}\.thumbpon\.zip$/)
     const head = new Uint8Array(await (downloaded as { blob: Blob }).blob.arrayBuffer())
     expect([head[0], head[1]]).toEqual([0x50, 0x4b])
   })
@@ -152,6 +153,30 @@ describe('往復', () => {
 })
 
 describe('importProjectFile', () => {
+  it('フォルダごと圧縮して中が一段深くなった ZIP も読める', async () => {
+    // OS の「フォルダを圧縮」は中身を「フォルダ名/」の下に入れる
+    useEditorStore.setState({ assets: [meta('a1')] })
+    seedAsset('a1', new Blob(['image-bytes']))
+    const flat = unzipSync(new Uint8Array(await (await exported()).arrayBuffer()))
+    const nested = zipSync(
+      Object.fromEntries(Object.entries(flat).map(([name, bytes]) => [`work/${name}`, bytes])),
+    )
+
+    useEditorStore.setState({ assets: [] })
+    resetAssets()
+    await importProjectFile(new File([nested as BlobPart], 'work.zip'))
+
+    expect(useEditorStore.getState().assets.map((a) => a.id)).toEqual(['a1'])
+    expect(await (blobs.get('a1') as Blob).text()).toBe('image-bytes')
+  })
+
+  it('project.json が無い ZIP は受け付けない', async () => {
+    const zip = zipSync({ 'readme.txt': strToU8('hello') })
+    await expect(importProjectFile(new File([zip as BlobPart], 'x.zip'))).rejects.toThrow(
+      'project.json が見つかりません',
+    )
+  })
+
   it('サムネぽん以外の JSON は受け付けない', async () => {
     const file = new File([JSON.stringify({ hello: 'world' })], 'x.json')
     await expect(importProjectFile(file)).rejects.toThrow('サムネぽんのプロジェクトファイル')

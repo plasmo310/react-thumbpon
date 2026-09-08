@@ -37,7 +37,7 @@ src/
     selectors.ts useCurrentThumbnail / useSelectedLayer
   services/      store を使うユーザー操作
                  workspace（復元と自動保存）/ projectFolder（フォルダ連携）/
-                 projectData（store ⇄ project.json）/ projectFile（.thumbpon）/
+                 projectData（store ⇄ project.json）/ projectFile（.thumbpon.zip）/
                  exportImage / shortcuts
   components/    header / thumbnail / layer / asset / properties / canvas / ui
 tests/           Vitest。src/ の外に置く
@@ -99,6 +99,10 @@ tests/           Vitest。src/ の外に置く
   非対応ブラウザ・明示保存前のクラッシュ復旧）に徹する。
 - **フォルダへの書き込みは明示保存のみ**（保存ボタン / Ctrl+S）。自動では書かない。
   外部エディタとの競合と、編集途中の意図しない上書きを避けるため。
+- **`.thumbpon.zip` はワークスペースフォルダをそのまま ZIP にしただけ**。形式は1つしかなく、
+  入れ物（1ファイルか展開したフォルダか）だけが違う。`buildProjectFile()` を両方から使うこと。
+  拡張子を `.zip` で終わらせているのは OS から普通の ZIP として扱えるようにするため。
+  読み込み側はフォルダごと圧縮された ZIP（中身が「フォルダ名/」の下にある形）も受け付ける。
 - **File System Access API は Chromium 系のみ。** `fsAccess.ts` の
   `canUseFileSystemAccess()` で判定し、非対応ブラウザでは UI を出さない
   （`fontRepo.ts` の `canQueryLocalFonts()` と同じ段階的強化の形）。

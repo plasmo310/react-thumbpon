@@ -23,7 +23,7 @@ export type ProjectFontRef = {
 }
 
 /**
- * プロジェクトファイル(.thumbpon)とワークスペースフォルダの project.json の中身。
+ * プロジェクトファイル(.thumbpon.zip)とワークスペースフォルダの project.json の中身。
  * version 1 は fonts を持たない。読み込み側は無い前提で扱うこと。
  */
 export type ProjectFile = {

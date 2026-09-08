@@ -30,7 +30,7 @@ export function ProjectFileButtons() {
       <button
         type="button"
         className={toolbarButton}
-        title=".thumbpon ファイルを読み込む"
+        title=".thumbpon.zip ファイルを読み込む"
         onClick={() => inputRef.current?.click()}
       >
         インポート
@@ -38,7 +38,7 @@ export function ProjectFileButtons() {
       <button
         type="button"
         className={toolbarButton}
-        title="プロジェクトを .thumbpon ファイル1つとして書き出す"
+        title="プロジェクトを .thumbpon.zip ファイル1つとして書き出す"
         onClick={() => void exportProjectFile().catch((e) => notifyError('書き出しに失敗しました', e))}
       >
         エクスポート
@@ -46,7 +46,7 @@ export function ProjectFileButtons() {
       <input
         ref={inputRef}
         type="file"
-        accept=".thumbpon,.json,.zip,application/json,application/zip"
+        accept=".zip,.json,application/zip,application/json"
         hidden
         onChange={(event) => {
           void handleImport(event.target.files?.[0])
