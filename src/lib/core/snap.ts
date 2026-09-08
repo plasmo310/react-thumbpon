@@ -1,4 +1,4 @@
-import type { CanvasSize } from '../types'
+import type { CanvasSize } from '../../types'
 
 export type SnapRect = { x: number; y: number; width: number; height: number }
 
@@ -6,6 +6,14 @@ export type SnapResult = { x: number; y: number; guidesX: number[]; guidesY: num
 
 type Candidate = { delta: number; line: number }
 
+/**
+ * 吸着線の候補から、最も近いものを1つ選ぶ。
+ *
+ * @param edges     動かしている矩形の辺と中央
+ * @param lines     吸着先の座標
+ * @param threshold この距離以内なら吸着する
+ * @returns 吸着しないなら null
+ */
 function bestSnap(edges: number[], lines: number[], threshold: number): Candidate | null {
   let best: Candidate | null = null
   for (const edge of edges) {
@@ -20,7 +28,12 @@ function bestSnap(edges: number[], lines: number[], threshold: number): Candidat
 
 /**
  * 移動中の矩形を、キャンバスの端・中央と他レイヤーの端・中央に吸着させる。
- * threshold はキャンバス実寸でのしきい値（画面上で一定になるよう 表示px / scale を渡す）。
+ *
+ * @param moving    移動中の矩形。キャンバス実寸座標、左上基準
+ * @param targets   吸着先の候補。回転したレイヤーは矩形が合わないので呼び出し側で除外する
+ * @param canvas    キャンバス実寸。端と中央を吸着線として使う
+ * @param threshold 吸着しきい値。画面上で一定になるよう「表示px / scale」を渡す
+ * @returns 吸着後の座標と、表示すべきガイド線の位置
  */
 export function snapPosition(
   moving: SnapRect,
@@ -52,16 +65,4 @@ export function snapPosition(
     guidesX: x ? [x.line] : [],
     guidesY: y ? [y.line] : [],
   }
-}
-
-/** DOM から他レイヤーの矩形を集める（テキストの高さも実測できる） */
-export function collectLayerRects(surface: HTMLElement, excludeId: string): SnapRect[] {
-  return [...surface.querySelectorAll<HTMLElement>('[data-layer-id]')]
-    .filter((el) => el.dataset.layerId !== excludeId)
-    .map((el) => ({
-      x: el.offsetLeft,
-      y: el.offsetTop,
-      width: el.offsetWidth,
-      height: el.offsetHeight,
-    }))
 }

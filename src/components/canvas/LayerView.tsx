@@ -1,7 +1,8 @@
 import type { CSSProperties, PointerEvent as ReactPointerEvent } from 'react'
-import { getAssetUrl } from '../../lib/assetStore'
-import { startPointerDrag } from '../../lib/pointerDrag'
-import { collectLayerRects, snapPosition } from '../../lib/snap'
+import { getAssetUrl } from '../../lib/storage/assetRepo'
+import { startPointerDrag } from '../../lib/dom/pointerDrag'
+import { snapPosition } from '../../lib/core/snap'
+import { collectLayerRects, measureLayerHeight } from '../../lib/dom/layerRect'
 import { useCurrentThumbnail, useEditorStore } from '../../store/editorStore'
 import type { Layer } from '../../types'
 
@@ -25,9 +26,8 @@ export default function LayerView({ layer, scale }: { layer: Layer; scale: numbe
     const startY = layer.y
 
     // スナップ用に、他レイヤーの矩形と自分の実寸をドラッグ開始時に一度だけ集める
-    const element = event.currentTarget as HTMLElement
-    const surface = element.offsetParent as HTMLElement | null
-    const height = element.offsetHeight
+    const surface = (event.currentTarget as HTMLElement).offsetParent as HTMLElement | null
+    const height = measureLayerHeight(layer.id)
     const targets = surface ? collectLayerRects(surface, layer.id) : []
     // 回転していると矩形が合わないのでスナップしない
     const canSnap = snapEnabled && layer.rotation === 0

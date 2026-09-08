@@ -1,8 +1,8 @@
 import { useRef, useState } from 'react'
-import { getAssetUrl } from '../lib/assetStore'
+import { DND_TYPE, hasDragType } from '../lib/dom/dnd'
+import { notifyError } from '../lib/dom/notify'
+import { getAssetUrl } from '../lib/storage/assetRepo'
 import { useEditorStore } from '../store/editorStore'
-
-export const ASSET_DND_TYPE = 'application/x-thumbpon-asset'
 
 export default function AssetPanel() {
   const assets = useEditorStore((s) => s.assets)
@@ -18,8 +18,7 @@ export default function AssetPanel() {
       const added = await addAssetFiles(Array.from(files))
       if (added.length === 0) window.alert('画像ファイル（PNG / JPEG / WebP / SVG）を選んでください')
     } catch (error) {
-      console.error(error)
-      window.alert(`素材の追加に失敗しました\n${error instanceof Error ? error.message : error}`)
+      notifyError('素材の追加に失敗しました', error)
     }
   }
 
@@ -29,14 +28,14 @@ export default function AssetPanel() {
         dragOver ? 'border-accent bg-accent-soft' : 'border-line'
       }`}
       onDragOver={(event) => {
-        if (event.dataTransfer.types.includes('Files')) {
+        if (hasDragType(event.dataTransfer, DND_TYPE.files)) {
           event.preventDefault()
           setDragOver(true)
         }
       }}
       onDragLeave={() => setDragOver(false)}
       onDrop={(event) => {
-        if (!event.dataTransfer.types.includes('Files')) return
+        if (!hasDragType(event.dataTransfer, DND_TYPE.files)) return
         event.preventDefault()
         setDragOver(false)
         void handleFiles(event.dataTransfer.files)
@@ -62,7 +61,7 @@ export default function AssetPanel() {
                   onClick={() => addImageLayer(asset.id)}
                   draggable
                   onDragStart={(event) => {
-                    event.dataTransfer.setData(ASSET_DND_TYPE, asset.id)
+                    event.dataTransfer.setData(DND_TYPE.asset, asset.id)
                     event.dataTransfer.effectAllowed = 'copy'
                   }}
                   className="h-full w-full cursor-grab"

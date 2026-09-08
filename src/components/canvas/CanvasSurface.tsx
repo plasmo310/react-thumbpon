@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react'
 import type { CSSProperties } from 'react'
-import { getAssetUrl } from '../../lib/assetStore'
+import { getAssetUrl } from '../../lib/storage/assetRepo'
 import { registerSurface } from '../../lib/exportImage'
 import { useCurrentThumbnail, useEditorStore } from '../../store/editorStore'
 import { BACKGROUND_ID, type Background } from '../../types'

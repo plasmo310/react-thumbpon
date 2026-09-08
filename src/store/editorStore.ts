@@ -18,8 +18,8 @@ import {
   type BackgroundPreset,
   TEXT_STYLE_KEYS,
 } from '../types'
-import { deleteAsset, loadAssets, readImageSize, saveAsset } from '../lib/assetStore'
-import { fitInto } from '../lib/geometry'
+import { deleteAsset, loadAssets, readImageSize, saveAsset } from '../lib/storage/assetRepo'
+import { fitInto } from '../lib/core/geometry'
 
 export const createId = () =>
   typeof crypto !== 'undefined' && 'randomUUID' in crypto

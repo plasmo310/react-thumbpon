@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { DND_TYPE, hasDragType } from '../../lib/dom/dnd'
+import { notifyError } from '../../lib/dom/notify'
 import { useCurrentThumbnail, useEditorStore } from '../../store/editorStore'
-import { ASSET_DND_TYPE } from '../AssetPanel'
 import CanvasSurface from './CanvasSurface'
 
 const STAGE_PADDING = 64
@@ -53,7 +54,7 @@ export default function CanvasStage() {
       setDropActive(false)
 
       // 素材パネルからのドラッグ
-      const assetId = dataTransfer.getData(ASSET_DND_TYPE)
+      const assetId = dataTransfer.getData(DND_TYPE.asset)
       if (assetId) {
         event.preventDefault()
         addImageLayer(assetId, point)
@@ -73,15 +74,14 @@ export default function CanvasStage() {
           ),
         )
       } catch (error) {
-        console.error(error)
-        window.alert(`画像の追加に失敗しました\n${error instanceof Error ? error.message : error}`)
+        notifyError('画像の追加に失敗しました', error)
       }
     },
     [addAssetFiles, addImageLayer, toCanvasPoint],
   )
 
   const acceptsDrag = (event: React.DragEvent) =>
-    event.dataTransfer.types.includes(ASSET_DND_TYPE) || event.dataTransfer.types.includes('Files')
+    hasDragType(event.dataTransfer, DND_TYPE.asset, DND_TYPE.files)
 
   return (
     <div

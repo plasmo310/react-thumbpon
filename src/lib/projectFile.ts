@@ -1,5 +1,6 @@
 import { strFromU8, strToU8, unzipSync, zipSync } from 'fflate'
-import { getAssetBlob, replaceAssets } from './assetStore'
+import { downloadBlob } from './dom/download'
+import { getAssetBlob, replaceAssets } from './storage/assetRepo'
 import { useEditorStore } from '../store/editorStore'
 import type { AssetMeta, ProjectAssetEntry, ProjectFile } from '../types'
 
@@ -46,15 +47,6 @@ function baseProject(): Omit<ProjectFile, 'assets'> {
   }
 }
 
-function download(blob: Blob, filename: string) {
-  const url = URL.createObjectURL(blob)
-  const link = document.createElement('a')
-  link.href = url
-  link.download = filename
-  link.click()
-  URL.revokeObjectURL(url)
-}
-
 const stamp = () => new Date().toISOString().slice(0, 10)
 
 /**
@@ -79,7 +71,10 @@ async function downloadZip() {
   files['project.json'] = [strToU8(JSON.stringify(project, null, 2)), { level: 6 }]
 
   const zipped = zipSync(files)
-  download(new Blob([zipped as BlobPart], { type: 'application/zip' }), `thumbpon-${stamp()}.thumbpon.zip`)
+  downloadBlob(
+    new Blob([zipped as BlobPart], { type: 'application/zip' }),
+    `thumbpon-${stamp()}.thumbpon.zip`,
+  )
 }
 
 /** JSON 単体で保存する。画像は dataURL として埋め込まれる */
@@ -92,7 +87,7 @@ async function downloadJson() {
     entries.push({ meta, dataUrl: await blobToDataUrl(blob) })
   }
   const project: ProjectFile = { ...baseProject(), assets: entries }
-  download(
+  downloadBlob(
     new Blob([JSON.stringify(project)], { type: 'application/json' }),
     `thumbpon-${stamp()}.thumbpon.json`,
   )

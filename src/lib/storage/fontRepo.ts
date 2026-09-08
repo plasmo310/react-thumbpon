@@ -1,6 +1,6 @@
 import { get, set } from 'idb-keyval'
 import { kv } from './db'
-import type { FontEntry } from '../types'
+import type { FontEntry } from '../../types'
 
 const FONT_LIST_KEY = 'font:list'
 const fontKey = (id: string) => `font:${id}`
@@ -13,6 +13,7 @@ type WindowWithLocalFonts = Window & {
   queryLocalFonts?: () => Promise<LocalFontData[]>
 }
 
+/** ローカルフォント一覧のボタンを出してよいか。非対応ブラウザでは出さない */
 export function canQueryLocalFonts(): boolean {
   return typeof (window as WindowWithLocalFonts).queryLocalFonts === 'function'
 }
@@ -20,6 +21,8 @@ export function canQueryLocalFonts(): boolean {
 /**
  * OSにインストールされているフォント一覧を取得する。
  * 一覧の取得だけに権限が必要で、描画自体は family 名を指定すれば使える。
+ *
+ * @returns family で重複を除き、名前順に並べたもの
  */
 export async function queryLocalFonts(): Promise<FontEntry[]> {
   const query = (window as WindowWithLocalFonts).queryLocalFonts
@@ -37,13 +40,22 @@ export async function queryLocalFonts(): Promise<FontEntry[]> {
   }))
 }
 
+/**
+ * フォントを document に登録して使えるようにする。
+ *
+ * @param family CSS の font-family で指定する名前
+ * @param buffer フォントファイルの中身
+ */
 async function register(family: string, buffer: ArrayBuffer) {
   const face = new FontFace(family, buffer)
   await face.load()
   document.fonts.add(face)
 }
 
-/** 起動時に、保存済みのフォントファイルを再登録する */
+/**
+ * 起動時に、保存済みのフォントファイルを再登録する。
+ * 1つ失敗しても残りは読めるよう、個別に握りつぶす。
+ */
 export async function loadStoredFonts(): Promise<FontEntry[]> {
   const stored = (await get<StoredFont[]>(FONT_LIST_KEY, kv)) ?? []
   const entries: FontEntry[] = []
@@ -60,7 +72,12 @@ export async function loadStoredFonts(): Promise<FontEntry[]> {
   return entries
 }
 
-/** フォントファイル(.ttf/.otf/.woff/.woff2)を読み込んで登録・保存する */
+/**
+ * フォントファイルを読み込んで登録・保存する。
+ *
+ * @param files .ttf / .otf / .woff / .woff2。同名で登録済みのものは読み飛ばす
+ * @returns 新しく追加できたものだけ
+ */
 export async function addFontFiles(files: File[]): Promise<FontEntry[]> {
   const stored = (await get<StoredFont[]>(FONT_LIST_KEY, kv)) ?? []
   const added: FontEntry[] = []

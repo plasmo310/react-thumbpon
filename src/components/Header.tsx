@@ -1,4 +1,5 @@
 import { useRef, useState } from 'react'
+import { notifyError } from '../lib/dom/notify'
 import { exportPng } from '../lib/exportImage'
 import { downloadProject, importProjectFile, type ProjectFormat } from '../lib/projectFile'
 import { useCurrentThumbnail, useEditorStore } from '../store/editorStore'
@@ -24,8 +25,7 @@ export default function Header() {
     try {
       await exportPng(canvas, name)
     } catch (error) {
-      console.error(error)
-      window.alert(`書き出しに失敗しました\n${error instanceof Error ? error.message : error}`)
+      notifyError('書き出しに失敗しました', error)
     } finally {
       setExporting(false)
     }
@@ -37,8 +37,7 @@ export default function Header() {
     try {
       await importProjectFile(file)
     } catch (error) {
-      console.error(error)
-      window.alert(`読み込みに失敗しました\n${error instanceof Error ? error.message : error}`)
+      notifyError('読み込みに失敗しました', error)
     }
   }
 

@@ -1,4 +1,5 @@
 import { toPng } from 'html-to-image'
+import { downloadDataUrl } from './dom/download'
 import type { CanvasSize } from '../types'
 
 let surfaceElement: HTMLElement | null = null
@@ -37,8 +38,5 @@ export async function exportPng(canvas: CanvasSize, name: string) {
   await toPng(surfaceElement, options)
   const dataUrl = await toPng(surfaceElement, options)
 
-  const link = document.createElement('a')
-  link.href = dataUrl
-  link.download = `${toFileName(name)}.png`
-  link.click()
+  downloadDataUrl(dataUrl, `${toFileName(name)}.png`)
 }

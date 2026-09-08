@@ -1,10 +1,9 @@
 import { useState } from 'react'
+import { DND_TYPE, hasDragType } from '../lib/dom/dnd'
 import { useCurrentThumbnail, useEditorStore } from '../store/editorStore'
 import { BACKGROUND_ID, type Layer } from '../types'
 import { BackgroundProperties, LayerProperties } from './PropertiesPanel'
 import { IconButton } from './ui/Field'
-
-const LAYER_DND_TYPE = 'application/x-thumbpon-layer'
 
 type DropMark = { index: number; position: 'before' | 'after' } | null
 
@@ -45,7 +44,7 @@ function LayerRow({
       }`}
       draggable
       onDragStart={(event) => {
-        event.dataTransfer.setData(LAYER_DND_TYPE, String(index))
+        event.dataTransfer.setData(DND_TYPE.layer, String(index))
         event.dataTransfer.effectAllowed = 'move'
         onDragStart(index)
       }}
@@ -136,7 +135,7 @@ export default function LayerPanel() {
   const backgroundSelected = selectedId === BACKGROUND_ID
 
   const handleDragOver = (index: number, event: React.DragEvent) => {
-    if (!event.dataTransfer.types.includes(LAYER_DND_TYPE)) return
+    if (!hasDragType(event.dataTransfer, DND_TYPE.layer)) return
     event.preventDefault()
     const rect = event.currentTarget.getBoundingClientRect()
     const after = event.clientY > rect.top + rect.height / 2

@@ -2,7 +2,12 @@ import type { PointerEvent as ReactPointerEvent } from 'react'
 
 /**
  * pointer capture を使ったドラッグセッション。
- * onMove には「押した位置からの移動量(画面px)」を渡す。
+ * 要素の外にポインタが出ても追従し、pointerup / pointercancel で自動的に後始末する。
+ *
+ * @param event  ドラッグを開始した pointerdown イベント。currentTarget を capture 対象にする
+ * @param onMove 移動のたびに呼ばれる。dx/dy は押した位置からの移動量(画面px)なので、
+ *               キャンバス実寸に直すには呼び出し側で / scale する
+ * @param onEnd  ドラッグ終了時に一度だけ呼ばれる
  */
 export function startPointerDrag(
   event: ReactPointerEvent,

@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react'
-import { addFontFiles, canQueryLocalFonts, queryLocalFonts } from '../lib/fontStore'
+import { notifyError } from '../lib/dom/notify'
+import { addFontFiles, canQueryLocalFonts, queryLocalFonts } from '../lib/storage/fontRepo'
 import { extractTextStyle, useCurrentThumbnail, useEditorStore } from '../store/editorStore'
 import {
   FONT_WEIGHTS,
@@ -34,10 +35,7 @@ function FontLoader() {
     try {
       addFonts(await queryLocalFonts())
     } catch (error) {
-      console.error(error)
-      window.alert(
-        `ローカルフォントを読み込めませんでした\n${error instanceof Error ? error.message : error}`,
-      )
+      notifyError('ローカルフォントを読み込めませんでした', error)
     } finally {
       setBusy(false)
     }
@@ -51,10 +49,7 @@ function FontLoader() {
       if (added.length === 0) window.alert('追加できるフォントがありませんでした')
       else addFonts(added)
     } catch (error) {
-      console.error(error)
-      window.alert(
-        `フォントを読み込めませんでした\n${error instanceof Error ? error.message : error}`,
-      )
+      notifyError('フォントを読み込めませんでした', error)
     } finally {
       setBusy(false)
     }

@@ -1,7 +1,7 @@
 import { get, set } from 'idb-keyval'
-import { kv } from './db'
-import { loadAssets } from './assetStore'
-import { loadStoredFonts } from './fontStore'
+import { kv } from './storage/db'
+import { loadAssets } from './storage/assetRepo'
+import { loadStoredFonts } from './storage/fontRepo'
 import { useEditorStore } from '../store/editorStore'
 import type { BackgroundPreset, Folder, TextPreset, Thumbnail } from '../types'
 

@@ -1,24 +1,40 @@
 import { del, get, set } from 'idb-keyval'
 import { kv } from './db'
-import type { AssetMeta } from '../types'
+import type { AssetMeta } from '../../types'
 
 const META_KEY = 'meta:list'
 const blobKey = (id: string) => `blob:${id}`
 
-/** objectURL はメモリ上だけで保持し、store の state には入れない */
+/** objectURL はメモリ上だけで保持し、store の state には入れない（状態を JSON 化可能に保つため） */
 const urlCache = new Map<string, string>()
 
+/**
+ * 素材の表示に使う objectURL を得る。
+ *
+ * @param id 素材の id。null / undefined を渡せる（背景の未選択をそのまま扱えるように）
+ * @returns 読み込み前など、キャッシュに無ければ undefined
+ */
 export function getAssetUrl(id: string | null | undefined): string | undefined {
   if (!id) return undefined
   return urlCache.get(id)
 }
 
+/**
+ * objectURL を作り直してキャッシュする。古いものは revoke する。
+ *
+ * @param id   素材の id
+ * @param blob 画像の実体
+ */
 function cacheUrl(id: string, blob: Blob) {
   const previous = urlCache.get(id)
   if (previous) URL.revokeObjectURL(previous)
   urlCache.set(id, URL.createObjectURL(blob))
 }
 
+/**
+ * 保存済みの素材をすべて読み込み、objectURL を張り直す。
+ * 実体を失っているメタは取り除いた上で保存し直す。
+ */
 export async function loadAssets(): Promise<AssetMeta[]> {
   const metas = (await get<AssetMeta[]>(META_KEY, kv)) ?? []
   const available: AssetMeta[] = []
@@ -32,12 +48,25 @@ export async function loadAssets(): Promise<AssetMeta[]> {
   return available
 }
 
+/**
+ * 素材を1件保存する。
+ *
+ * @param meta     保存する素材のメタ情報
+ * @param blob     画像の実体
+ * @param allMetas 保存後のメタ一覧。一覧はまるごと置き換えるので呼び出し側で作って渡す
+ */
 export async function saveAsset(meta: AssetMeta, blob: Blob, allMetas: AssetMeta[]) {
   await set(blobKey(meta.id), blob, kv)
   await set(META_KEY, allMetas, kv)
   cacheUrl(meta.id, blob)
 }
 
+/**
+ * 素材を1件削除する。
+ *
+ * @param id             削除する素材の id
+ * @param remainingMetas 削除後に残るメタ一覧
+ */
 export async function deleteAsset(id: string, remainingMetas: AssetMeta[]) {
   await del(blobKey(id), kv)
   await set(META_KEY, remainingMetas, kv)
@@ -46,11 +75,21 @@ export async function deleteAsset(id: string, remainingMetas: AssetMeta[]) {
   urlCache.delete(id)
 }
 
+/**
+ * 素材の実体を取り出す。プロジェクトの書き出しで使う。
+ *
+ * @param id 取り出す素材の id
+ */
 export async function getAssetBlob(id: string): Promise<Blob | undefined> {
   return get<Blob>(blobKey(id), kv)
 }
 
-/** プロジェクト読み込み時に素材をまるごと入れ替える */
+/**
+ * プロジェクト読み込み時に素材をまるごと入れ替える。既存の素材と objectURL は破棄する。
+ *
+ * @param entries 読み込んだプロジェクトが持つ素材の一覧
+ * @returns 入れ替え後のメタ一覧。そのまま store に載せる
+ */
 export async function replaceAssets(entries: { meta: AssetMeta; blob: Blob }[]) {
   const previous = (await get<AssetMeta[]>(META_KEY, kv)) ?? []
   for (const meta of previous) await del(blobKey(meta.id), kv)
@@ -66,7 +105,11 @@ export async function replaceAssets(entries: { meta: AssetMeta; blob: Blob }[]) 
   return metas
 }
 
-/** 画像ファイルから自然サイズを読み取る */
+/**
+ * 画像ファイルから自然サイズを読み取る。
+ *
+ * @param file 対象の画像。SVG など createImageBitmap 非対応の形式は <img> にフォールバックする
+ */
 export async function readImageSize(file: Blob): Promise<{ width: number; height: number }> {
   if (typeof createImageBitmap === 'function' && file.type !== 'image/svg+xml') {
     try {

@@ -1,9 +1,8 @@
 import { useState } from 'react'
+import { DND_TYPE, hasDragType } from '../lib/dom/dnd'
 import { useEditorStore } from '../store/editorStore'
 import type { Thumbnail } from '../types'
 import { IconButton } from './ui/Field'
-
-const THUMBNAIL_DND_TYPE = 'application/x-thumbpon-thumbnail'
 
 function ThumbnailRow({ thumbnail, depth }: { thumbnail: Thumbnail; depth: number }) {
   const currentId = useEditorStore((s) => s.currentThumbnailId)
@@ -21,7 +20,7 @@ function ThumbnailRow({ thumbnail, depth }: { thumbnail: Thumbnail; depth: numbe
     <li
       draggable={!editing}
       onDragStart={(event) => {
-        event.dataTransfer.setData(THUMBNAIL_DND_TYPE, thumbnail.id)
+        event.dataTransfer.setData(DND_TYPE.thumbnail, thumbnail.id)
         event.dataTransfer.effectAllowed = 'move'
       }}
       onClick={() => selectThumbnail(thumbnail.id)}
@@ -88,13 +87,13 @@ function DropZone({
   return (
     <div
       onDragOver={(event) => {
-        if (!event.dataTransfer.types.includes(THUMBNAIL_DND_TYPE)) return
+        if (!hasDragType(event.dataTransfer, DND_TYPE.thumbnail)) return
         event.preventDefault()
         setOver(true)
       }}
       onDragLeave={() => setOver(false)}
       onDrop={(event) => {
-        const id = event.dataTransfer.getData(THUMBNAIL_DND_TYPE)
+        const id = event.dataTransfer.getData(DND_TYPE.thumbnail)
         setOver(false)
         if (!id) return
         event.preventDefault()

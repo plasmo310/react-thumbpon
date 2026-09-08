@@ -1,4 +1,4 @@
-import { useLayoutEffect, useRef, useState } from 'react'
+import { useRef } from 'react'
 import type { CSSProperties, PointerEvent as ReactPointerEvent } from 'react'
 import {
   HANDLES,
@@ -8,9 +8,10 @@ import {
   resizeRect,
   snapAngle,
   type Handle,
-} from '../../lib/geometry'
-import { startPointerDrag } from '../../lib/pointerDrag'
+} from '../../lib/core/geometry'
+import { startPointerDrag } from '../../lib/dom/pointerDrag'
 import { useEditorStore, useSelectedLayer } from '../../store/editorStore'
+import { useLayerHeight } from './useLayerHeight'
 
 const ACCENT = '#FF8A5B'
 const HANDLE_SIZE = 10
@@ -45,26 +46,11 @@ export default function SelectionOverlay({ scale }: { scale: number }) {
   const layer = useSelectedLayer()
   const updateLayer = useEditorStore((s) => s.updateLayer)
   const overlayRef = useRef<HTMLDivElement>(null)
-  const [measuredHeight, setMeasuredHeight] = useState(0)
-
-  useLayoutEffect(() => {
-    if (!layer) return
-    if (layer.type === 'image') {
-      setMeasuredHeight(layer.height)
-      return
-    }
-    const element = document.querySelector<HTMLElement>(`[data-layer-id="${layer.id}"]`)
-    if (!element) return
-    const update = () => setMeasuredHeight(element.offsetHeight)
-    update()
-    const observer = new ResizeObserver(update)
-    observer.observe(element)
-    return () => observer.disconnect()
-  }, [layer])
+  const height = useLayerHeight(layer)
 
   if (!layer || !layer.visible || layer.locked) return null
 
-  const height = layer.type === 'image' ? layer.height : measuredHeight
+  /** ハンドルや枠線が拡大率によらず同じ太さに見えるよう、実寸に割り戻す */
   const px = (value: number) => value / scale
 
   const startResize = (handle: Handle) => (event: ReactPointerEvent) => {
