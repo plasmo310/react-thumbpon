@@ -24,9 +24,7 @@ export default function AssetPanel() {
 
   return (
     <section
-      className={`flex h-[26%] shrink-0 flex-col border-t transition ${
-        dragOver ? 'border-accent bg-accent-soft' : 'border-line'
-      }`}
+      className={`flex min-h-0 flex-1 flex-col transition ${dragOver ? 'bg-accent-soft' : ''}`}
       onDragOver={(event) => {
         if (hasDragType(event.dataTransfer, DND_TYPE.files)) {
           event.preventDefault()

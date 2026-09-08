@@ -20,7 +20,7 @@ export default function ThumbnailPanel() {
   const rootThumbnails = thumbnails.filter((t) => t.folderId === null)
 
   return (
-    <section className="flex h-[28%] shrink-0 flex-col border-b border-line">
+    <section className="flex min-h-0 flex-1 flex-col">
       <div className="flex h-10 shrink-0 items-center justify-between px-3">
         <h2 className="text-xs font-bold">サムネイル</h2>
         <div className="flex items-center gap-1">
