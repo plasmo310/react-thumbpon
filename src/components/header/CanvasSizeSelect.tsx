@@ -22,7 +22,7 @@ export function CanvasSizeSelect() {
   return (
     <>
       <select
-        className={toolbarSelect}
+        className={`${toolbarSelect} px-3`}
         value={presetValue}
         onChange={(e) => {
           if (e.target.value === CUSTOM_PRESET_ID) {
