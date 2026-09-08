@@ -4,12 +4,20 @@ import { BACKGROUND_ID } from '../types'
 
 const EDITABLE = ['INPUT', 'TEXTAREA', 'SELECT']
 
+/**
+ * 文字入力中かどうか。入力欄での Delete や矢印キーを奪わないために使う。
+ *
+ * @param target キーイベントの target
+ */
 function isTyping(target: EventTarget | null): boolean {
   if (!(target instanceof HTMLElement)) return false
   return EDITABLE.includes(target.tagName) || target.isContentEditable
 }
 
-/** Delete で削除、矢印で移動（Shiftで10px） */
+/**
+ * 画面全体のキーボード操作を有効にする。
+ * Delete / Backspace で選択中のレイヤーを削除、矢印キーで移動（Shift で10px）。
+ */
 export function useKeyboardShortcuts() {
   useEffect(() => {
     const handler = (event: KeyboardEvent) => {

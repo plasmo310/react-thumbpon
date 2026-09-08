@@ -1,14 +1,24 @@
 import { toPng } from 'html-to-image'
-import { downloadDataUrl } from './dom/download'
+import { downloadDataUrl } from '../lib/dom/download'
 import type { CanvasSize } from '../types'
 
 let surfaceElement: HTMLElement | null = null
 
+/**
+ * 書き出し対象のキャンバス要素を登録する。
+ * ref を props で引き回さずに済ませるため、モジュール側で参照を持つ。
+ *
+ * @param element キャンバスの実寸要素。アンマウント時は null を渡す
+ */
 export function registerSurface(element: HTMLElement | null) {
   surfaceElement = element
 }
 
-/** サムネイル名をファイル名として使えるようにする */
+/**
+ * サムネイル名をファイル名として使えるようにする。
+ *
+ * @param name サムネイルの名前。空になったら 'thumbpon' で代替する
+ */
 function toFileName(name: string): string {
   const cleaned = name
     .replace(/[\\/:*?"<>|]/g, '')
@@ -18,6 +28,12 @@ function toFileName(name: string): string {
   return cleaned || 'thumbpon'
 }
 
+/**
+ * 現在のキャンバスを PNG として書き出す。表示は縮小されていても実寸で出力する。
+ *
+ * @param canvas 出力サイズ。キャンバスの実寸をそのまま渡す
+ * @param name   ファイル名のもと。サムネイル名をそのまま渡す
+ */
 export async function exportPng(canvas: CanvasSize, name: string) {
   if (!surfaceElement) throw new Error('キャンバスが準備できていません')
 

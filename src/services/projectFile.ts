@@ -1,6 +1,6 @@
 import { strFromU8, strToU8, unzipSync, zipSync } from 'fflate'
-import { downloadBlob } from './dom/download'
-import { getAssetBlob, replaceAssets } from './storage/assetRepo'
+import { downloadBlob } from '../lib/dom/download'
+import { getAssetBlob, replaceAssets } from '../lib/storage/assetRepo'
 import { useEditorStore } from '../store'
 import type { AssetMeta, ProjectAssetEntry, ProjectFile } from '../types'
 
@@ -14,6 +14,11 @@ const EXTENSION_BY_MIME: Record<string, string> = {
   'image/svg+xml': '.svg',
 }
 
+/**
+ * 保存時の拡張子を決める。
+ *
+ * @param meta 素材のメタ情報。mime が不明ならファイル名から拾う
+ */
 function extensionFor(meta: AssetMeta): string {
   const fromName = /\.[a-z0-9]+$/i.exec(meta.name)?.[0]
   return EXTENSION_BY_MIME[meta.mime] ?? fromName ?? '.bin'
@@ -93,11 +98,21 @@ async function downloadJson() {
   )
 }
 
+/**
+ * 現在のプロジェクトをファイルとして保存する。
+ *
+ * @param format zip なら画像を画像のまま格納するので軽い。json は dataURL 埋め込みで単一ファイルになる
+ */
 export async function downloadProject(format: ProjectFormat) {
   if (format === 'zip') await downloadZip()
   else await downloadJson()
 }
 
+/**
+ * 読み込んだ JSON がサムネぽんのプロジェクトかどうか。
+ *
+ * @param value JSON.parse の結果
+ */
 function isProjectFile(value: unknown): value is ProjectFile {
   if (typeof value !== 'object' || value === null) return false
   const candidate = value as Partial<ProjectFile>
@@ -108,6 +123,12 @@ function isProjectFile(value: unknown): value is ProjectFile {
   )
 }
 
+/**
+ * プロジェクトファイルを読み込んで、現在の内容を置き換える。
+ * 素材も入れ替わるが、フォントファイルは含まれないため別環境では代替フォントになる。
+ *
+ * @param file .thumbpon.zip / .thumbpon.json のどちらでもよい。先頭バイトで判別する
+ */
 export async function importProjectFile(file: File) {
   const buffer = new Uint8Array(await file.arrayBuffer())
   const isZip = buffer[0] === 0x50 && buffer[1] === 0x4b

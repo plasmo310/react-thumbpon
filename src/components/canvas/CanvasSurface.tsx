@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react'
 import type { CSSProperties } from 'react'
 import { getAssetUrl } from '../../lib/storage/assetRepo'
-import { registerSurface } from '../../lib/exportImage'
+import { registerSurface } from '../../services/exportImage'
 import { useCurrentThumbnail, useEditorStore } from '../../store'
 import { BACKGROUND_ID, type Background } from '../../types'
 import LayerView from './LayerView'

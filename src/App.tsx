@@ -4,8 +4,8 @@ import CanvasStage from './components/canvas/CanvasStage'
 import Header from './components/Header'
 import LayerPanel from './components/LayerPanel'
 import ThumbnailPanel from './components/ThumbnailPanel'
-import { useKeyboardShortcuts } from './lib/useKeyboardShortcuts'
-import { restoreWorkspace, startAutoSave } from './lib/workspace'
+import { useKeyboardShortcuts } from './services/shortcuts'
+import { restoreWorkspace, startAutoSave } from './services/workspace'
 
 export default function App() {
   useKeyboardShortcuts()

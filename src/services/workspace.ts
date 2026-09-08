@@ -1,7 +1,7 @@
 import { get, set } from 'idb-keyval'
-import { kv } from './storage/db'
-import { loadAssets } from './storage/assetRepo'
-import { loadStoredFonts } from './storage/fontRepo'
+import { kv } from '../lib/storage/db'
+import { loadAssets } from '../lib/storage/assetRepo'
+import { loadStoredFonts } from '../lib/storage/fontRepo'
 import { useEditorStore } from '../store'
 import type { BackgroundPreset, Folder, TextPreset, Thumbnail } from '../types'
 
@@ -16,7 +16,10 @@ type Workspace = {
   snapEnabled: boolean
 }
 
-/** 起動時の復元：素材 → フォント → 作業中プロジェクトの順に読み込む */
+/**
+ * 起動時の復元。素材 → フォント → 作業中プロジェクトの順に読み込む。
+ * 最後に ready を立てるまで自動保存は動かないので、復元中に上書きされない。
+ */
 export async function restoreWorkspace() {
   const store = useEditorStore.getState()
 
@@ -42,6 +45,12 @@ export async function restoreWorkspace() {
 /**
  * 編集内容を自動保存する。素材欄をなくさない設計でも、
  * サムネイル自体はここにしか無いのでリロードで失われないようにする。
+ */
+/**
+ * 編集内容の自動保存を始める。素材と違いサムネイル自体はここにしか無いので、
+ * リロードで失われないようにする。
+ *
+ * @returns 購読を止める関数。App のクリーンアップでそのまま呼ぶ
  */
 export function startAutoSave() {
   let timer: number | undefined
@@ -70,6 +79,11 @@ export function startAutoSave() {
   })
 }
 
+/**
+ * 保存対象の項目だけを取り出す。ガイド線や選択状態は保存しない。
+ *
+ * @param state ストアの現在の状態
+ */
 function pick(state: ReturnType<typeof useEditorStore.getState>): Workspace {
   return {
     folders: state.folders,
