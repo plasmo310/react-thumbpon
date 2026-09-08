@@ -1,112 +1,10 @@
 import { useState } from 'react'
-import { DND_TYPE, hasDragType } from '../lib/dom/dnd'
-import { useEditorStore } from '../store'
-import type { Thumbnail } from '../types'
-import { IconButton } from './ui/Field'
+import { useEditorStore } from '../../store'
+import { IconButton } from '../ui'
+import { FolderDropZone } from './FolderDropZone'
+import { ThumbnailRow } from './ThumbnailRow'
 
-function ThumbnailRow({ thumbnail, depth }: { thumbnail: Thumbnail; depth: number }) {
-  const currentId = useEditorStore((s) => s.currentThumbnailId)
-  const selectThumbnail = useEditorStore((s) => s.selectThumbnail)
-  const renameThumbnail = useEditorStore((s) => s.renameThumbnail)
-  const duplicateThumbnail = useEditorStore((s) => s.duplicateThumbnail)
-  const copyThumbnail = useEditorStore((s) => s.copyThumbnail)
-  const removeThumbnail = useEditorStore((s) => s.removeThumbnail)
-  const canRemove = useEditorStore((s) => s.thumbnails.length > 1)
-  const [editing, setEditing] = useState(false)
-
-  const active = currentId === thumbnail.id
-
-  return (
-    <li
-      draggable={!editing}
-      onDragStart={(event) => {
-        event.dataTransfer.setData(DND_TYPE.thumbnail, thumbnail.id)
-        event.dataTransfer.effectAllowed = 'move'
-      }}
-      onClick={() => selectThumbnail(thumbnail.id)}
-      onDoubleClick={() => setEditing(true)}
-      style={{ paddingLeft: depth * 12 }}
-      className={`group flex cursor-pointer items-center gap-1 rounded-md border px-2 py-1 transition ${
-        active ? 'border-accent bg-accent-soft' : 'border-transparent hover:bg-app'
-      }`}
-    >
-      <span className="shrink-0 text-[10px] text-ink-sub">▦</span>
-      {editing ? (
-        <input
-          autoFocus
-          className="min-w-0 flex-1 rounded border border-accent px-1 text-xs outline-none"
-          defaultValue={thumbnail.name}
-          onBlur={(e) => {
-            renameThumbnail(thumbnail.id, e.target.value.trim() || thumbnail.name)
-            setEditing(false)
-          }}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter') e.currentTarget.blur()
-            if (e.key === 'Escape') setEditing(false)
-          }}
-          onClick={(e) => e.stopPropagation()}
-        />
-      ) : (
-        <span className="min-w-0 flex-1 truncate text-xs" title={thumbnail.name}>
-          {thumbnail.name}
-        </span>
-      )}
-      <span className="shrink-0 text-[10px] text-ink-sub">
-        {thumbnail.canvas.width}×{thumbnail.canvas.height}
-      </span>
-      <div className="hidden shrink-0 items-center group-hover:flex">
-        <IconButton title="複製" onClick={() => duplicateThumbnail(thumbnail.id)}>
-          ⧉
-        </IconButton>
-        <IconButton title="コピー" onClick={() => copyThumbnail(thumbnail.id)}>
-          📋
-        </IconButton>
-        {canRemove && (
-          <IconButton title="削除" onClick={() => removeThumbnail(thumbnail.id)}>
-            🗑
-          </IconButton>
-        )}
-      </div>
-    </li>
-  )
-}
-
-/** フォルダ、または未分類グループにサムネイルをドロップできる領域 */
-function DropZone({
-  folderId,
-  children,
-  className,
-}: {
-  folderId: string | null
-  children: React.ReactNode
-  className?: string
-}) {
-  const moveThumbnailToFolder = useEditorStore((s) => s.moveThumbnailToFolder)
-  const [over, setOver] = useState(false)
-
-  return (
-    <div
-      onDragOver={(event) => {
-        if (!hasDragType(event.dataTransfer, DND_TYPE.thumbnail)) return
-        event.preventDefault()
-        setOver(true)
-      }}
-      onDragLeave={() => setOver(false)}
-      onDrop={(event) => {
-        const id = event.dataTransfer.getData(DND_TYPE.thumbnail)
-        setOver(false)
-        if (!id) return
-        event.preventDefault()
-        event.stopPropagation()
-        moveThumbnailToFolder(id, folderId)
-      }}
-      className={`${className ?? ''} ${over ? 'rounded-md bg-accent-soft' : ''}`}
-    >
-      {children}
-    </div>
-  )
-}
-
+/** サムネイルとフォルダの一覧。未分類を先に、そのあとフォルダごとに並べる */
 export default function ThumbnailPanel() {
   const folders = useEditorStore((s) => s.folders)
   const thumbnails = useEditorStore((s) => s.thumbnails)
@@ -144,18 +42,18 @@ export default function ThumbnailPanel() {
       </div>
 
       <div className="min-h-0 flex-1 overflow-y-auto px-2 pb-2">
-        <DropZone folderId={null}>
+        <FolderDropZone folderId={null}>
           <ul className="flex flex-col gap-0.5">
             {rootThumbnails.map((thumbnail) => (
               <ThumbnailRow key={thumbnail.id} thumbnail={thumbnail} depth={0} />
             ))}
           </ul>
-        </DropZone>
+        </FolderDropZone>
 
         {folders.map((folder) => {
           const children = thumbnails.filter((t) => t.folderId === folder.id)
           return (
-            <DropZone key={folder.id} folderId={folder.id} className="mt-1">
+            <FolderDropZone key={folder.id} folderId={folder.id} className="mt-1">
               <div className="group flex items-center gap-1 rounded-md px-2 py-1 hover:bg-app">
                 <button
                   type="button"
@@ -220,7 +118,7 @@ export default function ThumbnailPanel() {
                   )}
                 </ul>
               )}
-            </DropZone>
+            </FolderDropZone>
           )
         })}
       </div>

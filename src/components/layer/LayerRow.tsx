@@ -1,13 +1,25 @@
-import { useState } from 'react'
-import { DND_TYPE, hasDragType } from '../lib/dom/dnd'
-import { useCurrentThumbnail, useEditorStore } from '../store'
-import { BACKGROUND_ID, type Layer } from '../types'
-import { BackgroundProperties, LayerProperties } from './PropertiesPanel'
-import { IconButton } from './ui/Field'
+import type { DragEvent } from 'react'
+import { DND_TYPE } from '../../lib/dom/dnd'
+import { useEditorStore } from '../../store'
+import type { Layer } from '../../types'
+import { LayerProperties } from '../properties/LayerProperties'
+import { IconButton } from '../ui'
 
-type DropMark = { index: number; position: 'before' | 'after' } | null
+/** ドラッグ中に挿入位置を示す線を、どの行のどちら側に出すか */
+export type DropMark = { index: number; position: 'before' | 'after' } | null
 
-function LayerRow({
+/**
+ * レイヤー一覧の1行。選択中は操作ボタンとプロパティ欄をその場に開く。
+ *
+ * @param props.layer       表示するレイヤー
+ * @param props.index       配列内の位置。0 が最背面
+ * @param props.total       レイヤーの総数。前面・背面ボタンの端判定に使う
+ * @param props.dropMark    現在の挿入位置。自分の行に該当するときだけ線を出す
+ * @param props.onDragStart 並べ替えを開始した位置を親に伝える
+ * @param props.onDragOver  ドラッグ中の位置を親に伝える
+ * @param props.onDrop      ドロップされたことを親に伝える
+ */
+export function LayerRow({
   layer,
   index,
   total,
@@ -21,7 +33,7 @@ function LayerRow({
   total: number
   dropMark: DropMark
   onDragStart: (index: number) => void
-  onDragOver: (index: number, event: React.DragEvent) => void
+  onDragOver: (index: number, event: DragEvent) => void
   onDrop: () => void
 }) {
   const selectedId = useEditorStore((s) => s.selectedId)
@@ -119,96 +131,5 @@ function LayerRow({
         </>
       )}
     </li>
-  )
-}
-
-export default function LayerPanel() {
-  const { layers } = useCurrentThumbnail()
-  const selectedId = useEditorStore((s) => s.selectedId)
-  const select = useEditorStore((s) => s.select)
-  const addTextLayer = useEditorStore((s) => s.addTextLayer)
-  const reorderLayer = useEditorStore((s) => s.reorderLayer)
-
-  const [dragIndex, setDragIndex] = useState<number | null>(null)
-  const [dropMark, setDropMark] = useState<DropMark>(null)
-
-  const backgroundSelected = selectedId === BACKGROUND_ID
-
-  const handleDragOver = (index: number, event: React.DragEvent) => {
-    if (!hasDragType(event.dataTransfer, DND_TYPE.layer)) return
-    event.preventDefault()
-    const rect = event.currentTarget.getBoundingClientRect()
-    const after = event.clientY > rect.top + rect.height / 2
-    setDropMark({ index, position: after ? 'after' : 'before' })
-  }
-
-  const handleDrop = () => {
-    if (dragIndex !== null && dropMark) {
-      const insertIndex = dropMark.position === 'after' ? dropMark.index + 1 : dropMark.index
-      reorderLayer(dragIndex, insertIndex)
-    }
-    setDragIndex(null)
-    setDropMark(null)
-  }
-
-  return (
-    <section className="flex min-h-0 flex-1 flex-col">
-      <div className="flex h-10 shrink-0 items-center justify-between border-b border-line px-3">
-        <h2 className="text-xs font-bold">
-          レイヤー
-          <span className="ml-2 font-normal text-[10px] text-ink-sub">下が前面</span>
-        </h2>
-        <button
-          type="button"
-          onClick={addTextLayer}
-          className="rounded-md border border-line px-2 py-1 text-[11px] text-ink-sub transition hover:border-accent hover:text-accent"
-        >
-          ＋ テキスト
-        </button>
-      </div>
-
-      <div
-        className="min-h-0 flex-1 overflow-y-auto p-2"
-        onDragEnd={() => {
-          setDragIndex(null)
-          setDropMark(null)
-        }}
-      >
-        <div
-          className={`mb-1 overflow-hidden rounded-md border transition ${
-            backgroundSelected ? 'border-accent bg-accent-soft' : 'border-transparent bg-white'
-          }`}
-        >
-          <button
-            type="button"
-            onClick={() => select(BACKGROUND_ID)}
-            className="flex w-full items-center gap-2 px-2 py-1.5 text-left hover:bg-app"
-          >
-            <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded bg-line text-[9px] font-bold text-ink-sub">
-              BG
-            </span>
-            <span className="flex-1 truncate text-xs">背景</span>
-          </button>
-          {backgroundSelected && <BackgroundProperties />}
-        </div>
-
-        {/* 配列の末尾が最前面。一覧も配列順に並べるので「下が前面」になる */}
-        <ul className="flex flex-col gap-1">
-          {layers.map((layer, index) => (
-            <LayerRow
-              key={layer.id}
-              layer={layer}
-              index={index}
-              total={layers.length}
-              dropMark={dropMark}
-              onDragStart={setDragIndex}
-              onDragOver={handleDragOver}
-              onDrop={handleDrop}
-            />
-          ))}
-        </ul>
-
-      </div>
-    </section>
   )
 }

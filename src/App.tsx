@@ -1,9 +1,9 @@
 import { useEffect } from 'react'
-import AssetPanel from './components/AssetPanel'
+import AssetPanel from './components/asset/AssetPanel'
 import CanvasStage from './components/canvas/CanvasStage'
-import Header from './components/Header'
-import LayerPanel from './components/LayerPanel'
-import ThumbnailPanel from './components/ThumbnailPanel'
+import Header from './components/header/Header'
+import LayerPanel from './components/layer/LayerPanel'
+import ThumbnailPanel from './components/thumbnail/ThumbnailPanel'
 import { useKeyboardShortcuts } from './services/shortcuts'
 import { restoreWorkspace, startAutoSave } from './services/workspace'
 
