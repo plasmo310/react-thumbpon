@@ -1,7 +1,7 @@
 import { strFromU8, strToU8, unzipSync, zipSync } from 'fflate'
 import { downloadBlob } from './dom/download'
 import { getAssetBlob, replaceAssets } from './storage/assetRepo'
-import { useEditorStore } from '../store/editorStore'
+import { useEditorStore } from '../store'
 import type { AssetMeta, ProjectAssetEntry, ProjectFile } from '../types'
 
 export type ProjectFormat = 'zip' | 'json'

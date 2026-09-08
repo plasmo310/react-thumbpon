@@ -1,7 +1,8 @@
 import { useRef, useState } from 'react'
 import { notifyError } from '../lib/dom/notify'
 import { addFontFiles, canQueryLocalFonts, queryLocalFonts } from '../lib/storage/fontRepo'
-import { extractTextStyle, useCurrentThumbnail, useEditorStore } from '../store/editorStore'
+import { extractTextStyle } from '../lib/core/factory'
+import { useCurrentThumbnail, useEditorStore } from '../store'
 import {
   FONT_WEIGHTS,
   type BackgroundFit,

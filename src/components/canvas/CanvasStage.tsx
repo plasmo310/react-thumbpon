@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { DND_TYPE, hasDragType } from '../../lib/dom/dnd'
 import { notifyError } from '../../lib/dom/notify'
-import { useCurrentThumbnail, useEditorStore } from '../../store/editorStore'
+import { useCurrentThumbnail, useEditorStore } from '../../store'
 import CanvasSurface from './CanvasSurface'
 
 const STAGE_PADDING = 64

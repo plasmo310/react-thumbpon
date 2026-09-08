@@ -2,7 +2,7 @@ import { get, set } from 'idb-keyval'
 import { kv } from './storage/db'
 import { loadAssets } from './storage/assetRepo'
 import { loadStoredFonts } from './storage/fontRepo'
-import { useEditorStore } from '../store/editorStore'
+import { useEditorStore } from '../store'
 import type { BackgroundPreset, Folder, TextPreset, Thumbnail } from '../types'
 
 const WORKSPACE_KEY = 'project:current'

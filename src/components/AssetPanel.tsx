@@ -2,7 +2,7 @@ import { useRef, useState } from 'react'
 import { DND_TYPE, hasDragType } from '../lib/dom/dnd'
 import { notifyError } from '../lib/dom/notify'
 import { getAssetUrl } from '../lib/storage/assetRepo'
-import { useEditorStore } from '../store/editorStore'
+import { useEditorStore } from '../store'
 
 export default function AssetPanel() {
   const assets = useEditorStore((s) => s.assets)

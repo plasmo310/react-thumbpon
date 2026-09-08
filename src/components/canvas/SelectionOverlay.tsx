@@ -10,7 +10,7 @@ import {
   type Handle,
 } from '../../lib/core/geometry'
 import { startPointerDrag } from '../../lib/dom/pointerDrag'
-import { useEditorStore, useSelectedLayer } from '../../store/editorStore'
+import { useEditorStore, useSelectedLayer } from '../../store'
 import { useLayerHeight } from './useLayerHeight'
 
 const ACCENT = '#FF8A5B'

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { DND_TYPE, hasDragType } from '../lib/dom/dnd'
-import { useCurrentThumbnail, useEditorStore } from '../store/editorStore'
+import { useCurrentThumbnail, useEditorStore } from '../store'
 import { BACKGROUND_ID, type Layer } from '../types'
 import { BackgroundProperties, LayerProperties } from './PropertiesPanel'
 import { IconButton } from './ui/Field'

@@ -3,7 +3,7 @@ import { getAssetUrl } from '../../lib/storage/assetRepo'
 import { startPointerDrag } from '../../lib/dom/pointerDrag'
 import { snapPosition } from '../../lib/core/snap'
 import { collectLayerRects, measureLayerHeight } from '../../lib/dom/layerRect'
-import { useCurrentThumbnail, useEditorStore } from '../../store/editorStore'
+import { useCurrentThumbnail, useEditorStore } from '../../store'
 import type { Layer } from '../../types'
 
 /** 画面上でのスナップ距離(px) */

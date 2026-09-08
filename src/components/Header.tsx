@@ -2,7 +2,7 @@ import { useRef, useState } from 'react'
 import { notifyError } from '../lib/dom/notify'
 import { exportPng } from '../lib/exportImage'
 import { downloadProject, importProjectFile, type ProjectFormat } from '../lib/projectFile'
-import { useCurrentThumbnail, useEditorStore } from '../store/editorStore'
+import { useCurrentThumbnail, useEditorStore } from '../store'
 import { CANVAS_PRESETS, CUSTOM_PRESET_ID } from '../types'
 import { NumberInput } from './ui/Field'
 

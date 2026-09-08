@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { DND_TYPE, hasDragType } from '../lib/dom/dnd'
-import { useEditorStore } from '../store/editorStore'
+import { useEditorStore } from '../store'
 import type { Thumbnail } from '../types'
 import { IconButton } from './ui/Field'
 
