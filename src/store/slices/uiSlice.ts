@@ -6,10 +6,13 @@ export type UiSlice = {
   snapEnabled: boolean
   /** ドラッグ中に表示するスナップガイド。永続化しない */
   guides: { x: number[]; y: number[] }
+  /** レイヤー一覧で選択中の項目のプロパティ欄を開いているか */
+  propertiesOpen: boolean
 
   setReady: (ready: boolean) => void
   setSnapEnabled: (enabled: boolean) => void
   setGuides: (guides: { x: number[]; y: number[] }) => void
+  toggleProperties: () => void
 }
 
 /** スナップの設定やガイド線など、編集内容ではない画面まわりの状態 */
@@ -17,6 +20,7 @@ export const createUiSlice: SliceCreator<UiSlice> = (set) => ({
   ready: false,
   snapEnabled: true,
   guides: { x: [], y: [] },
+  propertiesOpen: true,
 
   /**
    * 復元完了を知らせる。
@@ -45,4 +49,7 @@ export const createUiSlice: SliceCreator<UiSlice> = (set) => ({
       if (same(s.guides.x, guides.x) && same(s.guides.y, guides.y)) return s
       return { guides }
     }),
+
+  /** 選択中の項目のプロパティ欄の開閉を切り替える。同じ行をもう一度押したときに使う */
+  toggleProperties: () => set((s) => ({ propertiesOpen: !s.propertiesOpen })),
 })

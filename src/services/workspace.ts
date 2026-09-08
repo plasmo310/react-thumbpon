@@ -1,9 +1,9 @@
 import { get, set } from 'idb-keyval'
 import { kv } from '../lib/storage/db'
-import { loadAssets } from '../lib/storage/assetRepo'
+import { loadAssets, replaceAssets } from '../lib/storage/assetRepo'
 import { loadStoredFonts } from '../lib/storage/fontRepo'
 import { useEditorStore } from '../store'
-import { restoreProjectFolder } from './projectFolder'
+import { disconnectProjectFolder, restoreProjectFolder } from './projectFolder'
 import type { BackgroundPreset, Folder, TextPreset, Thumbnail } from '../types'
 
 const WORKSPACE_KEY = 'project:current'
@@ -53,6 +53,25 @@ export async function restoreWorkspace() {
   }
 
   useEditorStore.getState().setReady(true)
+}
+
+/**
+ * すべてを白紙に戻して新しいプロジェクトを始める。
+ *
+ * フォルダに繋がっていたら切り離す。繋いだままだと、次の「保存」で
+ * 別プロジェクトのフォルダを空の内容で上書きしてしまうため。
+ * フォントは環境側に溜めたもので、プロジェクトには含めないので消さない。
+ */
+export async function newProject() {
+  await replaceAssets([])
+  useEditorStore.setState({ assets: [], missingFontLabels: [] })
+  useEditorStore.getState().loadProject({
+    folders: [],
+    thumbnails: [],
+    textPresets: [],
+    backgroundPresets: [],
+  })
+  await disconnectProjectFolder()
 }
 
 /**

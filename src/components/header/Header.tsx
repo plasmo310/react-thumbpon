@@ -1,5 +1,6 @@
 import { CanvasSizeSelect } from './CanvasSizeSelect'
 import { ExportButton } from './ExportButton'
+import { NewProjectButton } from './NewProjectButton'
 import { ProjectFileButtons } from './ProjectFileButtons'
 import { WorkspaceButtons } from './WorkspaceButtons'
 
@@ -15,6 +16,7 @@ export default function Header() {
       <div className="flex items-center gap-2">
         <CanvasSizeSelect />
         <div className="mx-1 h-5 w-px bg-line" />
+        <NewProjectButton />
         <WorkspaceButtons />
         <div className="mx-1 h-5 w-px bg-line" />
         <ProjectFileButtons />

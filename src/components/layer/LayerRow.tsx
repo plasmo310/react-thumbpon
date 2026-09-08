@@ -10,6 +10,7 @@ export type DropMark = { index: number; position: 'before' | 'after' } | null
 
 /**
  * レイヤー一覧の1行。選択中は操作ボタンとプロパティ欄をその場に開く。
+ * 選択中の行をもう一度押すと畳める（選択は保ったまま一覧を見渡せるように）。
  *
  * @param props.layer       表示するレイヤー
  * @param props.index       配列内の位置。0 が最背面
@@ -37,13 +38,23 @@ export function LayerRow({
   onDrop: () => void
 }) {
   const selectedId = useEditorStore((s) => s.selectedId)
+  const propertiesOpen = useEditorStore((s) => s.propertiesOpen)
   const select = useEditorStore((s) => s.select)
+  const toggleProperties = useEditorStore((s) => s.toggleProperties)
   const updateLayer = useEditorStore((s) => s.updateLayer)
   const removeLayer = useEditorStore((s) => s.removeLayer)
   const duplicateLayer = useEditorStore((s) => s.duplicateLayer)
   const moveLayer = useEditorStore((s) => s.moveLayer)
 
   const selected = selectedId === layer.id
+  const open = selected && propertiesOpen
+
+  /** 未選択なら選ぶ、選択中ならプロパティ欄を開閉する */
+  const handleActivate = () => {
+    if (selected) toggleProperties()
+    else select(layer.id)
+  }
+
   const markBefore = dropMark?.index === index && dropMark.position === 'before'
   const markAfter = dropMark?.index === index && dropMark.position === 'after'
 
@@ -70,9 +81,10 @@ export function LayerRow({
       <div
         role="button"
         tabIndex={0}
-        onClick={() => select(layer.id)}
+        aria-expanded={open}
+        onClick={handleActivate}
         onKeyDown={(e) => {
-          if (e.key === 'Enter' || e.key === ' ') select(layer.id)
+          if (e.key === 'Enter' || e.key === ' ') handleActivate()
         }}
         className="flex w-full cursor-grab items-center gap-2 px-2 py-1.5 text-left"
       >
@@ -106,7 +118,7 @@ export function LayerRow({
         </IconButton>
       </div>
 
-      {selected && (
+      {open && (
         <>
           <div className="flex items-center gap-1 border-t border-line bg-app px-2 py-1">
             <IconButton title="背面へ" onClick={() => moveLayer(layer.id, -1)} active={index > 0}>

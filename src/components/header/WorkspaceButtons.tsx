@@ -53,7 +53,7 @@ export function WorkspaceButtons() {
         title="ローカルのフォルダをワークスペースとして開く"
         onClick={() => void guard('フォルダを開けませんでした', openProjectFolder)}
       >
-        フォルダを開く
+        開く
       </button>
       <button
         type="button"

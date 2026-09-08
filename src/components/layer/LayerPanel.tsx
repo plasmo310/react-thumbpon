@@ -10,7 +10,9 @@ import { LayerRow, type DropMark } from './LayerRow'
 export default function LayerPanel() {
   const { layers } = useCurrentThumbnail()
   const selectedId = useEditorStore((s) => s.selectedId)
+  const propertiesOpen = useEditorStore((s) => s.propertiesOpen)
   const select = useEditorStore((s) => s.select)
+  const toggleProperties = useEditorStore((s) => s.toggleProperties)
   const addTextLayer = useEditorStore((s) => s.addTextLayer)
   const reorderLayer = useEditorStore((s) => s.reorderLayer)
 
@@ -18,6 +20,7 @@ export default function LayerPanel() {
   const [dropMark, setDropMark] = useState<DropMark>(null)
 
   const backgroundSelected = selectedId === BACKGROUND_ID
+  const backgroundOpen = backgroundSelected && propertiesOpen
 
   /**
    * ドラッグ中の位置から挿入位置を決める。
@@ -72,7 +75,8 @@ export default function LayerPanel() {
         >
           <button
             type="button"
-            onClick={() => select(BACKGROUND_ID)}
+            aria-expanded={backgroundOpen}
+            onClick={() => (backgroundSelected ? toggleProperties() : select(BACKGROUND_ID))}
             className="flex w-full items-center gap-2 px-2 py-1.5 text-left hover:bg-app"
           >
             <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded bg-line text-[9px] font-bold text-ink-sub">
@@ -80,7 +84,7 @@ export default function LayerPanel() {
             </span>
             <span className="flex-1 truncate text-xs">背景</span>
           </button>
-          {backgroundSelected && <BackgroundProperties />}
+          {backgroundOpen && <BackgroundProperties />}
         </div>
 
         {/* 配列の末尾が最前面。一覧も配列順に並べるので「下が前面」になる */}

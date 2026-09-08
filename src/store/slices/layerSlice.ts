@@ -32,10 +32,16 @@ export const createLayerSlice: SliceCreator<LayerSlice> = (set, get) => {
 
     /**
      * 選択状態を変える。
+     * 別の項目に移ったときはプロパティ欄を開き直す
+     * （閉じたまま選び直すと何も出ず、選べていないように見えるため）。
      *
      * @param id 選択するレイヤーの id。背景なら BACKGROUND_ID、解除なら null
      */
-    select: (id) => set({ selectedId: id }),
+    select: (id) =>
+      set((s) => ({
+        selectedId: id,
+        propertiesOpen: s.selectedId === id ? s.propertiesOpen : true,
+      })),
 
     /**
      * 現在のサムネイルの背景設定を部分的に更新する。
@@ -67,7 +73,7 @@ export const createLayerSlice: SliceCreator<LayerSlice> = (set, get) => {
         y: Math.round(cy - size.height / 2),
       })
       patchLayers((layers) => [...layers, layer])
-      set({ selectedId: layer.id })
+      set({ selectedId: layer.id, propertiesOpen: true })
     },
 
     /** テキストレイヤーをキャンバス中央に追加し、選択する */
@@ -76,7 +82,7 @@ export const createLayerSlice: SliceCreator<LayerSlice> = (set, get) => {
       if (!thumbnail) return
       const layer = createTextLayer(thumbnail.canvas)
       patchLayers((layers) => [...layers, layer])
-      set({ selectedId: layer.id })
+      set({ selectedId: layer.id, propertiesOpen: true })
     },
 
     /**
@@ -113,7 +119,7 @@ export const createLayerSlice: SliceCreator<LayerSlice> = (set, get) => {
         next.splice(index + 1, 0, copy)
         return next
       })
-      set({ selectedId: copy.id })
+      set({ selectedId: copy.id, propertiesOpen: true })
     },
 
     /**
