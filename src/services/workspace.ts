@@ -3,6 +3,7 @@ import { kv } from '../lib/storage/db'
 import { loadAssets } from '../lib/storage/assetRepo'
 import { loadStoredFonts } from '../lib/storage/fontRepo'
 import { useEditorStore } from '../store'
+import { restoreProjectFolder } from './projectFolder'
 import type { BackgroundPreset, Folder, TextPreset, Thumbnail } from '../types'
 
 const WORKSPACE_KEY = 'project:current'
@@ -17,8 +18,14 @@ type Workspace = {
 }
 
 /**
- * 起動時の復元。素材 → フォント → 作業中プロジェクトの順に読み込む。
- * 最後に ready を立てるまで自動保存は動かないので、復元中に上書きされない。
+ * 起動時の復元。素材 → フォント → 作業中プロジェクト → ワークスペースフォルダの順に読み込む。
+ *
+ * 保存先が2つあるので、どちらが正かをここで一本化する:
+ * **フォルダに繋がっている間はフォルダが唯一の正本**。フォルダを読めたら IndexedDB の
+ * スナップショットは捨てて上書きする。IndexedDB は「まだフォルダに保存していないもの」の
+ * 置き場（フォルダ未接続時の作業・非対応ブラウザ・明示保存前のクラッシュ復旧）に徹する。
+ *
+ * 最後に ready を立てるまで自動保存は動かないので、この間に上書きされることはない。
  */
 export async function restoreWorkspace() {
   const store = useEditorStore.getState()
@@ -39,16 +46,19 @@ export async function restoreWorkspace() {
     if (typeof saved.snapEnabled === 'boolean') store.setSnapEnabled(saved.snapEnabled)
   }
 
+  try {
+    await restoreProjectFolder()
+  } catch (error) {
+    console.error('ワークスペースフォルダの復元に失敗しました', error)
+  }
+
   useEditorStore.getState().setReady(true)
 }
 
 /**
- * 編集内容を自動保存する。素材欄をなくさない設計でも、
- * サムネイル自体はここにしか無いのでリロードで失われないようにする。
- */
-/**
  * 編集内容の自動保存を始める。素材と違いサムネイル自体はここにしか無いので、
- * リロードで失われないようにする。
+ * リロードで失われないようにする。フォルダへは書かない（保存は明示操作のみ）ため、
+ * 未保存の変更があることだけ記録する。
  *
  * @returns 購読を止める関数。App のクリーンアップでそのまま呼ぶ
  */
@@ -70,6 +80,7 @@ export function startAutoSave() {
       return
     }
     previous = next
+    if (!state.workspaceDirty) state.setWorkspaceDirty(true)
     window.clearTimeout(timer)
     timer = window.setTimeout(() => {
       void set(WORKSPACE_KEY, next, kv).catch((error) =>

@@ -19,7 +19,7 @@ skinparam rectangle {
 }
 
 rectangle "**components**\n画面に出るもの\nheader / thumbnail / layer / asset\nproperties / canvas / ui" as lComponents #FFF1EB
-rectangle "**services**\nユーザー操作\nworkspace / projectFile / exportImage / shortcuts" as lServices
+rectangle "**services**\nユーザー操作\nworkspace / projectFolder / projectData\nprojectFile / exportImage / shortcuts" as lServices
 rectangle "**store**\nZustand の状態と操作\nslices / helpers / selectors" as lStore
 rectangle "**lib**\n再利用できる道具\ncore / dom / storage" as lLib
 rectangle "**types**\n型と定数" as lTypes #F5F6F8

@@ -1,6 +1,9 @@
 import { useEffect } from 'react'
+import { notifyError } from '../lib/dom/notify'
+import { canUseFileSystemAccess } from '../lib/storage/fsAccess'
 import { useEditorStore } from '../store'
 import { BACKGROUND_ID } from '../types'
+import { saveProjectFolder } from './projectFolder'
 
 const EDITABLE = ['INPUT', 'TEXTAREA', 'SELECT']
 
@@ -16,11 +19,24 @@ function isTyping(target: EventTarget | null): boolean {
 
 /**
  * 画面全体のキーボード操作を有効にする。
- * Delete / Backspace で選択中のレイヤーを削除、矢印キーで移動（Shift で10px）。
+ * Ctrl/Cmd+S でワークスペースフォルダに保存、Delete / Backspace で選択中のレイヤーを削除、
+ * 矢印キーで移動（Shift で10px）。
  */
 export function useKeyboardShortcuts() {
   useEffect(() => {
     const handler = (event: KeyboardEvent) => {
+      // 保存は入力中でも効かせたいので、他の判定より先に見る。
+      // 非対応ブラウザではブラウザ本来の保存を邪魔しないよう、何もしない
+      if (
+        (event.ctrlKey || event.metaKey) &&
+        event.key.toLowerCase() === 's' &&
+        canUseFileSystemAccess()
+      ) {
+        event.preventDefault()
+        void saveProjectFolder().catch((error) => notifyError('保存に失敗しました', error))
+        return
+      }
+
       if (isTyping(event.target)) return
       const { selectedId, removeLayer, nudgeLayer } = useEditorStore.getState()
       if (!selectedId || selectedId === BACKGROUND_ID) return

@@ -1,6 +1,7 @@
 import { CanvasSizeSelect } from './CanvasSizeSelect'
 import { ExportButton } from './ExportButton'
 import { ProjectFileButtons } from './ProjectFileButtons'
+import { WorkspaceButtons } from './WorkspaceButtons'
 
 /** 画面上部のツールバー。中身の状態は各ボタン側に閉じているので、ここは並べるだけ */
 export default function Header() {
@@ -13,6 +14,8 @@ export default function Header() {
 
       <div className="flex items-center gap-2">
         <CanvasSizeSelect />
+        <div className="mx-1 h-5 w-px bg-line" />
+        <WorkspaceButtons />
         <div className="mx-1 h-5 w-px bg-line" />
         <ProjectFileButtons />
         <ExportButton />

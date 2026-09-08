@@ -1,11 +1,13 @@
-import { useRef, useState } from 'react'
+import { useRef } from 'react'
 import { notifyError } from '../../lib/dom/notify'
-import { downloadProject, importProjectFile, type ProjectFormat } from '../../services/projectFile'
-import { toolbarButton, toolbarSelect } from './styles'
+import { exportProjectFile, importProjectFile } from '../../services/projectFile'
+import { toolbarButton } from './styles'
 
-/** プロジェクトの保存と読込。読込は現在の内容を破棄するので確認を挟む */
+/**
+ * プロジェクトを1つのファイルとして受け渡しする。
+ * フォルダ連携と違い全ブラウザで使えるので、非対応ブラウザではこちらが唯一の保存手段になる。
+ */
 export function ProjectFileButtons() {
-  const [saveFormat, setSaveFormat] = useState<ProjectFormat>('zip')
   const inputRef = useRef<HTMLInputElement>(null)
 
   /**
@@ -25,29 +27,26 @@ export function ProjectFileButtons() {
 
   return (
     <>
-      <select
-        className={`${toolbarSelect} px-2`}
-        value={saveFormat}
-        onChange={(e) => setSaveFormat(e.target.value as ProjectFormat)}
-        title="ZIPは画像を画像ファイルのまま格納するので軽い"
-      >
-        <option value="zip">ZIP</option>
-        <option value="json">JSON</option>
-      </select>
       <button
         type="button"
         className={toolbarButton}
-        onClick={() => void downloadProject(saveFormat)}
+        title=".thumbpon ファイルを読み込む"
+        onClick={() => inputRef.current?.click()}
       >
-        保存
+        インポート
       </button>
-      <button type="button" className={toolbarButton} onClick={() => inputRef.current?.click()}>
-        読込
+      <button
+        type="button"
+        className={toolbarButton}
+        title="プロジェクトを .thumbpon ファイル1つとして書き出す"
+        onClick={() => void exportProjectFile().catch((e) => notifyError('書き出しに失敗しました', e))}
+      >
+        エクスポート
       </button>
       <input
         ref={inputRef}
         type="file"
-        accept=".json,.zip,application/json,application/zip"
+        accept=".thumbpon,.json,.zip,application/json,application/zip"
         hidden
         onChange={(event) => {
           void handleImport(event.target.files?.[0])

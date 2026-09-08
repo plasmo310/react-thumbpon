@@ -8,13 +8,14 @@
 
 ```bash
 npm run dev        # 開発サーバー
-npm run typecheck  # tsc --noEmit
+npm run typecheck  # tsc --noEmit（tests/ も対象）
+npm run test       # vitest run
 npm run build      # 型チェック + 本番ビルド（変更後はこれを通すこと）
 ```
 
-テストランナーは未導入。純粋関数（`src/lib/core/` 配下）は
-`npx esbuild <file> --format=esm --outfile=<tmp>.mjs` でトランスパイルして
-`node` から呼べば手早く検証できる。
+テストは Vitest でルートの `tests/` に置く。環境は node なので DOM は使えない。
+ブラウザAPIに触るモジュール（`fsAccess` など）は `tests/helpers/` の
+メモリ実装を `vi.mock` で差し込む。純粋関数は `src/lib/core/` に置いてそのまま呼ぶ。
 
 ## ディレクトリ構成
 
@@ -27,15 +28,19 @@ src/
   App.tsx        main.tsx     アプリの入口
   types/         型と定数。何にも依存しない
   lib/
-    core/        純粋関数。DOMもブラウザAPIも触らない（geometry / snap / factory）
+    core/        純粋関数。DOMもブラウザAPIも触らない（geometry / snap / factory / project）
     dom/         DOM・ブラウザ操作（pointerDrag / layerRect / dnd / download / notify）
-    storage/     IndexedDB 永続化（db / assetRepo / fontRepo）
+    storage/     永続化（db / assetRepo / fontRepo / fsAccess）
   store/
-    slices/      関心事ごとの状態と操作（thumbnail / layer / asset / font / preset / ui）
+    slices/      関心事ごとの状態と操作（thumbnail / layer / asset / font / preset / ui / workspace）
     helpers.ts   patchCurrent / patchLayers
     selectors.ts useCurrentThumbnail / useSelectedLayer
-  services/      store を使うユーザー操作（workspace / projectFile / exportImage / shortcuts）
+  services/      store を使うユーザー操作
+                 workspace（復元と自動保存）/ projectFolder（フォルダ連携）/
+                 projectData（store ⇄ project.json）/ projectFile（.thumbpon）/
+                 exportImage / shortcuts
   components/    header / thumbnail / layer / asset / properties / canvas / ui
+tests/           Vitest。src/ の外に置く
 ```
 
 新しいファイルの置き場所は上から順に当てはめる。
@@ -74,16 +79,32 @@ src/
 
 - **`idb-keyval` の `createStore` は 1つのDBに 1つの objectStore しか作れない。**
   同じDB名で2回呼ぶと2つ目は `NotFoundError` になる。そのため `src/lib/storage/db.ts` の
-  `kv` ひとつだけを使い、キーの接頭辞（`blob:` `meta:` `font:` `project:`）で用途を分ける。
+  `kv` ひとつだけを使い、キーの接頭辞（`blob:` `meta:` `font:` `project:` `handle:`）で用途を分ける。
   新しい保存先が要るときも createStore を追加せず、接頭辞を足すこと。
 - **書き出しに含めたくないDOMには `data-export-ignore="true"` を付ける。**
   `exportImage.ts` の filter がこれを除外する（選択枠・スナップガイドが該当）。
 - `html-to-image` は初回呼び出しでWebフォントや画像の埋め込みが間に合わないことがあるため、
   `exportImage.ts` では意図的に2回呼んで1回目を捨てている。消さないこと。
-- **フォントファイルはプロジェクトファイルに含まれない。** IndexedDB にのみ保存され、
-  プロジェクトには `fontFamily` の文字列だけが入る。別環境では代替フォントになる。
+- **フォントファイルはプロジェクトに含めない。同梱するとフォントの再配布にあたるため。**
+  実体は IndexedDB にのみ保存する。代わりに `project.json` の `fonts` に
+  使用フォントのマニフェスト（表示名 / family / local か file か）を持たせ、
+  読み込み側で解決できなかったものを `missingFontLabels` に入れて名前で告知する。
+  マニフェストの組み立ては `lib/core/project.ts` の `collectUsedFonts` / `findMissingFonts`。
 - 自動保存（`services/workspace.ts`）は `ready` が true の間だけ動く。復元中に
   上書き保存されないようにするための仕組みなので、順序を変えないこと。
+- **保存先が2つあるので、どちらが正かのルールを崩さない。**
+  ローカルフォルダに接続している間は**フォルダが唯一の正本**で、起動時にフォルダを読めたら
+  IndexedDB のスナップショットは捨てて上書きする（`restoreWorkspace()` に集約）。
+  IndexedDB は「まだフォルダに保存していないもの」の置き場（フォルダ未接続時の作業・
+  非対応ブラウザ・明示保存前のクラッシュ復旧）に徹する。
+- **フォルダへの書き込みは明示保存のみ**（保存ボタン / Ctrl+S）。自動では書かない。
+  外部エディタとの競合と、編集途中の意図しない上書きを避けるため。
+- **File System Access API は Chromium 系のみ。** `fsAccess.ts` の
+  `canUseFileSystemAccess()` で判定し、非対応ブラウザでは UI を出さない
+  （`fontRepo.ts` の `canQueryLocalFonts()` と同じ段階的強化の形）。
+  型は lib.dom に無いので、型定義パッケージを足さず `fsAccess.ts` 内にローカル宣言している。
+  権限の要求（`requestPermission`）はユーザー操作の中からしか通らないため、
+  起動時の自動復元では要求せず `needs-permission` を立てて通知バーに委ねる。
 - スナップは回転していないレイヤー（`rotation === 0`）だけが対象。矩形が合わないため。
 
 ## コードスタイル
@@ -101,9 +122,9 @@ src/
   ハードコードした 16進数をコンポーネントに書かない。例外はキャンバス内部に直接描く色
   （選択枠・ガイド線）で、これらは Tailwind の外なので定数として先頭に置く。
 - 新しい依存は足す前に必要性を確認する。現在の依存は
-  react / zustand / idb-keyval / html-to-image / fflate のみ。
+  react / zustand / idb-keyval / html-to-image / fflate（開発は vite / tailwind / vitest）のみ。
 
 ## 未実装
 
 Undo / Redo、整列コマンド、グループ化、テキストの影・グロー・グラデーション、
-テンプレート機能、一括生成、ローカルフォルダ連携。
+テンプレート機能、一括生成。

@@ -41,18 +41,18 @@ package "components" {
 }
 
 package "services" {
-  rectangle "workspace / projectFile\nexportImage / shortcuts" as svc
+  rectangle "workspace / projectFolder\nprojectData / projectFile\nexportImage / shortcuts" as svc
 }
 
 package "store" {
   rectangle "editorStore\nselectors / helpers" as stCore
-  rectangle "slices\nthumbnail / layer / asset\nfont / preset / ui" as stSlices
+  rectangle "slices\nthumbnail / layer / asset\nfont / preset / ui / workspace" as stSlices
 }
 
 package "lib" {
   rectangle "dom\npointerDrag / layerRect\ndnd / download / notify" as libDom
-  rectangle "storage\ndb / assetRepo / fontRepo" as libStorage
-  rectangle "core\ngeometry / snap / factory" as libCore
+  rectangle "storage\ndb / assetRepo / fontRepo / fsAccess" as libStorage
+  rectangle "core\ngeometry / snap / factory / project" as libCore
 }
 
 package "types" {
@@ -75,7 +75,7 @@ cLayer -down-> cUi
 cProperties -down-> cUi
 
 ' --- components -> services ---
-cHeader -down-> svc : 保存 / 読込 / 書き出し
+cHeader -down-> svc : フォルダ連携 / 入出力 / 書き出し
 cCanvas -down-> svc : 書き出し対象の登録
 
 ' --- components -> store ---
@@ -103,6 +103,7 @@ cProperties -down-> libCore
 svc -down-> stCore
 svc -down-> libDom
 svc -down-> libStorage
+svc -down-> libCore
 
 ' --- store 内と store -> lib ---
 stCore -down-> stSlices

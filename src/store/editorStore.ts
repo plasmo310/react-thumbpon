@@ -5,6 +5,7 @@ import { createLayerSlice } from './slices/layerSlice'
 import { createPresetSlice } from './slices/presetSlice'
 import { createThumbnailSlice } from './slices/thumbnailSlice'
 import { createUiSlice } from './slices/uiSlice'
+import { createWorkspaceSlice } from './slices/workspaceSlice'
 import type { EditorState } from './types'
 
 /** エディタの状態はすべてここに集約する。中身は slices/ に分かれている */
@@ -15,4 +16,5 @@ export const useEditorStore = create<EditorState>()((...a) => ({
   ...createFontSlice(...a),
   ...createPresetSlice(...a),
   ...createUiSlice(...a),
+  ...createWorkspaceSlice(...a),
 }))

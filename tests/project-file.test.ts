@@ -1,0 +1,187 @@
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+
+vi.mock('../src/lib/storage/assetRepo', () => import('./helpers/fakeAssetRepo'))
+vi.mock('../src/lib/dom/download', () => ({
+  downloadBlob: (blob: Blob, filename: string) => {
+    downloaded = { blob, filename }
+  },
+  downloadDataUrl: () => {},
+}))
+
+import { blobs, resetAssets, seedAsset } from './helpers/fakeAssetRepo'
+import { exportProjectFile, importProjectFile } from '../src/services/projectFile'
+import { useEditorStore } from '../src/store'
+import {
+  BUILTIN_FONTS,
+  DEFAULT_BACKGROUND,
+  type AssetMeta,
+  type TextLayer,
+  type Thumbnail,
+} from '../src/types'
+
+let downloaded: { blob: Blob; filename: string } | null = null
+
+const meta = (id: string): AssetMeta => ({
+  id,
+  name: `${id}.png`,
+  mime: 'image/png',
+  width: 10,
+  height: 10,
+  createdAt: 0,
+})
+
+const textLayer = (fontFamily: string): TextLayer => ({
+  id: 'tx1',
+  name: 'text',
+  type: 'text',
+  x: 0,
+  y: 0,
+  width: 100,
+  rotation: 0,
+  opacity: 1,
+  visible: true,
+  locked: false,
+  text: 'あ',
+  fontFamily,
+  fontSize: 40,
+  fontWeight: 400,
+  fontStyle: 'normal',
+  textAlign: 'left',
+  letterSpacing: 0,
+  lineHeight: 1.2,
+  color: '#000000',
+  strokeWidth: 0,
+  strokeColor: '#ffffff',
+})
+
+const thumbnail = (layers: Thumbnail['layers']): Thumbnail => ({
+  id: 'th1',
+  name: 'サムネイル 1',
+  folderId: null,
+  canvas: { width: 1920, height: 1080 },
+  background: DEFAULT_BACKGROUND,
+  layers,
+})
+
+/** 書き出したものを、そのまま読み込み側に渡せる File にする */
+async function exported(): Promise<File> {
+  await exportProjectFile()
+  if (!downloaded) throw new Error('書き出されていません')
+  return new File([downloaded.blob], downloaded.filename)
+}
+
+beforeEach(() => {
+  resetAssets()
+  downloaded = null
+  useEditorStore.setState({
+    folders: [],
+    thumbnails: [thumbnail([])],
+    currentThumbnailId: 'th1',
+    assets: [],
+    fonts: BUILTIN_FONTS,
+    missingFontLabels: [],
+  })
+})
+
+describe('exportProjectFile', () => {
+  it('拡張子 .thumbpon の ZIP として書き出す', async () => {
+    await exportProjectFile()
+    expect(downloaded?.filename).toMatch(/^thumbpon-\d{4}-\d{2}-\d{2}\.thumbpon$/)
+    const head = new Uint8Array(await (downloaded as { blob: Blob }).blob.arrayBuffer())
+    expect([head[0], head[1]]).toEqual([0x50, 0x4b])
+  })
+
+  it('実体を失った素材は書き出さない', async () => {
+    // メタだけ残っていても復元できないので落とす
+    useEditorStore.setState({ assets: [meta('ghost')] })
+    const file = await exported()
+    useEditorStore.setState({ assets: [] })
+    await importProjectFile(file)
+    expect(useEditorStore.getState().assets).toEqual([])
+  })
+})
+
+describe('往復', () => {
+  it('サムネイルと素材が書き出し前の状態に戻る', async () => {
+    useEditorStore.setState({
+      folders: [{ id: 'f1', name: 'フォルダ 1', collapsed: false }],
+      thumbnails: [{ ...thumbnail([textLayer('"Mine"')]), folderId: 'f1' }],
+      assets: [meta('a1')],
+    })
+    seedAsset('a1', new Blob(['image-bytes']))
+
+    const file = await exported()
+    useEditorStore.setState({ folders: [], thumbnails: [thumbnail([])], assets: [] })
+    resetAssets()
+
+    await importProjectFile(file)
+
+    const state = useEditorStore.getState()
+    expect(state.folders.map((f) => f.id)).toEqual(['f1'])
+    expect(state.thumbnails[0].layers.map((l) => l.id)).toEqual(['tx1'])
+    expect(state.assets.map((a) => a.id)).toEqual(['a1'])
+    expect(await (blobs.get('a1') as Blob).text()).toBe('image-bytes')
+  })
+
+  it('使用フォントは名前だけ引き継がれ、解決できないものが告知される', async () => {
+    useEditorStore.setState({
+      thumbnails: [thumbnail([textLayer('"Mine"')])],
+      fonts: [...BUILTIN_FONTS, { id: 'file:Mine', family: '"Mine"', label: 'Mine', source: 'file' }],
+    })
+
+    const file = await exported()
+    // フォントを持たない環境で開いた状況
+    useEditorStore.setState({ fonts: BUILTIN_FONTS })
+    await importProjectFile(file)
+
+    expect(useEditorStore.getState().missingFontLabels).toEqual(['Mine'])
+  })
+
+  it('フォントが揃っていれば告知しない', async () => {
+    const mine = { id: 'file:Mine', family: '"Mine"', label: 'Mine', source: 'file' as const }
+    useEditorStore.setState({
+      thumbnails: [thumbnail([textLayer('"Mine"')])],
+      fonts: [...BUILTIN_FONTS, mine],
+    })
+
+    const file = await exported()
+    await importProjectFile(file)
+
+    expect(useEditorStore.getState().missingFontLabels).toEqual([])
+  })
+})
+
+describe('importProjectFile', () => {
+  it('サムネぽん以外の JSON は受け付けない', async () => {
+    const file = new File([JSON.stringify({ hello: 'world' })], 'x.json')
+    await expect(importProjectFile(file)).rejects.toThrow('サムネぽんのプロジェクトファイル')
+  })
+
+  it('旧 .thumbpon.json（画像を dataURL で埋め込んだ形式）も読める', async () => {
+    const legacy = {
+      format: 'thumbpon-project',
+      version: 1,
+      folders: [],
+      thumbnails: [thumbnail([])],
+      currentThumbnailId: 'th1',
+      assets: [{ meta: meta('a1'), dataUrl: 'data:image/png;base64,aGVsbG8=' }],
+    }
+    await importProjectFile(new File([JSON.stringify(legacy)], 'old.thumbpon.json'))
+
+    expect(useEditorStore.getState().assets.map((a) => a.id)).toEqual(['a1'])
+    expect(await (blobs.get('a1') as Blob).text()).toBe('hello')
+  })
+
+  it('fonts を持たない旧形式ではフォントを告知しない', async () => {
+    const legacy = {
+      format: 'thumbpon-project',
+      version: 1,
+      folders: [],
+      thumbnails: [thumbnail([textLayer('"Gone"')])],
+      currentThumbnailId: 'th1',
+      assets: [],
+    }
+    await importProjectFile(new File([JSON.stringify(legacy)], 'old.thumbpon.json'))
+    expect(useEditorStore.getState().missingFontLabels).toEqual([])
+  })
+})
