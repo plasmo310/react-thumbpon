@@ -6,6 +6,9 @@ import CanvasSurface from './CanvasSurface'
 
 const STAGE_PADDING = 64
 
+/**
+ * キャンバスを中央に置く土台。表示倍率の計算と、素材・画像ファイルのドロップを受け持つ。
+ */
 export default function CanvasStage() {
   const stageRef = useRef<HTMLDivElement>(null)
   const surfaceWrapRef = useRef<HTMLDivElement>(null)

@@ -42,6 +42,12 @@ const HANDLE_CURSOR: Record<Handle, string> = {
 /** テキストは高さが内容依存なので上下ハンドルは出さない */
 const TEXT_HANDLES: Handle[] = ['nw', 'ne', 'se', 'sw', 'e', 'w']
 
+/**
+ * 選択中のレイヤーに重ねる枠・リサイズハンドル・回転ハンドル。
+ * 書き出しには含めないため data-export-ignore を付けている。
+ *
+ * @param props.scale 表示倍率。枠やハンドルが倍率によらず同じ太さに見えるよう実寸に割り戻す
+ */
 export default function SelectionOverlay({ scale }: { scale: number }) {
   const layer = useSelectedLayer()
   const updateLayer = useEditorStore((s) => s.updateLayer)

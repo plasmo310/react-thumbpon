@@ -9,6 +9,12 @@ import type { Layer } from '../../types'
 /** 画面上でのスナップ距離(px) */
 const SNAP_THRESHOLD = 8
 
+/**
+ * キャンバス上に置かれたレイヤー1つ。座標もサイズも実寸で書き、表示の縮小は親が行う。
+ *
+ * @param props.layer 描画するレイヤー
+ * @param props.scale 表示倍率。ポインタの移動量を実寸に直すのと、スナップ距離の換算に使う
+ */
 export default function LayerView({ layer, scale }: { layer: Layer; scale: number }) {
   const select = useEditorStore((s) => s.select)
   const updateLayer = useEditorStore((s) => s.updateLayer)

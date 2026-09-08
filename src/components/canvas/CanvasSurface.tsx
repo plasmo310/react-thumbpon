@@ -9,6 +9,11 @@ import SelectionOverlay from './SelectionOverlay'
 
 const GUIDE_COLOR = '#FF3B8B'
 
+/**
+ * 背景の設定を CSS に変換する。
+ *
+ * @param background 現在のサムネイルの背景設定
+ */
 function backgroundStyle(background: Background): CSSProperties {
   if (background.type === 'gradient') {
     return {
@@ -29,6 +34,12 @@ function backgroundStyle(background: Background): CSSProperties {
   return { backgroundColor: background.color }
 }
 
+/**
+ * キャンバスの実体。内部は常に実寸座標で、表示だけ CSS transform: scale() で縮める。
+ * PNG 書き出しは transform: none を渡すだけで実寸になる。
+ *
+ * @param props.scale 表示倍率
+ */
 export default function CanvasSurface({ scale }: { scale: number }) {
   const surfaceRef = useRef<HTMLDivElement>(null)
   const { canvas, background, layers } = useCurrentThumbnail()
