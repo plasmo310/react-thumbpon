@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from 'react'
 import AssetPanel from './components/asset/AssetPanel'
 import CanvasStage from './components/canvas/CanvasStage'
 import Header from './components/header/Header'
-import { UsageBar } from './components/header/UsageBar'
 import { WorkspaceNotice } from './components/header/WorkspaceNotice'
 import LayerPanel from './components/layer/LayerPanel'
 import ThumbnailPanel from './components/thumbnail/ThumbnailPanel'
@@ -45,7 +44,6 @@ export default function App() {
   return (
     <div className="flex h-full flex-col overflow-hidden">
       <Header />
-      <UsageBar />
       <WorkspaceNotice />
       <div className="flex min-h-0 flex-1">
         <aside

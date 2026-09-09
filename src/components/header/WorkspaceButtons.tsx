@@ -2,18 +2,15 @@ import { useState } from 'react'
 import { notifyError } from '../../lib/dom/notify'
 import { canUseFileSystemAccess } from '../../lib/storage/fsAccess'
 import { openProjectFolder, saveProjectFolder } from '../../services/projectFolder'
-import { useEditorStore } from '../../store'
 import { toolbarButton } from './styles'
 
 /**
  * ローカルフォルダとの接続と保存。
  * File System Access API 非対応のブラウザでは何も描画しない
  * （エクスポート / インポートで作業できるため、機能を出さないだけでよい）。
+ * 前に付く区切り線もここで出す。丸ごと消えたときに区切りだけ残らないようにするため。
  */
 export function WorkspaceButtons() {
-  const status = useEditorStore((s) => s.workspaceStatus)
-  const folderName = useEditorStore((s) => s.workspaceFolderName)
-  const dirty = useEditorStore((s) => s.workspaceDirty)
   const [busy, setBusy] = useState(false)
 
   if (!canUseFileSystemAccess()) return null
@@ -37,15 +34,7 @@ export function WorkspaceButtons() {
 
   return (
     <>
-      {status === 'connected' && folderName && (
-        <span
-          className="max-w-[160px] truncate text-[11px] text-ink-sub"
-          title={`ワークスペース: ${folderName}`}
-        >
-          {dirty ? '● ' : ''}
-          {folderName}
-        </span>
-      )}
+      <div className="mx-1 h-5 w-px bg-line" />
       <button
         type="button"
         className={toolbarButton}
