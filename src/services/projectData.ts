@@ -33,7 +33,7 @@ export function buildProjectFile(payloads: AssetPayload[]): ProjectFile {
 
   return {
     format: 'thumbpon-project',
-    version: 2,
+    version: 3,
     folders,
     thumbnails,
     currentThumbnailId,

@@ -24,11 +24,12 @@ export type ProjectFontRef = {
 
 /**
  * プロジェクトファイル(.thumbpon.zip)とワークスペースフォルダの project.json の中身。
- * version 1 は fonts を持たない。読み込み側は無い前提で扱うこと。
+ * version 1 は fonts を、version 2 までは背景の模様設定とレイヤーのエフェクトを持たない。
+ * 読み込み側は無い前提で扱うこと（欠けは normalizeThumbnails が既定値で補う）。
  */
 export type ProjectFile = {
   format: 'thumbpon-project'
-  version: 1 | 2
+  version: 1 | 2 | 3
   folders: Folder[]
   thumbnails: Thumbnail[]
   currentThumbnailId: string | null

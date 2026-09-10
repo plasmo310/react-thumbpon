@@ -4,8 +4,16 @@ import {
   collectUsedFonts,
   extensionFor,
   findMissingFonts,
+  normalizeThumbnails,
 } from '../src/lib/core/project'
-import type { AssetMeta, FontEntry, TextLayer, Thumbnail } from '../src/types'
+import {
+  DEFAULT_BACKGROUND,
+  DEFAULT_EFFECTS,
+  type AssetMeta,
+  type FontEntry,
+  type TextLayer,
+  type Thumbnail,
+} from '../src/types'
 
 const meta = (over: Partial<AssetMeta>): AssetMeta => ({
   id: 'a1',
@@ -28,6 +36,7 @@ const textLayer = (fontFamily: string): TextLayer => ({
   opacity: 1,
   visible: true,
   locked: false,
+  effects: DEFAULT_EFFECTS,
   text: 'あ',
   fontFamily,
   fontSize: 40,
@@ -117,5 +126,28 @@ describe('findMissingFonts', () => {
 
   it('fonts を持たない旧形式では何も告知しない', () => {
     expect(findMissingFonts(undefined, fonts)).toEqual([])
+  })
+})
+
+describe('normalizeThumbnails', () => {
+  it('模様の設定を持たない背景を既定値で補う', () => {
+    const [normalized] = normalizeThumbnails([thumbnail([])])
+    expect(normalized.background.pattern).toBe(DEFAULT_BACKGROUND.pattern)
+    expect(normalized.background.patternSize).toBe(DEFAULT_BACKGROUND.patternSize)
+    // 元から入っていた値は上書きしない
+    expect(normalized.background.color).toBe('#fff')
+  })
+
+  it('エフェクトを持たないレイヤーを既定値で補う', () => {
+    const legacy = { ...textLayer('"Mine"') } as Partial<TextLayer>
+    delete legacy.effects
+    const [normalized] = normalizeThumbnails([thumbnail([legacy as TextLayer])])
+    expect(normalized.layers[0].effects).toEqual(DEFAULT_EFFECTS)
+  })
+
+  it('設定済みのエフェクトはそのまま残す', () => {
+    const layer = { ...textLayer('"Mine"'), effects: { ...DEFAULT_EFFECTS, blur: 8 } }
+    const [normalized] = normalizeThumbnails([thumbnail([layer])])
+    expect(normalized.layers[0].effects.blur).toBe(8)
   })
 })

@@ -1,4 +1,12 @@
-import type { AssetMeta, FontEntry, ProjectFontRef, Thumbnail } from '../../types'
+import {
+  DEFAULT_BACKGROUND,
+  DEFAULT_EFFECTS,
+  type AssetMeta,
+  type FontEntry,
+  type Layer,
+  type ProjectFontRef,
+  type Thumbnail,
+} from '../../types'
 
 const EXTENSION_BY_MIME: Record<string, string> = {
   'image/png': '.png',
@@ -67,4 +75,25 @@ export function findMissingFonts(
   if (!required) return []
   const known = new Set(available.map((font) => font.family))
   return required.filter((font) => !known.has(font.family)).map((font) => font.label)
+}
+
+/**
+ * 読み込んだサムネイルに、後から増えたフィールドの既定値を埋める。
+ * 保存済みのプロジェクトには背景の模様設定やレイヤーのエフェクトが無いため、
+ * 読み込みの入口でここを通して以降は「必ず在る」前提で扱えるようにする。
+ *
+ * @param thumbnails 読み込んだサムネイル。ファイル由来なので欠けを前提にする
+ */
+export function normalizeThumbnails(thumbnails: Thumbnail[]): Thumbnail[] {
+  return thumbnails.map((thumbnail) => ({
+    ...thumbnail,
+    background: {
+      ...DEFAULT_BACKGROUND,
+      ...thumbnail.background,
+      effects: { ...DEFAULT_EFFECTS, ...thumbnail.background?.effects },
+    },
+    layers: thumbnail.layers.map(
+      (layer) => ({ ...layer, effects: { ...DEFAULT_EFFECTS, ...layer.effects } }) as Layer,
+    ),
+  }))
 }

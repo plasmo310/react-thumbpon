@@ -37,6 +37,7 @@ package "components" {
   rectangle "asset" as cAsset
   rectangle "canvas" as cCanvas
   rectangle "properties" as cProperties
+  rectangle "effects" as cEffects
   rectangle "ui" as cUi
 }
 
@@ -52,11 +53,15 @@ package "store" {
 package "lib" {
   rectangle "dom\npointerDrag / layerRect\ndnd / download / notify" as libDom
   rectangle "storage\ndb / assetRepo / fontRepo / fsAccess" as libStorage
-  rectangle "core\ngeometry / snap / factory / project" as libCore
+  rectangle "core\ngeometry / snap / factory / project\nbackground / effects" as libCore
 }
 
 package "types" {
-  rectangle "thumbnail / layer / background\nasset / font / preset / project" as tp #F5F6F8
+  rectangle "thumbnail / layer / background / effects\nasset / font / preset / project" as tp #F5F6F8
+}
+
+package "styles" {
+  rectangle "input / panel / menu" as sty #F5F6F8
 }
 
 ' --- app が組み立てる ---
@@ -73,6 +78,8 @@ cHeader -down-> cUi
 cThumbnail -down-> cUi
 cLayer -down-> cUi
 cProperties -down-> cUi
+cProperties -> cEffects
+cEffects -down-> cUi
 
 ' --- components -> services ---
 cHeader -down-> svc : フォルダ連携 / 入出力 / 書き出し
@@ -85,6 +92,11 @@ cLayer -down-> stCore
 cAsset -down-> stCore
 cCanvas -down-> stCore
 cProperties -down-> stCore
+
+' --- components -> styles ---
+cHeader -down-> sty
+cProperties -down-> sty
+cUi -down-> sty
 
 ' --- components -> lib ---
 cHeader -down-> libDom
@@ -124,7 +136,8 @@ legend left
   （実際に参照していないのは **components/ui**・**components/asset**・**lib/dom** の3つだけ）
   **lib は store を import しない。** store を使う処理は services に置く（循環するため）
   **lib/core** は types 以外を import しない。DOMもブラウザAPIも触らないので node で直接検証できる
-  **components/ui** はどこにも依存しない汎用の入力部品
+  **components/ui** は styles 以外に依存しない汎用の入力部品
+  **styles** は共有する Tailwind のクラス文字列だけを持ち、何にも依存しない
 endlegend
 
 @enduml

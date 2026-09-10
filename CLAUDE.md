@@ -20,15 +20,18 @@ npm run build      # 型チェック + 本番ビルド（変更後はこれを�
 ## ディレクトリ構成
 
 **第1階層＝役割（何に依存してよいか）、第2階層＝関心事（何を扱うか）**の2段で分ける。
-依存は `types → lib → store → services → components` の一方向のみ。逆流させない。
+依存は `types / styles → lib → store → services → components` の一方向のみ。逆流させない。
 図は [docs/uml/](docs/uml/)（`layers.puml` が層の全体像、`package-dependencies.puml` が詳細）。
 
 ```
 src/
   App.tsx        main.tsx     アプリの入口
-  types/         型と定数。何にも依存しない
+  types/         型と定数。何にも依存しない（effects はレイヤーと背景で共通）
+  styles/        複数の場所で共有する Tailwind のクラス文字列。何にも依存しない
+                 （input / panel / menu）
   lib/
-    core/        純粋関数。DOMもブラウザAPIも触らない（geometry / snap / factory / project）
+    core/        純粋関数。DOMもブラウザAPIも触らない
+                 （geometry / snap / factory / project / background / effects）
     dom/         DOM・ブラウザ操作（pointerDrag / layerRect / dnd / download / notify）
     storage/     永続化（db / assetRepo / fontRepo / fsAccess）
   store/
@@ -39,17 +42,18 @@ src/
                  workspace（復元と自動保存）/ projectFolder（フォルダ連携）/
                  projectData（store ⇄ project.json）/ projectFile（.thumbpon.zip）/
                  exportImage / shortcuts
-  components/    header / thumbnail / layer / asset / properties / canvas / ui
+  components/    header / thumbnail / layer / asset / properties / effects / canvas / ui
 tests/           Vitest。src/ の外に置く
 ```
 
 新しいファイルの置き場所は上から順に当てはめる。
 
-1. 何も import しない純粋な処理か → `lib/core/`
-2. DOM を触るか → `lib/dom/`
-3. IndexedDB を触るか → `lib/storage/`
-4. store を import するか → `services/`（**`lib/` には絶対に置かない**。循環するため）
-5. 画面に出るものか → `components/` の該当する関心事の下
+1. 複数の場所で使うクラス名の定義だけか → `styles/`（**コンポーネントの隣に置かない**）
+2. 何も import しない純粋な処理か → `lib/core/`
+3. DOM を触るか → `lib/dom/`
+4. IndexedDB を触るか → `lib/storage/`
+5. store を import するか → `services/`（**`lib/` には絶対に置かない**。循環するため）
+6. 画面に出るものか → `components/` の該当する関心事の下
 
 ## アーキテクチャの要点
 
@@ -72,6 +76,10 @@ tests/           Vitest。src/ の外に置く
   利用側は `import { useEditorStore, useCurrentThumbnail } from '../store'` の1行で足りる。
 - ドラッグ・リサイズ・回転はライブラリを使わず Pointer Events で実装している
   （`lib/dom/pointerDrag.ts` + `lib/core/geometry.ts`）。ここにライブラリを足さない。
+- **`draggable` は「掴む行」だけに付ける。行全体には付けない。** 行の中に開くプロパティ欄の
+  スライダーや入力を掴んだだけで HTML5 のドラッグが始まり、値を変えられなくなるため。
+  `LayerRow` / `ThumbnailRow` はどちらも名前の行にだけ `draggable` を付け、
+  `onDragOver` / `onDrop`（落とす先）だけを行全体に付けている。
 - **D&Dの種別・エラー通知・ダウンロードは共通化済み**。`lib/dom/` の `dnd.ts`（`DND_TYPE` /
   `hasDragType`）、`notify.ts`（`notifyError`）、`download.ts` を使う。各所に書き直さない。
 
@@ -110,6 +118,24 @@ tests/           Vitest。src/ の外に置く
   権限の要求（`requestPermission`）はユーザー操作の中からしか通らないため、
   起動時の自動復元では要求せず `needs-permission` を立てて通知バーに委ねる。
 - スナップは回転していないレイヤー（`rotation === 0`）だけが対象。矩形が合わないため。
+- **エフェクト（ブラー / シャドウ / 光彩）はレイヤーと背景で共通**。型は `types/effects.ts` の
+  `Effects`、CSS への変換は `lib/core/effects.ts`、UI は `components/effects/` の
+  `EffectsSection`（ストアに触らず値と更新関数を props で受ける）。掛ける先が増えても
+  この3つを使い回す。CSS の `filter` 1本で描き、影に `box-shadow` ではなく `drop-shadow` を
+  使うのは、要素の矩形ではなく中身の形（文字の輪郭・画像の透過・模様の隙間）に沿った影を
+  出すため。光彩は drop-shadow 1回だと薄すぎるので同じものを重ねている。
+- **背景は「下地色」と「絵柄」の2層に分ける**（`backgroundBaseStyle` / `backgroundArtStyle`）。
+  エフェクトは絵柄の層だけに掛ける。サーフェス自体に `filter` を掛けるとレイヤーまで
+  一緒にぼけるため。ぼかすと絵柄の縁が透けるので、`effectsBleed()` の分だけ外側に
+  はみ出させて `overflow: hidden` で切る。単色の背景は絵柄を持たないので効果は出ない。
+- **背景の模様（パターン）は画像を作らず CSS のグラデーションで描く**（`lib/core/background.ts`）。
+  書き出しでも劣化せず、素材の管理も要らないため。**素材を使う敷き詰め（タイル）は
+  パターンではなく背景「画像」の敷き方**（`fit: 'tile'`）に置く。タイルは模様の形ではなく
+  1枚の画像の敷き方で、cover / contain と同じ軸のため。素材の参照は `assetId` ひとつ。
+- **`effects` は入れ子フィールドなので浅いマージでは潰れる。** 更新には専用の口
+  （レイヤーは `updateLayerEffects`、背景は `setBackgroundEffects`）を使うこと。
+- **後から増えたフィールドは `lib/core/project.ts` の `normalizeThumbnails` で補う。**
+  `loadProject` が必ず通すので、読み込み後は「必ず在る」前提で書いてよい。
 
 ## コードスタイル
 
@@ -130,5 +156,5 @@ tests/           Vitest。src/ の外に置く
 
 ## 未実装
 
-Undo / Redo、整列コマンド、グループ化、テキストの影・グロー・グラデーション、
+Undo / Redo、整列コマンド、グループ化、テキストのグラデーション、
 テンプレート機能、一括生成。

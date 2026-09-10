@@ -1,4 +1,4 @@
-import { inputBase } from './styles'
+import { inputBase } from '../../styles'
 
 /**
  * 1行のテキスト入力。

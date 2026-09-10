@@ -1,4 +1,4 @@
-import { inputBase } from './styles'
+import { inputBase } from '../../styles'
 
 /**
  * 色の入力。カラーピッカーと16進数の直接入力を並べる。

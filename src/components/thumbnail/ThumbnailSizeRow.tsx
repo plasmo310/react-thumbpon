@@ -25,30 +25,33 @@ export function ThumbnailSizeRow() {
   ]
 
   return (
-    // サイドバーは 240px まで縮むので、入りきらないときは折り返す
-    <div className="flex flex-wrap items-center gap-1 px-2 pb-1.5 pl-7">
-      <span className="shrink-0 text-[10px] text-ink-sub">サイズ</span>
-      <div className="w-[104px]">
-        <Select
-          value={presetValue}
-          options={options}
-          onChange={(value) => {
-            if (value === CUSTOM_PRESET_ID) {
-              setCustomMode(true)
-              return
-            }
-            const preset = CANVAS_PRESETS.find((p) => p.id === value)
-            if (preset) {
-              setCustomMode(false)
-              setCanvasSize({ width: preset.width, height: preset.height })
-            }
-          }}
-        />
+    // サイドバーは 240px まで縮むので、幅は固定せず余りに追従させる
+    <div className="flex flex-wrap items-center gap-x-2 gap-y-1 px-2 pb-1.5 pl-7">
+      <div className="flex min-w-0 flex-1 items-center gap-1">
+        <span className="shrink-0 text-[10px] text-ink-sub">サイズ</span>
+        <div className="min-w-0 flex-1">
+          <Select
+            value={presetValue}
+            options={options}
+            onChange={(value) => {
+              if (value === CUSTOM_PRESET_ID) {
+                setCustomMode(true)
+                return
+              }
+              const preset = CANVAS_PRESETS.find((p) => p.id === value)
+              if (preset) {
+                setCustomMode(false)
+                setCanvasSize({ width: preset.width, height: preset.height })
+              }
+            }}
+          />
+        </div>
       </div>
 
       {showCustom && (
-        <div className="flex items-center gap-1 text-[10px] text-ink-sub">
-          <div className="w-16">
+        // 幅×高さは1行に収まらないことがあるので、常に次の行へ送る
+        <div className="flex w-full items-center gap-1 text-[10px] text-ink-sub">
+          <div className="min-w-0 flex-1">
             <NumberInput
               value={canvas.width}
               min={1}
@@ -56,7 +59,7 @@ export function ThumbnailSizeRow() {
             />
           </div>
           ×
-          <div className="w-16">
+          <div className="min-w-0 flex-1">
             <NumberInput
               value={canvas.height}
               min={1}

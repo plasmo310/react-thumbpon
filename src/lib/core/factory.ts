@@ -2,6 +2,7 @@ import {
   BUILTIN_FONTS,
   CANVAS_PRESETS,
   DEFAULT_BACKGROUND,
+  DEFAULT_EFFECTS,
   TEXT_STYLE_KEYS,
   type CanvasSize,
   type ImageLayer,
@@ -59,7 +60,7 @@ export function cloneThumbnail(source: Thumbnail, name: string): Thumbnail {
     name,
     canvas: { ...source.canvas },
     background: { ...source.background },
-    layers: source.layers.map((l) => ({ ...l, id: createId() })),
+    layers: source.layers.map((l) => ({ ...l, id: createId(), effects: { ...l.effects } })),
   }
 }
 
@@ -79,6 +80,7 @@ export function createLayerBase(name: string): LayerBase {
     opacity: 1,
     visible: true,
     locked: false,
+    effects: { ...DEFAULT_EFFECTS },
   }
 }
 
@@ -134,6 +136,7 @@ export function cloneLayer(source: Layer): Layer {
   return {
     ...source,
     id: createId(),
+    effects: { ...source.effects },
     name: `${source.name} のコピー`,
     x: source.x + 24,
     y: source.y + 24,

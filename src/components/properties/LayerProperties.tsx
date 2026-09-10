@@ -1,17 +1,20 @@
 import { useEditorStore } from '../../store'
+import { panelBody } from '../../styles'
 import type { Layer } from '../../types'
+import { EffectsSection } from '../effects/EffectsSection'
 import { NumberInput, Row, TextInput } from '../ui'
 import { ImageLayerProperties } from './ImageLayerProperties'
 import { TextLayerProperties } from './TextLayerProperties'
-import { panelBody } from './styles'
 
 /**
- * レイヤーのプロパティ欄。共通の項目を出したあと、種別ごとの欄に振り分ける。
+ * レイヤーのプロパティ欄。共通の項目を出したあと、種別ごとの欄に振り分け、
+ * 最後にテキストと画像で共通のエフェクトを並べる。
  *
  * @param props.layer 編集対象のレイヤー
  */
 export function LayerProperties({ layer }: { layer: Layer }) {
   const updateLayer = useEditorStore((s) => s.updateLayer)
+  const updateLayerEffects = useEditorStore((s) => s.updateLayerEffects)
 
   return (
     <div className={panelBody}>
@@ -32,6 +35,11 @@ export function LayerProperties({ layer }: { layer: Layer }) {
       ) : (
         <TextLayerProperties layer={layer} />
       )}
+
+      <EffectsSection
+        effects={layer.effects}
+        onChange={(patch) => updateLayerEffects(layer.id, patch)}
+      />
     </div>
   )
 }

@@ -1,6 +1,11 @@
 import { createId } from '../../lib/core/factory'
 import { createPatchers } from '../helpers'
-import type { BackgroundPreset, TextPreset, TextStyle } from '../../types'
+import {
+  DEFAULT_BACKGROUND,
+  type BackgroundPreset,
+  type TextPreset,
+  type TextStyle,
+} from '../../types'
 import type { SliceCreator } from '../types'
 
 export type PresetSlice = {
@@ -82,7 +87,8 @@ export const createPresetSlice: SliceCreator<PresetSlice> = (set, get) => {
     applyBackgroundPreset: (presetId) => {
       const preset = get().backgroundPresets.find((p) => p.id === presetId)
       if (!preset) return
-      patchCurrent((t) => ({ ...t, background: { ...preset.background } }))
+      // 模様が無かった頃に保存したプリセットも開けるよう、既定値で欠けを補う
+      patchCurrent((t) => ({ ...t, background: { ...DEFAULT_BACKGROUND, ...preset.background } }))
     },
 
     /**

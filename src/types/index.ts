@@ -1,5 +1,6 @@
 export * from './asset'
 export * from './background'
+export * from './effects'
 export * from './font'
 export * from './layer'
 export * from './preset'

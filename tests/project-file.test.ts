@@ -15,6 +15,7 @@ import { useEditorStore } from '../src/store'
 import {
   BUILTIN_FONTS,
   DEFAULT_BACKGROUND,
+  DEFAULT_EFFECTS,
   type AssetMeta,
   type TextLayer,
   type Thumbnail,
@@ -42,6 +43,7 @@ const textLayer = (fontFamily: string): TextLayer => ({
   opacity: 1,
   visible: true,
   locked: false,
+  effects: DEFAULT_EFFECTS,
   text: 'あ',
   fontFamily,
   fontSize: 40,

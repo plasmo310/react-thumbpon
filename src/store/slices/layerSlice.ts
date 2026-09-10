@@ -1,7 +1,7 @@
 import { cloneLayer, createImageLayer, createTextLayer } from '../../lib/core/factory'
 import { fitInto } from '../../lib/core/geometry'
 import { createPatchers } from '../helpers'
-import type { Background, Layer } from '../../types'
+import { DEFAULT_EFFECTS, type Background, type Effects, type Layer } from '../../types'
 import type { SliceCreator } from '../types'
 
 export type LayerSlice = {
@@ -10,9 +10,11 @@ export type LayerSlice = {
 
   select: (id: string | null) => void
   setBackground: (patch: Partial<Background>) => void
+  setBackgroundEffects: (patch: Partial<Effects>) => void
   addImageLayer: (assetId: string, center?: { x: number; y: number }) => void
   addTextLayer: () => void
   updateLayer: (id: string, patch: Partial<Layer>) => void
+  updateLayerEffects: (id: string, patch: Partial<Effects>) => void
   removeLayer: (id: string) => void
   duplicateLayer: (id: string) => void
   moveLayer: (id: string, direction: 1 | -1) => void
@@ -50,6 +52,21 @@ export const createLayerSlice: SliceCreator<LayerSlice> = (set, get) => {
      */
     setBackground: (patch) =>
       patchCurrent((t) => ({ ...t, background: { ...t.background, ...patch } })),
+
+    /**
+     * 現在のサムネイルの背景のエフェクトを部分的に更新する。
+     * effects は入れ子なので setBackground の浅いマージでは潰れてしまうため、専用の口を用意する。
+     *
+     * @param patch 変更したい項目だけ
+     */
+    setBackgroundEffects: (patch) =>
+      patchCurrent((t) => ({
+        ...t,
+        background: {
+          ...t.background,
+          effects: { ...DEFAULT_EFFECTS, ...t.background.effects, ...patch },
+        },
+      })),
 
     /**
      * 素材から画像レイヤーを作って最前面に追加し、選択する。
@@ -93,6 +110,21 @@ export const createLayerSlice: SliceCreator<LayerSlice> = (set, get) => {
      */
     updateLayer: (id, patch) =>
       patchLayers((layers) => layers.map((l) => (l.id === id ? ({ ...l, ...patch } as Layer) : l))),
+
+    /**
+     * レイヤーのエフェクトを部分的に更新する。
+     * effects は入れ子なので updateLayer の浅いマージでは潰れてしまうため、専用の口を用意する。
+     *
+     * @param id    更新するレイヤーの id
+     * @param patch 変更したい項目だけ
+     */
+    updateLayerEffects: (id, patch) =>
+      patchLayers((layers) =>
+        layers.map((l) => {
+          if (l.id !== id) return l
+          return { ...l, effects: { ...DEFAULT_EFFECTS, ...l.effects, ...patch } } as Layer
+        }),
+      ),
 
     /**
      * レイヤーを削除する。選択中だったら選択も解除する。

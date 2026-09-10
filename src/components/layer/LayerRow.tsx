@@ -3,7 +3,7 @@ import { DND_TYPE } from '../../lib/dom/dnd'
 import { useEditorStore } from '../../store'
 import type { Layer } from '../../types'
 import { LayerProperties } from '../properties/LayerProperties'
-import { IconButton } from '../ui'
+import { EyeIcon, EyeOffIcon, IconButton } from '../ui'
 
 /** ドラッグ中に挿入位置を示す線を、どの行のどちら側に出すか */
 export type DropMark = { index: number; position: 'before' | 'after' } | null
@@ -11,6 +11,10 @@ export type DropMark = { index: number; position: 'before' | 'after' } | null
 /**
  * レイヤー一覧の1行。選択中は操作ボタンとプロパティ欄をその場に開く。
  * 選択中の行をもう一度押すと畳める（選択は保ったまま一覧を見渡せるように）。
+ *
+ * ドラッグは名前の行にだけ付ける。行全体に付けると、開いたプロパティ欄の
+ * スライダーを掴んだだけで HTML5 のドラッグが始まり、値を変えられなくなるため。
+ * 落とす先は行全体のままにして、プロパティを開いていても並べ替えられるようにする。
  *
  * @param props.layer       表示するレイヤー
  * @param props.index       配列内の位置。0 が最背面
@@ -65,12 +69,6 @@ export function LayerRow({
       } ${markBefore ? 'border-t-2 border-t-accent' : ''} ${
         markAfter ? 'border-b-2 border-b-accent' : ''
       }`}
-      draggable
-      onDragStart={(event) => {
-        event.dataTransfer.setData(DND_TYPE.layer, String(index))
-        event.dataTransfer.effectAllowed = 'move'
-        onDragStart(index)
-      }}
       onDragOver={(event) => onDragOver(index, event)}
       onDrop={(event) => {
         event.preventDefault()
@@ -81,6 +79,12 @@ export function LayerRow({
       <div
         role="button"
         tabIndex={0}
+        draggable
+        onDragStart={(event) => {
+          event.dataTransfer.setData(DND_TYPE.layer, String(index))
+          event.dataTransfer.effectAllowed = 'move'
+          onDragStart(index)
+        }}
         aria-expanded={open}
         onClick={handleActivate}
         onKeyDown={(e) => {
@@ -107,7 +111,7 @@ export function LayerRow({
           onClick={() => updateLayer(layer.id, { visible: !layer.visible })}
           active={!layer.visible}
         >
-          {layer.visible ? '◉' : '◌'}
+          {layer.visible ? <EyeIcon /> : <EyeOffIcon />}
         </IconButton>
         <IconButton
           title={layer.locked ? 'ロック解除' : 'ロック'}

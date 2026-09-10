@@ -1,0 +1,98 @@
+import type { CSSProperties } from 'react'
+import { DEFAULT_BACKGROUND, type Background } from '../../types'
+
+/**
+ * 模様を CSS のグラデーションに変換する。画像を作らずに済むので書き出しでも劣化しない。
+ *
+ * @param background 背景設定。pattern 系のフィールドだけを見る
+ */
+function patternStyle(background: Background): CSSProperties {
+  // 1px 未満のマスは模様として意味を成さないので下限を設ける
+  const size = Math.max(2, background.patternSize)
+  const weight = Math.min(1, Math.max(0, background.patternWeight))
+  const color = background.patternColor
+
+  if (background.pattern === 'lines') {
+    const thickness = Math.max(1, size * weight)
+    return {
+      backgroundImage: `repeating-linear-gradient(${background.patternAngle}deg, ${color} 0px, ${color} ${thickness}px, transparent ${thickness}px, transparent ${size}px)`,
+    }
+  }
+
+  if (background.pattern === 'checker') {
+    // 45度のグラデーション2枚を半マスずらして重ねると市松模様になる（CSS の定番手法）
+    const square = `linear-gradient(45deg, ${color} 25%, transparent 25%, transparent 75%, ${color} 75%)`
+    const half = size / 2
+    return {
+      backgroundImage: `${square}, ${square}`,
+      backgroundSize: `${size}px ${size}px`,
+      backgroundPosition: `0 0, ${half}px ${half}px`,
+      backgroundRepeat: 'repeat',
+    }
+  }
+
+  // 水玉。知らない値が来たときの受け皿も兼ねる
+  const radius = (size * weight) / 2
+  return {
+    backgroundImage: `radial-gradient(circle at 50% 50%, ${color} ${radius}px, transparent ${radius}px)`,
+    backgroundSize: `${size}px ${size}px`,
+    backgroundRepeat: 'repeat',
+  }
+}
+
+/**
+ * 1枚の画像を敷く。cover / contain は1枚だけ、tile は元の比率のまま繰り返す。
+ *
+ * @param background 背景設定。image 系のフィールドだけを見る
+ * @param imageUrl   素材の objectURL
+ */
+function imageStyle(background: Background, imageUrl: string): CSSProperties {
+  if (background.fit === 'tile') {
+    return {
+      backgroundImage: `url(${imageUrl})`,
+      // 高さを auto にすると元の比率のまま並ぶ
+      backgroundSize: `${Math.max(2, background.tileWidth)}px auto`,
+      backgroundRepeat: 'repeat',
+    }
+  }
+  return {
+    backgroundImage: `url(${imageUrl})`,
+    backgroundSize: background.fit,
+    backgroundPosition: background.position,
+    backgroundRepeat: 'no-repeat',
+  }
+}
+
+/**
+ * 下地の色。エフェクトを掛けない層に敷く。
+ * ぼかしを掛けた層は縁が透けるので、その下に必ず色があるようにするための分離。
+ *
+ * @param background 現在のサムネイルの背景設定
+ */
+export function backgroundBaseStyle(background: Background): CSSProperties {
+  return { backgroundColor: background.color ?? DEFAULT_BACKGROUND.color }
+}
+
+/**
+ * 下地色を除いた背景の絵柄（グラデーション・画像・模様）。エフェクトはこちらに掛ける。
+ * 単色の背景は絵柄を持たないので空になる（平らな色はぼかしても影を落としても変わらない）。
+ * 素材の解決はブラウザ側の関心なので、URL は呼び出し側で引いて渡す。
+ *
+ * @param background 現在のサムネイルの背景設定。古いプロジェクト由来の欠けは既定値で補う
+ * @param imageUrl   背景画像の objectURL。未解決なら null（絵柄なしになる）
+ */
+export function backgroundArtStyle(background: Background, imageUrl: string | null): CSSProperties {
+  const bg = { ...DEFAULT_BACKGROUND, ...background }
+
+  if (bg.type === 'gradient') {
+    return {
+      backgroundImage: `linear-gradient(${bg.gradientAngle}deg, ${bg.gradientFrom}, ${bg.gradientTo})`,
+    }
+  }
+
+  if (bg.type === 'pattern') return patternStyle(bg)
+
+  if (bg.type === 'image' && imageUrl) return imageStyle(bg, imageUrl)
+
+  return {}
+}

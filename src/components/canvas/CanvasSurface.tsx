@@ -1,38 +1,14 @@
 import { useEffect, useRef } from 'react'
-import type { CSSProperties } from 'react'
+import { backgroundArtStyle, backgroundBaseStyle } from '../../lib/core/background'
+import { effectsBleed, effectsFilter } from '../../lib/core/effects'
 import { getAssetUrl } from '../../lib/storage/assetRepo'
 import { registerSurface } from '../../services/exportImage'
 import { useCurrentThumbnail, useEditorStore } from '../../store'
-import { BACKGROUND_ID, type Background } from '../../types'
+import { BACKGROUND_ID } from '../../types'
 import LayerView from './LayerView'
 import SelectionOverlay from './SelectionOverlay'
 
 const GUIDE_COLOR = '#FF3B8B'
-
-/**
- * 背景の設定を CSS に変換する。
- *
- * @param background 現在のサムネイルの背景設定
- */
-function backgroundStyle(background: Background): CSSProperties {
-  if (background.type === 'gradient') {
-    return {
-      backgroundImage: `linear-gradient(${background.gradientAngle}deg, ${background.gradientFrom}, ${background.gradientTo})`,
-    }
-  }
-  if (background.type === 'image') {
-    const url = getAssetUrl(background.assetId)
-    if (!url) return { backgroundColor: background.color }
-    return {
-      backgroundColor: background.color,
-      backgroundImage: `url(${url})`,
-      backgroundSize: background.fit,
-      backgroundPosition: background.position,
-      backgroundRepeat: 'no-repeat',
-    }
-  }
-  return { backgroundColor: background.color }
-}
 
 /**
  * キャンバスの実体。内部は常に実寸座標で、表示だけ CSS transform: scale() で縮める。
@@ -45,6 +21,7 @@ export default function CanvasSurface({ scale }: { scale: number }) {
   const { canvas, background, layers } = useCurrentThumbnail()
   const select = useEditorStore((s) => s.select)
   const guides = useEditorStore((s) => s.guides)
+  const bleed = effectsBleed(background.effects)
 
   useEffect(() => {
     registerSurface(surfaceRef.current)
@@ -60,12 +37,31 @@ export default function CanvasSurface({ scale }: { scale: number }) {
         height: canvas.height,
         transform: `scale(${scale})`,
         transformOrigin: 'top left',
-        ...backgroundStyle(background),
+        ...backgroundBaseStyle(background),
       }}
       onPointerDown={(event) => {
         if (event.target === event.currentTarget) select(BACKGROUND_ID)
       }}
     >
+      {/*
+        下地色とは別の層に絵柄を置く。エフェクトはこの層だけに掛けたいため
+        （サーフェス自体に filter を掛けるとレイヤーまで一緒にぼける）。
+        ぼかすと縁が透けるので、その分だけ外側にはみ出させて overflow で切る。
+      */}
+      <div
+        aria-hidden
+        style={{
+          position: 'absolute',
+          left: -bleed,
+          top: -bleed,
+          right: -bleed,
+          bottom: -bleed,
+          pointerEvents: 'none',
+          filter: effectsFilter(background.effects),
+          ...backgroundArtStyle(background, getAssetUrl(background.assetId) ?? null),
+        }}
+      />
+
       {layers.map((layer) => (
         <LayerView key={layer.id} layer={layer} scale={scale} />
       ))}

@@ -23,11 +23,13 @@ rectangle "**services**\nユーザー操作\nworkspace / projectFolder / project
 rectangle "**store**\nZustand の状態と操作\nslices / helpers / selectors" as lStore
 rectangle "**lib**\n再利用できる道具\ncore / dom / storage" as lLib
 rectangle "**types**\n型と定数" as lTypes #F5F6F8
+rectangle "**styles**\n共有する Tailwind の\nクラス文字列" as lStyles #F5F6F8
 
 lComponents -down-> lServices
 lComponents -down-> lStore
 lComponents -down-> lLib
 lComponents -down-> lTypes
+lComponents -down-> lStyles
 
 lServices -down-> lStore
 lServices -down-> lLib

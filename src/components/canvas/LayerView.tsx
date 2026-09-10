@@ -1,6 +1,7 @@
 import type { CSSProperties, PointerEvent as ReactPointerEvent } from 'react'
 import { getAssetUrl } from '../../lib/storage/assetRepo'
 import { startPointerDrag } from '../../lib/dom/pointerDrag'
+import { effectsFilter } from '../../lib/core/effects'
 import { snapPosition } from '../../lib/core/snap'
 import { collectLayerRects, measureLayerHeight } from '../../lib/dom/layerRect'
 import { useCurrentThumbnail, useEditorStore } from '../../store'
@@ -73,6 +74,8 @@ export default function LayerView({ layer, scale }: { layer: Layer; scale: numbe
     width: layer.width,
     opacity: layer.opacity,
     transform: `rotate(${layer.rotation}deg)`,
+    // ブラー・影・光彩。影は矩形ではなく中身の形に沿わせたいので drop-shadow を使う
+    filter: effectsFilter(layer.effects),
     transformOrigin: 'center',
     pointerEvents: layer.locked ? 'none' : 'auto',
     cursor: layer.locked ? 'default' : 'move',

@@ -4,10 +4,10 @@
 
 | ファイル | 粒度 | 用途 |
 | --- | --- | --- |
-| [layers.puml](layers.puml) | 層（5つ） | 全体像。依存の向きのルールを1枚で把握する |
+| [layers.puml](layers.puml) | 層（6つ） | 全体像。依存の向きのルールを1枚で把握する |
 | [package-dependencies.puml](package-dependencies.puml) | パッケージ | どのパッケージが何に依存しているかの詳細 |
 
-依存は `types → lib → store → services → components` の一方向のみ。
+依存は `types / styles → lib → store → services → components` の一方向のみ。
 ルールの詳細は [CLAUDE.md](../../CLAUDE.md) の「ディレクトリ構成」を参照。
 
 ## 描画

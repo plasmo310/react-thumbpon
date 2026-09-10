@@ -1,3 +1,5 @@
+import type { Effects } from './effects'
+
 export type TextAlign = 'left' | 'center' | 'right'
 
 /** 画像・テキストに共通する配置と表示の情報 */
@@ -14,6 +16,7 @@ export type LayerBase = {
   opacity: number
   visible: boolean
   locked: boolean
+  effects: Effects
 }
 
 export type ImageLayer = LayerBase & {

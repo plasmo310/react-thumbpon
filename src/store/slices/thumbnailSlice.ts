@@ -4,6 +4,7 @@ import {
   createId,
   createThumbnail,
 } from '../../lib/core/factory'
+import { normalizeThumbnails } from '../../lib/core/project'
 import { createPatchers } from '../helpers'
 import type {
   BackgroundPreset,
@@ -206,10 +207,12 @@ export const createThumbnailSlice: SliceCreator<ThumbnailSlice> = (set, get) => 
      * プロジェクトの内容で全体を差し替える。ファイル読み込みと起動時の復元で使う。
      * プリセットも同時に入れ替わるが、主対象がサムネイルのためこの slice に置いている。
      *
-     * @param data 読み込んだ内容。サムネイルが空なら新規1枚で始める
+     * @param data 読み込んだ内容。サムネイルが空なら新規1枚で始める。
+     *             古い保存内容には後から増えたフィールドが無いのでここで補う
      */
     loadProject: ({ folders, thumbnails, currentThumbnailId, textPresets, backgroundPresets }) => {
-      const list = thumbnails.length > 0 ? thumbnails : [createThumbnail('サムネイル 1')]
+      const list =
+        thumbnails.length > 0 ? normalizeThumbnails(thumbnails) : [createThumbnail('サムネイル 1')]
       const wanted = list.find((t) => t.id === currentThumbnailId)
       set((s) => ({
         folders,
