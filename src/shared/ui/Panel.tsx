@@ -1,6 +1,6 @@
 import type { HTMLAttributes, ReactNode } from 'react'
 import { cx } from '@/shared/lib/cx'
-import styles from './ui.module.css'
+import styles from './styles.module.css'
 
 /**
  * サイドバーに縦積みするパネルの外枠。見出しと、スクロールする中身からなる。

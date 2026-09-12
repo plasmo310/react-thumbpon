@@ -3,11 +3,12 @@ import type { DragEvent } from 'react'
 import { cx } from '@/shared/lib/cx'
 import { DND_TYPE, hasDragType } from '@/shared/lib/dnd'
 import { Button, Panel } from '@/shared/ui'
-import { useCurrentThumbnail, useEditorStore } from '@/core/store'
-import { BACKGROUND_ID } from '@/core/model/types'
+import { useCurrentThumbnail, useEditorStore } from '@/app/store'
+import { BACKGROUND_ID } from '@/domain/background'
 import { BackgroundProperties } from './BackgroundProperties'
-import { LayerRow, type DropMark } from './LayerRow'
-import styles from './layer.module.css'
+import { LayerRow } from './LayerRow'
+import type { DropMark } from './types'
+import styles from './styles.module.css'
 
 /** レイヤーの一覧。配列順に上から並べるので、一覧の下にあるものが前面になる */
 export function LayerPanel() {

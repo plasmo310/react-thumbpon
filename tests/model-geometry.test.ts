@@ -12,7 +12,7 @@ import {
   snapAngle,
   type Handle,
   type Rect,
-} from '@/core/model/geometry'
+} from '@/domain/geometry'
 
 /** 幅100 × 高さ50 を原点に置いたもの。比率2:1 なのでアスペクト維持の確認に使える */
 const start: Rect = { x: 0, y: 0, width: 100, height: 50 }

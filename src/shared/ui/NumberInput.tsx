@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import styles from './ui.module.css'
+import styles from './styles.module.css'
 
 /**
  * 数値入力。

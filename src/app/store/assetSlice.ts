@@ -1,6 +1,6 @@
-import { createId } from '@/core/model/factory'
-import { deleteAsset, loadAssets, readImageSize, saveAsset } from '@/core/storage/assetRepo'
-import type { AssetMeta } from '@/core/model/types'
+import { createId } from '@/domain/id'
+import { deleteAsset, loadAssets, readImageSize, saveAsset } from '@/shared/lib/storage/assetRepo'
+import type { AssetMeta } from '@/domain/asset'
 import type { SliceCreator } from './index'
 
 export type AssetSlice = {

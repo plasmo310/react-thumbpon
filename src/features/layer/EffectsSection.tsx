@@ -1,10 +1,6 @@
-import { DEFAULT_EFFECTS, type Effects } from '@/core/model/types'
-import { ColorInput } from './ColorInput'
-import { NumberInput } from './NumberInput'
-import { PercentRow } from './PercentRow'
-import { Row } from './Row'
-import { SliderRow } from './SliderRow'
-import styles from './ui.module.css'
+import { DEFAULT_EFFECTS, type Effects } from '@/domain/effects'
+import styles from './styles.module.css'
+import { ColorInput, NumberInput, PercentRow, Row, SliderRow } from '@/shared/ui'
 
 /**
  * エフェクト1つ分の見出し兼 ON/OFF。切っている間は中身を畳んで欄を短く保つ。

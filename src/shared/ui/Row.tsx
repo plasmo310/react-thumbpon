@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import styles from './ui.module.css'
+import styles from './styles.module.css'
 
 /**
  * プロパティ1行分のレイアウト。ラベル幅を揃えて縦に並べるためのもの。

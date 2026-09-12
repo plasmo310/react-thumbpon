@@ -1,14 +1,12 @@
 import type { DragEvent } from 'react'
-import type { Layer } from '@/core/model/types'
-import { useEditorStore } from '@/core/store'
+import type { Layer } from '@/domain/layer'
+import { useEditorStore } from '@/app/store'
 import { cx } from '@/shared/lib/cx'
 import { DND_TYPE } from '@/shared/lib/dnd'
 import { EyeIcon, EyeOffIcon, IconButton } from '@/shared/ui'
 import { LayerProperties } from './LayerProperties'
-import styles from './layer.module.css'
-
-/** ドラッグ中に挿入位置を示す線を、どの行のどちら側に出すか */
-export type DropMark = { index: number; position: 'before' | 'after' } | null
+import type { DropMark } from './types'
+import styles from './styles.module.css'
 
 /**
  * レイヤー一覧の1行。選択中は操作ボタンとプロパティ欄をその場に開く。

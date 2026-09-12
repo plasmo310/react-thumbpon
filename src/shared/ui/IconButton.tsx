@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import { cx } from '@/shared/lib/cx'
-import styles from './ui.module.css'
+import styles from './styles.module.css'
 
 /**
  * アイコン1文字ぶんの小さなボタン。

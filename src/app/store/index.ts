@@ -1,13 +1,9 @@
 import { create, type StateCreator } from 'zustand'
 import { subscribeWithSelector } from 'zustand/middleware'
-import {
-  BACKGROUND_ID,
-  type BackgroundPreset,
-  type Folder,
-  type Layer,
-  type TextPreset,
-  type Thumbnail,
-} from '../model/types'
+import { BACKGROUND_ID } from '@/domain/background'
+import type { Layer } from '@/domain/layer'
+import type { BackgroundPreset, TextPreset } from '@/domain/preset'
+import type { Folder, Thumbnail } from '@/domain/thumbnail'
 import { createAssetSlice, type AssetSlice } from './assetSlice'
 import { createBackgroundSlice, type BackgroundSlice } from './backgroundSlice'
 import { createFontSlice, type FontSlice } from './fontSlice'

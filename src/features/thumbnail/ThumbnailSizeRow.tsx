@@ -1,8 +1,8 @@
 import { useState } from 'react'
-import { useCurrentThumbnail, useEditorStore } from '@/core/store'
-import { CANVAS_PRESETS, CUSTOM_PRESET_ID } from '@/core/model/types'
+import { useCurrentThumbnail, useEditorStore } from '@/app/store'
+import { CANVAS_PRESETS, CUSTOM_PRESET_ID } from '@/domain/thumbnail'
 import { NumberInput, Select } from '@/shared/ui'
-import styles from './thumbnail.module.css'
+import styles from './styles.module.css'
 
 /**
  * 選択中のサムネイルのキャンバスサイズを変える行。

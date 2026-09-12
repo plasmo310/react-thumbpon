@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import { cx } from '@/shared/lib/cx'
-import styles from './ui.module.css'
+import styles from './styles.module.css'
 
 /**
  * 枠線だけの控えめなボタン。ヘッダーやプロパティ欄の操作に使う。

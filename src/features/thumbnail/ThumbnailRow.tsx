@@ -1,11 +1,11 @@
 import { useState } from 'react'
-import type { Thumbnail } from '@/core/model/types'
-import { useEditorStore } from '@/core/store'
+import type { Thumbnail } from '@/domain/thumbnail'
+import { useEditorStore } from '@/app/store'
 import { cx } from '@/shared/lib/cx'
 import { DND_TYPE } from '@/shared/lib/dnd'
 import { IconButton, InlineName } from '@/shared/ui'
 import { ThumbnailSizeRow } from './ThumbnailSizeRow'
-import styles from './thumbnail.module.css'
+import styles from './styles.module.css'
 
 /**
  * サムネイル一覧の1行。ダブルクリックで名前を編集でき、選択中はキャンバスサイズの行が開く。

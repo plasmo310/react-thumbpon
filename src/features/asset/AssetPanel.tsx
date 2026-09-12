@@ -1,11 +1,11 @@
-import { getAssetUrl } from '@/core/storage/assetRepo'
-import { useEditorStore } from '@/core/store'
+import { getAssetUrl } from '@/shared/lib/storage/assetRepo'
+import { useEditorStore } from '@/app/store'
 import { cx } from '@/shared/lib/cx'
 import { DND_TYPE } from '@/shared/lib/dnd'
 import { notifyError } from '@/shared/lib/notify'
 import { useDropTarget } from '@/shared/lib/useDropTarget'
 import { Panel, useFilePicker } from '@/shared/ui'
-import styles from './asset.module.css'
+import styles from './styles.module.css'
 
 const ACCEPT = 'image/png,image/jpeg,image/webp,image/svg+xml'
 

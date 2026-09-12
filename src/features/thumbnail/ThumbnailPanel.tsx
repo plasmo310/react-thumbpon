@@ -1,9 +1,9 @@
 import { useState } from 'react'
-import { useEditorStore } from '@/core/store'
+import { useEditorStore } from '@/app/store'
 import { IconButton, InlineName, Panel } from '@/shared/ui'
 import { FolderDropZone } from './FolderDropZone'
 import { ThumbnailRow } from './ThumbnailRow'
-import styles from './thumbnail.module.css'
+import styles from './styles.module.css'
 
 /** サムネイルとフォルダの一覧。未分類を先に、そのあとフォルダごとに並べる */
 export function ThumbnailPanel() {

@@ -1,15 +1,9 @@
 import { describe, expect, it } from 'vitest'
-import {
-  DEFAULT_CANVAS,
-  cloneLayer,
-  cloneThumbnail,
-  createId,
-  createImageLayer,
-  createTextLayer,
-  createThumbnail,
-  extractTextStyle,
-} from '@/core/model/factory'
-import { CANVAS_PRESETS, TEXT_STYLE_KEYS, type TextLayer } from '@/core/model/types'
+import { createId } from '@/domain/id'
+import { cloneLayer, createImageLayer, createTextLayer, extractTextStyle } from '@/domain/layer'
+import { DEFAULT_CANVAS, cloneThumbnail, createThumbnail } from '@/domain/thumbnail'
+import { TEXT_STYLE_KEYS, type TextLayer } from '@/domain/layer'
+import { CANVAS_PRESETS } from '@/domain/thumbnail'
 
 describe('createId', () => {
   it('呼ぶたびに違う id を返す', () => {

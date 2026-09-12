@@ -1,6 +1,6 @@
 import { useLayoutEffect, useState } from 'react'
-import { findLayerElement } from '@/shared/lib/layerRect'
-import type { Layer } from '@/core/model/types'
+import { findLayerElement } from './layerRect'
+import type { Layer } from '@/domain/layer'
 
 /**
  * レイヤーの高さをキャンバス実寸で返す。

@@ -1,13 +1,9 @@
-import { DEFAULT_CANVAS, cloneThumbnail, createId, createThumbnail } from '@/core/model/factory'
-import { normalizeThumbnails } from '@/core/model/project'
+import { createId } from '@/domain/id'
+import { DEFAULT_CANVAS, cloneThumbnail, createThumbnail } from '@/domain/thumbnail'
+import { normalizeThumbnails } from '@/domain/project'
 import { createPatchers } from './patch'
-import type {
-  BackgroundPreset,
-  CanvasSize,
-  Folder,
-  TextPreset,
-  Thumbnail,
-} from '@/core/model/types'
+import type { BackgroundPreset, TextPreset } from '@/domain/preset'
+import type { CanvasSize, Folder, Thumbnail } from '@/domain/thumbnail'
 import type { SliceCreator } from './index'
 
 export type ThumbnailSlice = {

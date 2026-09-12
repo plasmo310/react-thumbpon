@@ -1,4 +1,5 @@
-import { DEFAULT_EFFECTS, type Background, type Effects } from '../model/types'
+import type { Background } from '@/domain/background'
+import { DEFAULT_EFFECTS, type Effects } from '@/domain/effects'
 import { createPatchers } from './patch'
 import type { SliceCreator } from './index'
 

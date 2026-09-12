@@ -1,8 +1,8 @@
-import { addFontFiles, canQueryLocalFonts, queryLocalFonts } from '@/core/storage/fontRepo'
-import { useEditorStore } from '@/core/store'
+import { addFontFiles, canQueryLocalFonts, queryLocalFonts } from '@/shared/lib/storage/fontRepo'
+import { useEditorStore } from '@/app/store'
 import { useAsyncAction } from '@/shared/lib/useAsyncAction'
 import { Button, useFilePicker } from '@/shared/ui'
-import styles from './layer.module.css'
+import styles from './styles.module.css'
 
 const ACCEPT = '.ttf,.otf,.woff,.woff2,font/*'
 

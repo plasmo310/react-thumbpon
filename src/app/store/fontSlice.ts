@@ -1,4 +1,4 @@
-import { BUILTIN_FONTS, type FontEntry } from '@/core/model/types'
+import { BUILTIN_FONTS, type FontEntry } from '@/domain/font'
 import type { SliceCreator } from './index'
 
 export type FontSlice = {

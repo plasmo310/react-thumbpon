@@ -1,11 +1,11 @@
-import { useCurrentThumbnail, useEditorStore } from '@/core/store'
+import { useCurrentThumbnail, useEditorStore } from '@/app/store'
 import { cx } from '@/shared/lib/cx'
 import { DND_TYPE } from '@/shared/lib/dnd'
 import { notifyError } from '@/shared/lib/notify'
 import { useDropTarget } from '@/shared/lib/useDropTarget'
 import { CanvasSurface } from './CanvasSurface'
 import { useCanvasView } from './useCanvasView'
-import styles from './canvas.module.css'
+import styles from './styles.module.css'
 
 /**
  * キャンバスを中央に置く土台。素材・画像ファイルのドロップと、右下の操作を受け持つ。

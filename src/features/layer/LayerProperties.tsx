@@ -1,10 +1,10 @@
-import { useEditorStore } from '@/core/store'
-import type { Layer } from '@/core/model/types'
-import { EffectsSection } from '@/shared/ui'
+import { EffectsSection } from './EffectsSection'
+import { useEditorStore } from '@/app/store'
+import type { Layer } from '@/domain/layer'
 import { NumberInput, Row, TextInput } from '@/shared/ui'
 import { ImageProperties } from './ImageProperties'
 import { TextProperties } from './TextProperties'
-import styles from './layer.module.css'
+import styles from './styles.module.css'
 
 /**
  * レイヤーのプロパティ欄。共通の項目を出したあと、種別ごとの欄に振り分け、

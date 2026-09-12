@@ -1,4 +1,4 @@
-import type { CanvasSize } from './types'
+import type { CanvasSize } from '@/domain/thumbnail'
 
 export type SnapRect = { x: number; y: number; width: number; height: number }
 

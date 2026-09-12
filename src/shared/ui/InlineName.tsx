@@ -1,4 +1,4 @@
-import styles from './ui.module.css'
+import styles from './styles.module.css'
 
 /**
  * 一覧の中で名前を打ち替える input。

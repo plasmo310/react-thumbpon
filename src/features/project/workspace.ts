@@ -1,9 +1,9 @@
 import { get, set } from 'idb-keyval'
 import { shallow } from 'zustand/shallow'
-import { kv } from '@/core/storage/db'
-import { replaceAssets } from '@/core/storage/assetRepo'
-import { loadStoredFonts } from '@/core/storage/fontRepo'
-import { pickDocument, useEditorStore, type SavedDocument } from '@/core/store'
+import { kv } from '@/shared/lib/storage/db'
+import { replaceAssets } from '@/shared/lib/storage/assetRepo'
+import { loadStoredFonts } from '@/shared/lib/storage/fontRepo'
+import { pickDocument, useEditorStore, type SavedDocument } from '@/app/store'
 import { disconnectProjectFolder, restoreProjectFolder } from './projectFolder'
 
 const WORKSPACE_KEY = 'project:current'

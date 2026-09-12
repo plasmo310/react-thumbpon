@@ -1,4 +1,4 @@
-import styles from './ui.module.css'
+import styles from './styles.module.css'
 
 /**
  * 色の入力。カラーピッカーと16進数の直接入力を並べる。

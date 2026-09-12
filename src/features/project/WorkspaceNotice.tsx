@@ -1,7 +1,7 @@
 import { notifyError } from '@/shared/lib/notify'
 import { reconnectProjectFolder } from './projectFolder'
-import { useEditorStore } from '@/core/store'
-import styles from './project.module.css'
+import { useEditorStore } from '@/app/store'
+import styles from './styles.module.css'
 
 /**
  * ヘッダーの下に出す細い通知帯。

@@ -1,18 +1,19 @@
-import { extractTextStyle } from '@/core/model/factory'
-import { useEditorStore } from '@/core/store'
-import { FONT_WEIGHTS, type TextAlign, type TextLayer } from '@/core/model/types'
+import { PresetRow } from './PresetRow'
+import { extractTextStyle } from '@/domain/layer'
+import { useEditorStore } from '@/app/store'
+import { FONT_WEIGHTS } from '@/domain/font'
+import type { TextAlign, TextLayer } from '@/domain/layer'
 import {
   ColorInput,
   NumberInput,
   PercentRow,
-  PresetRow,
   Row,
   SegmentedControl,
   Select,
   TextArea,
 } from '@/shared/ui'
 import { FontLoader } from './FontLoader'
-import styles from './layer.module.css'
+import styles from './styles.module.css'
 
 /**
  * テキストレイヤー固有のプロパティ。

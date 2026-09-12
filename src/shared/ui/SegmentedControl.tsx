@@ -1,5 +1,5 @@
 import { cx } from '@/shared/lib/cx'
-import styles from './ui.module.css'
+import styles from './styles.module.css'
 
 /**
  * 横並びの排他選択。選択肢が2〜3個で、選択中が一目で分かるべき項目に使う。

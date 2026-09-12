@@ -19,27 +19,26 @@ const sources = import.meta.glob('/src/**/*.{ts,tsx}', {
  * core/model から順に、下から上へ。上は下を import できるが、逆はできない。
  * styles/ は Tailwind のクラス文字列だけを持つ置き場で、CSS Modules への移行が終わったら消える。
  */
-const ORDER = ['core/model', 'core/storage', 'core/store', 'shared', 'features', 'app'] as const
+const ORDER = ['domain', 'shared', 'app/store', 'features', 'app'] as const
 
-/** どのパスがどの層か。styles/ は shared と同じ高さに置く（中身は共有のクラス文字列だけ） */
+/** どのパスがどの層か。app/store はアプリ全体の状態なので features より下に置く */
 const LAYERS: [prefix: string, layer: (typeof ORDER)[number]][] = [
-  ['/src/core/model', 'core/model'],
-  ['/src/core/storage', 'core/storage'],
-  ['/src/core/store', 'core/store'],
+  ['/src/domain', 'domain'],
   ['/src/shared', 'shared'],
-  ['/src/styles', 'shared'],
+  ['/src/app/store', 'app/store'],
   ['/src/features', 'features'],
 ]
 
 /**
  * その階層の番号。
- * '@/core/store' のようにディレクトリを直接指す書き方も拾えるよう、境界まで含めて見る。
+ * '@/app/store' のようにディレクトリを直接指す書き方も拾えるよう、境界まで含めて見る。
+ * どれにも当てはまらない src/app 直下（App / main / shortcuts）が最上位で、
+ * feature を組み立てる場所なので何を見てもよい。
  */
 function rankOf(path: string): number {
   const found = LAYERS.find(
     ([prefix]) => path === prefix || path.startsWith(prefix + '/') || path.startsWith(prefix + '.'),
   )
-  // 最上位は src 直下（App / main / shortcuts）。feature を組み立てる場所なので何を見てもよい
   return ORDER.indexOf(found ? found[1] : 'app')
 }
 
@@ -103,12 +102,12 @@ describe('層の依存方向', () => {
     expect(violations).toEqual([])
   })
 
-  it('core/model は core/model の外を import しない（node で検証できる状態を守る）', () => {
+  it('domain は domain の外を import しない（node で検証できる状態を守る）', () => {
     const violations: string[] = []
     for (const [path, source] of entries) {
-      if (!path.startsWith('/src/core/model/')) continue
+      if (!path.startsWith('/src/domain/')) continue
       for (const target of importsOf(path, source)) {
-        if (!target.startsWith('/src/core/model/')) violations.push(`${path} -> ${target}`)
+        if (!target.startsWith('/src/domain/')) violations.push(`${path} -> ${target}`)
       }
     }
     // react は型だけを使うので、CSSProperties のために import しているものは残る
@@ -175,7 +174,7 @@ describe('使われていない export', () => {
   it('ストアのアクションは必ずどこかで呼ばれている', () => {
     const dead: string[] = []
     for (const [path, source] of entries) {
-      if (!/\/src\/core\/store\/\w+Slice\.ts$/.test(path)) continue
+      if (!/\/src\/app\/store\/\w+Slice\.ts$/.test(path)) continue
       const block = /export type \w+Slice = \{([\s\S]*?)\n\}/.exec(source)
       if (!block) continue
       for (const m of block[1].matchAll(/^ {2}(\w+): \(/gm)) {

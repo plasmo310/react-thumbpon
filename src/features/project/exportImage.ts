@@ -1,7 +1,7 @@
 import { toPng } from 'html-to-image'
-import { downloadDataUrl } from '@/shared/lib/download'
+import { downloadDataUrl } from './download'
 import { getSurface } from '@/shared/lib/surfaceRef'
-import type { CanvasSize } from '@/core/model/types'
+import type { CanvasSize } from '@/domain/thumbnail'
 
 /**
  * サムネイル名をファイル名として使えるようにする。

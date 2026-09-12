@@ -6,10 +6,10 @@ import { WorkspaceNotice } from '@/features/project'
 import { LayerPanel } from '@/features/layer'
 import { ThumbnailPanel } from '@/features/thumbnail'
 import { Splitter } from '@/shared/ui'
-import styles from './App.module.css'
-import { clamp } from '@/core/model/geometry'
-import { loadPanelLayout, savePanelLayout } from '@/core/storage/panelLayout'
-import { useKeyboardShortcuts } from '@/shortcuts'
+import styles from './styles.module.css'
+import { clamp } from '@/domain/geometry'
+import { loadPanelLayout, savePanelLayout } from '@/app/panelLayout'
+import { useKeyboardShortcuts } from '@/app/shortcuts'
 import { restoreWorkspace, startAutoSave } from '@/features/project'
 
 const MIN_SIDEBAR = 240
@@ -18,7 +18,7 @@ const MIN_PANEL = 80
 /** 上下のパネルを広げてもレイヤーパネルに残す高さ(px) */
 const MIN_LAYER_PANEL = 120
 
-export default function App() {
+export function App() {
   useKeyboardShortcuts()
   const sidebarRef = useRef<HTMLElement>(null)
   const [layout, setLayout] = useState(loadPanelLayout)

@@ -1,5 +1,6 @@
 import type { StoreApi } from 'zustand'
-import type { Layer, Thumbnail } from '../model/types'
+import type { Layer } from '@/domain/layer'
+import type { Thumbnail } from '@/domain/thumbnail'
 import type { EditorState } from './index'
 
 type Set = StoreApi<EditorState>['setState']

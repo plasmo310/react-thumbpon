@@ -1,11 +1,8 @@
-import { createId } from '@/core/model/factory'
+import { createId } from '@/domain/id'
 import { createPatchers } from './patch'
-import {
-  DEFAULT_BACKGROUND,
-  type BackgroundPreset,
-  type TextPreset,
-  type TextStyle,
-} from '@/core/model/types'
+import { DEFAULT_BACKGROUND } from '@/domain/background'
+import type { TextStyle } from '@/domain/layer'
+import type { BackgroundPreset, TextPreset } from '@/domain/preset'
 import type { SliceCreator } from './index'
 
 export type PresetSlice = {

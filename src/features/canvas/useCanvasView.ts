@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { PointerEvent as ReactPointerEvent } from 'react'
-import { clamp } from '@/core/model/geometry'
-import type { CanvasSize } from '@/core/model/types'
+import { clamp } from '@/domain/geometry'
+import type { CanvasSize } from '@/domain/thumbnail'
 import { startPointerDrag } from '@/shared/lib/pointerDrag'
 
 const STAGE_PADDING = 64

@@ -1,12 +1,12 @@
 import { useEffect, useRef, useState } from 'react'
 import { notifyError } from '@/shared/lib/notify'
-import { canUseFileSystemAccess } from '@/core/storage/fsAccess'
+import { canUseFileSystemAccess } from '@/shared/lib/storage/fsAccess'
 import { exportProjectFile, importProjectFile } from './projectFile'
 import { confirmFolderOverwrite } from './confirmOverwrite'
 import { openProjectFolder, saveProjectFolder } from './projectFolder'
 import { newProject } from './workspace'
 import { Button } from '@/shared/ui'
-import styles from './project.module.css'
+import styles from './styles.module.css'
 
 /**
  * 新規作成からファイル書き出しまで、プロジェクト単位の操作をまとめたメニュー。

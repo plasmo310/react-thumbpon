@@ -1,6 +1,6 @@
 import { Row } from './Row'
 import { Slider } from './Slider'
-import styles from './ui.module.css'
+import styles from './styles.module.css'
 
 /**
  * 割合の行。ストアは 0..1 で持ち、画面には % で見せる。

@@ -1,10 +1,8 @@
-import { assetPath, collectUsedFonts, findMissingFonts } from '@/core/model/project'
-import { getAssetBlob, replaceAssets } from '@/core/storage/assetRepo'
-import { useEditorStore } from '@/core/store'
-import type { AssetMeta, ProjectAssetEntry, ProjectFile } from '@/core/model/types'
-
-/** 書き出し前に集めた素材。path は ZIP のエントリ名にもフォルダ内のパスにもそのまま使う */
-export type AssetPayload = { meta: AssetMeta; blob: Blob; path: string }
+import { assetPath, collectUsedFonts, findMissingFonts } from '@/domain/project'
+import { getAssetBlob, replaceAssets } from '@/shared/lib/storage/assetRepo'
+import { useEditorStore } from '@/app/store'
+import type { AssetPayload } from './types'
+import type { ProjectAssetEntry, ProjectFile } from '@/domain/project'
 
 /**
  * 現在の素材の実体をすべて取り出す。

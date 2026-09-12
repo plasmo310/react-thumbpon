@@ -1,6 +1,6 @@
 import { del, get, set } from 'idb-keyval'
 import { kv } from './db'
-import type { AssetMeta } from '@/core/model/types'
+import type { AssetMeta } from '@/domain/asset'
 
 const META_KEY = 'meta:list'
 const blobKey = (id: string) => `blob:${id}`

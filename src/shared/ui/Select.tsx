@@ -1,4 +1,4 @@
-import styles from './ui.module.css'
+import styles from './styles.module.css'
 
 /**
  * ドロップダウン選択。

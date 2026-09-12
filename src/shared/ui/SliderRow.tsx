@@ -1,6 +1,6 @@
 import { Row } from './Row'
 import { Slider } from './Slider'
-import styles from './ui.module.css'
+import styles from './styles.module.css'
 
 /**
  * スライダーと、その右に現在値を出す行。

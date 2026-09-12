@@ -1,7 +1,8 @@
-import { cloneLayer, createImageLayer, createTextLayer } from '@/core/model/factory'
-import { fitInto } from '@/core/model/geometry'
+import { cloneLayer, createImageLayer, createTextLayer } from '@/domain/layer'
+import { fitInto } from '@/domain/geometry'
 import { createPatchers } from './patch'
-import { DEFAULT_EFFECTS, type Effects, type Layer } from '@/core/model/types'
+import { DEFAULT_EFFECTS, type Effects } from '@/domain/effects'
+import type { Layer } from '@/domain/layer'
 import type { SliceCreator } from './index'
 
 export type LayerSlice = {

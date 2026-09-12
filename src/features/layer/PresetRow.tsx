@@ -1,7 +1,6 @@
 import { useState } from 'react'
-import { IconButton } from './IconButton'
-import { Row } from './Row'
-import styles from './ui.module.css'
+import styles from './styles.module.css'
+import { IconButton, Row } from '@/shared/ui'
 
 /**
  * プリセットの適用・保存・削除をまとめた行。
