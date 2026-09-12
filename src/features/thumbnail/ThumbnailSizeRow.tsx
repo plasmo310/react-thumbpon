@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useCurrentThumbnail, useEditorStore } from '@/core/store'
 import { CANVAS_PRESETS, CUSTOM_PRESET_ID } from '@/core/model/types'
 import { NumberInput, Select } from '@/shared/ui'
+import styles from './thumbnail.module.css'
 
 /**
  * 選択中のサムネイルのキャンバスサイズを変える行。
@@ -24,10 +25,10 @@ export function ThumbnailSizeRow() {
 
   return (
     // サイドバーは 240px まで縮むので、幅は固定せず余りに追従させる
-    <div className="flex flex-wrap items-center gap-x-2 gap-y-1 px-2 pb-1.5 pl-7">
-      <div className="flex min-w-0 flex-1 items-center gap-1">
-        <span className="shrink-0 text-[10px] text-ink-sub">サイズ</span>
-        <div className="min-w-0 flex-1">
+    <div className={styles.sizeRow}>
+      <div className={styles.sizeMain}>
+        <span className={styles.sizeLabel}>サイズ</span>
+        <div className={styles.sizeField}>
           <Select
             value={presetValue}
             options={options}
@@ -47,9 +48,8 @@ export function ThumbnailSizeRow() {
       </div>
 
       {showCustom && (
-        // 幅×高さは1行に収まらないことがあるので、常に次の行へ送る
-        <div className="flex w-full items-center gap-1 text-[10px] text-ink-sub">
-          <div className="min-w-0 flex-1">
+        <div className={styles.sizeCustom}>
+          <div className={styles.sizeField}>
             <NumberInput
               value={canvas.width}
               min={1}
@@ -57,7 +57,7 @@ export function ThumbnailSizeRow() {
             />
           </div>
           ×
-          <div className="min-w-0 flex-1">
+          <div className={styles.sizeField}>
             <NumberInput
               value={canvas.height}
               min={1}

@@ -1,0 +1,87 @@
+.dropping {
+  background: var(--color-accent-soft);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-2);
+}
+
+.tile {
+  position: relative;
+  aspect-ratio: 1;
+  overflow: hidden;
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius);
+  background: var(--color-app);
+}
+
+.tileButton {
+  width: 100%;
+  height: 100%;
+  cursor: grab;
+}
+
+.thumb {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+/* 消すボタンは、そのタイルにカーソルが乗っている間だけ出す */
+.remove {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  background: rgb(255 255 255 / 0.9);
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.1);
+  font-size: var(--font-label);
+  color: var(--color-ink-sub);
+}
+
+.tile:hover .remove {
+  display: flex;
+}
+
+.remove:hover {
+  color: var(--color-accent);
+}
+
+.add {
+  display: flex;
+  aspect-ratio: 1;
+  align-items: center;
+  justify-content: center;
+  border: 1px dashed var(--color-line);
+  border-radius: var(--radius);
+  font-size: var(--font-label);
+  color: var(--color-ink-sub);
+  transition:
+    border-color 150ms,
+    color 150ms;
+}
+
+.add:hover {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}
+
+.empty {
+  padding-top: var(--space-3);
+  text-align: center;
+  font-size: var(--font-label);
+  line-height: 1.625;
+  color: var(--color-ink-sub);
+}
+
+.count {
+  font-size: var(--font-label);
+  color: var(--color-ink-sub);
+}

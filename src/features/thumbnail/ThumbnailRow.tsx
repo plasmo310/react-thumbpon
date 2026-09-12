@@ -1,9 +1,11 @@
 import { useState } from 'react'
-import { DND_TYPE } from '@/shared/lib/dnd'
-import { useEditorStore } from '@/core/store'
 import type { Thumbnail } from '@/core/model/types'
-import { IconButton } from '@/shared/ui'
+import { useEditorStore } from '@/core/store'
+import { cx } from '@/shared/lib/cx'
+import { DND_TYPE } from '@/shared/lib/dnd'
+import { IconButton, InlineName } from '@/shared/ui'
 import { ThumbnailSizeRow } from './ThumbnailSizeRow'
+import styles from './thumbnail.module.css'
 
 /**
  * サムネイル一覧の1行。ダブルクリックで名前を編集でき、選択中はキャンバスサイズの行が開く。
@@ -24,13 +26,10 @@ export function ThumbnailRow({ thumbnail, depth }: { thumbnail: Thumbnail; depth
   const [editing, setEditing] = useState(false)
 
   const active = currentId === thumbnail.id
+  const indent = { paddingLeft: depth * 12 }
 
   return (
-    <li
-      className={`flex flex-col rounded-md border transition ${
-        active ? 'border-accent bg-accent-soft' : 'border-transparent hover:bg-app'
-      }`}
-    >
+    <li className={cx(styles.row, active && styles.rowActive)}>
       <div
         draggable={!editing}
         onDragStart={(event) => {
@@ -39,37 +38,31 @@ export function ThumbnailRow({ thumbnail, depth }: { thumbnail: Thumbnail; depth
         }}
         onClick={() => selectThumbnail(thumbnail.id)}
         onDoubleClick={() => setEditing(true)}
-        style={{ paddingLeft: depth * 12 }}
-        className="group flex cursor-pointer items-center gap-1 px-2 py-1"
+        style={indent}
+        className={styles.handle}
       >
-        <span className="shrink-0 text-[10px] text-ink-sub">▦</span>
+        <span className={styles.icon}>▦</span>
         {editing ? (
-          <input
-            autoFocus
-            className="min-w-0 flex-1 rounded border border-accent px-1 text-xs outline-none"
-            defaultValue={thumbnail.name}
-            onBlur={(e) => {
-              renameThumbnail(thumbnail.id, e.target.value.trim() || thumbnail.name)
+          <InlineName
+            value={thumbnail.name}
+            onCommit={(name) => {
+              renameThumbnail(thumbnail.id, name)
               setEditing(false)
             }}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') e.currentTarget.blur()
-              if (e.key === 'Escape') setEditing(false)
-            }}
-            onClick={(e) => e.stopPropagation()}
+            onCancel={() => setEditing(false)}
           />
         ) : (
-          <span className="min-w-0 flex-1 truncate text-xs" title={thumbnail.name}>
+          <span className={styles.name} title={thumbnail.name}>
             {thumbnail.name}
           </span>
         )}
         {/* 選択中は下のサイズ行が同じ内容を持つので、ここには出さない */}
         {!active && (
-          <span className="shrink-0 text-[10px] text-ink-sub">
+          <span className={styles.size}>
             {thumbnail.canvas.width}×{thumbnail.canvas.height}
           </span>
         )}
-        <div className="hidden shrink-0 items-center group-hover:flex">
+        <div className={styles.actions}>
           <IconButton title="複製" onClick={() => duplicateThumbnail(thumbnail.id)}>
             ⧉
           </IconButton>
@@ -85,7 +78,7 @@ export function ThumbnailRow({ thumbnail, depth }: { thumbnail: Thumbnail; depth
       </div>
 
       {active && (
-        <div style={{ paddingLeft: depth * 12 }}>
+        <div style={indent}>
           <ThumbnailSizeRow />
         </div>
       )}

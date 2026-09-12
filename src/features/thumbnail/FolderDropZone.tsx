@@ -1,7 +1,9 @@
-import { useState } from 'react'
 import type { ReactNode } from 'react'
-import { DND_TYPE, hasDragType } from '@/shared/lib/dnd'
 import { useEditorStore } from '@/core/store'
+import { cx } from '@/shared/lib/cx'
+import { DND_TYPE } from '@/shared/lib/dnd'
+import { useDropTarget } from '@/shared/lib/useDropTarget'
+import styles from './thumbnail.module.css'
 
 /**
  * フォルダ、または未分類グループにサムネイルをドロップできる領域。
@@ -20,26 +22,17 @@ export function FolderDropZone({
   className?: string
 }) {
   const moveThumbnailToFolder = useEditorStore((s) => s.moveThumbnailToFolder)
-  const [over, setOver] = useState(false)
+
+  const { over, dropProps } = useDropTarget([DND_TYPE.thumbnail], (event) => {
+    const id = event.dataTransfer.getData(DND_TYPE.thumbnail)
+    if (!id) return
+    // 未分類グループの上にフォルダが重なるので、内側で受けたら外側には渡さない
+    event.stopPropagation()
+    moveThumbnailToFolder(id, folderId)
+  })
 
   return (
-    <div
-      onDragOver={(event) => {
-        if (!hasDragType(event.dataTransfer, DND_TYPE.thumbnail)) return
-        event.preventDefault()
-        setOver(true)
-      }}
-      onDragLeave={() => setOver(false)}
-      onDrop={(event) => {
-        const id = event.dataTransfer.getData(DND_TYPE.thumbnail)
-        setOver(false)
-        if (!id) return
-        event.preventDefault()
-        event.stopPropagation()
-        moveThumbnailToFolder(id, folderId)
-      }}
-      className={`${className ?? ''} ${over ? 'rounded-md bg-accent-soft' : ''}`}
-    >
+    <div {...dropProps} className={cx(className, over && styles.dropping)}>
       {children}
     </div>
   )

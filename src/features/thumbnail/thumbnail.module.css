@@ -1,0 +1,164 @@
+/* --- 一覧の行（サムネイル / フォルダで共通の見た目） --- */
+
+.row {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid transparent;
+  border-radius: var(--radius);
+  transition: background-color 150ms;
+}
+
+.row:hover {
+  background: var(--color-app);
+}
+
+.rowActive {
+  border-color: var(--color-accent);
+  background: var(--color-accent-soft);
+}
+
+.rowActive:hover {
+  background: var(--color-accent-soft);
+}
+
+/* 掴む行。行全体ではなくここにだけ draggable を付ける */
+.handle {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-1) var(--space-2);
+  cursor: pointer;
+}
+
+.icon {
+  flex-shrink: 0;
+  font-size: var(--font-mini);
+  color: var(--color-ink-sub);
+}
+
+.name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--font-body);
+}
+
+.size {
+  flex-shrink: 0;
+  font-size: var(--font-mini);
+  color: var(--color-ink-sub);
+}
+
+/* 行の操作は、その行にカーソルが乗っている間だけ出す */
+.actions {
+  display: none;
+  flex-shrink: 0;
+  align-items: center;
+}
+
+.handle:hover .actions,
+.folderHeader:hover .actions {
+  display: flex;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+/* --- フォルダ --- */
+
+.folderHeader {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius);
+}
+
+.folderHeader:hover {
+  background: var(--color-app);
+}
+
+.folderToggle {
+  flex-shrink: 0;
+  font-size: var(--font-mini);
+  color: var(--color-ink-sub);
+}
+
+.folderName {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--font-body);
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.folderCount {
+  flex-shrink: 0;
+  font-size: var(--font-mini);
+  color: var(--color-ink-sub);
+}
+
+.folderEmpty {
+  padding: var(--space-1) 0;
+  padding-left: 20px;
+  font-size: var(--font-mini);
+  color: var(--color-ink-sub);
+}
+
+.folderGroup {
+  margin-top: var(--space-1);
+}
+
+/* サムネイルを受けている間のハイライト */
+.dropping {
+  border-radius: var(--radius);
+  background: var(--color-accent-soft);
+}
+
+/* --- キャンバスサイズの行 --- */
+
+.sizeRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-2);
+  /* 行のアイコンぶん字下げして、どのサムネイルの設定かを見て分かるようにする */
+  padding: 0 var(--space-2) 6px 28px;
+}
+
+.sizeMain {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.sizeLabel {
+  flex-shrink: 0;
+  font-size: var(--font-mini);
+  color: var(--color-ink-sub);
+}
+
+.sizeField {
+  flex: 1;
+  min-width: 0;
+}
+
+/* 幅×高さは1行に収まらないことがあるので、常に次の行へ送る */
+.sizeCustom {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: var(--font-mini);
+  color: var(--color-ink-sub);
+}
