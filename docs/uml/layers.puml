@@ -18,35 +18,32 @@ skinparam rectangle {
   FontColor #25282D
 }
 
-rectangle "**components**\n画面に出るもの\nheader / thumbnail / layer / asset\nproperties / canvas / ui" as lComponents #FFF1EB
-rectangle "**services**\nユーザー操作\nworkspace / projectFolder / projectData\nprojectFile / exportImage / shortcuts" as lServices
-rectangle "**store**\nZustand の状態と操作\nslices / helpers / selectors" as lStore
-rectangle "**lib**\n再利用できる道具\ncore / dom / storage" as lLib
-rectangle "**types**\n型と定数" as lTypes #F5F6F8
-rectangle "**styles**\n共有する Tailwind の\nクラス文字列" as lStyles #F5F6F8
+rectangle "**App.tsx**\nfeature を並べるだけ\n(+ shortcuts.ts)" as lApp #FFF1EB
+rectangle "**features**\n画面に出る機能。1機能＝1ディレクトリ\nthumbnail / layer / canvas / asset / project" as lFeatures
+rectangle "**shared**\nどの feature からも使う\nui（表示専用の部品） / lib（DOMの小物）" as lShared
+rectangle "**core**\nアプリの共通言語\nmodel（型と純粋な計算） / storage（永続化） / store（状態）" as lCore #F5F6F8
 
-lComponents -down-> lServices
-lComponents -down-> lStore
-lComponents -down-> lLib
-lComponents -down-> lTypes
-lComponents -down-> lStyles
+lApp -down-> lFeatures
+lApp -down-> lShared
+lApp -down-> lCore
+lFeatures -down-> lShared
+lFeatures -down-> lCore
+lShared -down-> lCore
 
-lServices -down-> lStore
-lServices -down-> lLib
-lServices -down-> lTypes
+note right of lFeatures
+  **features 同士は import しない。**
+  共有が要るものは shared か core へ下ろす。
 
-lStore -down-> lLib
-lStore -down-> lTypes
-
-lLib -down-> lTypes
-
-note right of lComponents
   依存は上から下への**一方向**のみ。
-  逆流させない。
+  この2つは tests/architecture.test.ts が
+  機械で検証している。
+end note
 
-  **lib は store を import しない。**
-  store を使う処理は services に置く
-  （置かないと store <-> lib が循環する）。
+note bottom of lCore
+  core の中も一方向:
+  model -> storage -> store
+  model は core の外を import しない
+  （node でそのままテストできる状態を守る）
 end note
 
 @enduml

@@ -18,6 +18,7 @@ npm run dev        # 開発サーバー
 npm run typecheck  # 型チェックのみ
 npm run test       # テスト（tests/）
 npm run build      # 型チェック + 本番ビルド（dist/）
+npm run format     # Prettier で整形
 npm run preview    # ビルド結果の確認
 ```
 
@@ -220,41 +221,44 @@ PNG のファイル名は**サムネイル名**になります。同名のファ
 | 用途 | 採用 |
 | --- | --- |
 | フレームワーク | React 19 + TypeScript + Vite |
-| スタイル | Tailwind CSS v4（`@tailwindcss/vite`、設定ファイルなし・`@theme` でトークン定義） |
+| スタイル | CSS Modules（Vite 標準）＋ `src/styles.css` のトークン |
 | 状態管理 | Zustand |
 | 永続化 | IndexedDB（`idb-keyval`） |
 | PNG書き出し | `html-to-image` |
 | ZIP | `fflate` |
 | フォルダ連携 | File System Access API（Chromium系のみ） |
 | テスト | Vitest |
+| 整形 | Prettier |
 
 ドラッグ・リサイズ・回転・スナップはライブラリを使わず Pointer Events で実装しています。
 
 ### ディレクトリ
 
-**第1階層＝役割（何に依存してよいか）、第2階層＝関心事（何を扱うか）**の2段で分けています。
-依存は `types / styles → lib → store → services → components` の一方向のみです。
+**1機能＝1ディレクトリ**（Feature-based + Colocation）。
+依存は `core → shared → features → App` の一方向のみで、**features 同士は import しません**。
 
 ```
 src/
-  types/         型と定数。何にも依存しない
-  styles/        複数の場所で共有する Tailwind のクラス文字列（input / panel / menu）
-  lib/
-    core/        純粋関数（geometry / snap / factory / project / background / effects）
-    dom/         DOM・ブラウザ操作（pointerDrag / layerRect / dnd / download / notify）
-    storage/     永続化（db / assetRepo / fontRepo / fsAccess）
-  store/
-    slices/      関心事ごとの状態と操作（thumbnail / layer / asset / font / preset / ui / workspace）
-  services/      store を使うユーザー操作
-    workspace.ts       起動時の復元と IndexedDB への自動保存
-    projectFolder.ts   ローカルフォルダとの接続・保存・復元
-    projectData.ts     store と project.json の相互変換
-    projectFile.ts     .thumbpon.zip のエクスポート / インポート
-    exportImage.ts     PNG 書き出し
-    shortcuts.ts       キーボード操作
-  components/    header / thumbnail / layer / asset / properties / effects / canvas / ui
-tests/           Vitest。純粋関数とプロジェクト入出力を対象にする
+  App.tsx  main.tsx  shortcuts.ts
+  styles.css         色・余白・文字サイズのトークンとリセット
+  core/
+    model/           純粋な型と計算。React もブラウザAPIも触らない
+    storage/         IndexedDB と File System Access
+    store/           Zustand。8つの slice を1つのオブジェクトとして合成する
+  shared/
+    ui/              value と onChange で動く表示専用の部品
+    lib/             DOM・ブラウザ操作の小物と小さなフック
+  features/
+    thumbnail/       サムネイル一覧・フォルダ・キャンバスサイズ
+    layer/           レイヤー一覧 + レイヤー/背景のプロパティ + フォント読み込み
+    canvas/          編集キャンバス
+    asset/           素材パネル
+    project/         保存/読込・フォルダ連携・インポート/エクスポート・PNG書き出し
+tests/               Vitest。純粋関数・ストア・プロジェクト入出力と、層の境界を検証する
 ```
+
+この境界は `tests/architecture.test.ts` が検証しているので、
+層の逆流や feature 同士の import は `npm run test` で落ちます。
 
 ### 設計メモ
 

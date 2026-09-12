@@ -27,117 +27,79 @@ skinparam rectangle {
 }
 
 package "app" {
-  rectangle "App.tsx / main.tsx" as cApp #FFF1EB
+  rectangle "App.tsx / main.tsx\nshortcuts.ts" as cApp #FFF1EB
 }
 
-package "components" {
-  rectangle "header" as cHeader
-  rectangle "thumbnail" as cThumbnail
-  rectangle "layer" as cLayer
-  rectangle "asset" as cAsset
-  rectangle "canvas" as cCanvas
-  rectangle "properties" as cProperties
-  rectangle "effects" as cEffects
-  rectangle "ui" as cUi
+package "features" {
+  rectangle "thumbnail" as fThumbnail
+  rectangle "layer" as fLayer
+  rectangle "canvas" as fCanvas
+  rectangle "asset" as fAsset
+  rectangle "project" as fProject
 }
 
-package "services" {
-  rectangle "workspace / projectFolder\nprojectData / projectFile\nexportImage / shortcuts" as svc
+package "shared" {
+  rectangle "ui\n表示専用の部品\nPanel / Button / Row / SliderRow ...\nEffectsSection / PresetRow" as sUi
+  rectangle "lib\ncx / pointerDrag / dnd / notify\ndownload / layerRect / surfaceRef\nuseDropTarget / useAsyncAction" as sLib
 }
 
-package "store" {
-  rectangle "editorStore\nselectors / helpers" as stCore
-  rectangle "slices\nthumbnail / layer / asset\nfont / preset / ui / workspace" as stSlices
-}
-
-package "lib" {
-  rectangle "dom\npointerDrag / layerRect\ndnd / download / notify" as libDom
-  rectangle "storage\ndb / assetRepo / fontRepo / fsAccess" as libStorage
-  rectangle "core\ngeometry / snap / factory / project\nbackground / effects" as libCore
-}
-
-package "types" {
-  rectangle "thumbnail / layer / background / effects\nasset / font / preset / project" as tp #F5F6F8
-}
-
-package "styles" {
-  rectangle "input / panel / menu" as sty #F5F6F8
+package "core" {
+  rectangle "store\nuseEditorStore / patch\n8つの slice" as cStore
+  rectangle "storage\ndb / assetRepo / fontRepo\nfsAccess / panelLayout" as cStorage
+  rectangle "model\ntypes / factory / geometry\nsnap / style / project" as cModel #F5F6F8
 }
 
 ' --- app が組み立てる ---
-cApp -down-> cHeader
-cApp -down-> cThumbnail
-cApp -down-> cLayer
-cApp -down-> cAsset
-cApp -down-> cCanvas
-cApp -down-> svc
+cApp -down-> fThumbnail
+cApp -down-> fLayer
+cApp -down-> fCanvas
+cApp -down-> fAsset
+cApp -down-> fProject
+cApp -down-> sUi : Splitter
 
-' --- components 内 ---
-cLayer -> cProperties
-cHeader -down-> cUi
-cThumbnail -down-> cUi
-cLayer -down-> cUi
-cProperties -down-> cUi
-cProperties -> cEffects
-cEffects -down-> cUi
+' --- features -> shared ---
+fThumbnail -down-> sUi
+fLayer -down-> sUi
+fCanvas -down-> sLib
+fAsset -down-> sUi
+fProject -down-> sUi
+fThumbnail -down-> sLib
+fLayer -down-> sLib
+fAsset -down-> sLib
+fProject -down-> sLib
 
-' --- components -> services ---
-cHeader -down-> svc : フォルダ連携 / 入出力 / 書き出し
-cCanvas -down-> svc : 書き出し対象の登録
+' --- features -> core ---
+fThumbnail -down-> cStore
+fLayer -down-> cStore
+fCanvas -down-> cStore
+fAsset -down-> cStore
+fProject -down-> cStore
+fCanvas -down-> cModel
+fLayer -down-> cModel
+fProject -down-> cModel
+fCanvas -down-> cStorage
+fAsset -down-> cStorage
+fLayer -down-> cStorage
+fProject -down-> cStorage
 
-' --- components -> store ---
-cHeader -down-> stCore
-cThumbnail -down-> stCore
-cLayer -down-> stCore
-cAsset -down-> stCore
-cCanvas -down-> stCore
-cProperties -down-> stCore
+' --- shared -> core ---
+sUi -down-> cModel : 型だけ
+sLib -down-> cModel
 
-' --- components -> styles ---
-cHeader -down-> sty
-cProperties -down-> sty
-cUi -down-> sty
-
-' --- components -> lib ---
-cHeader -down-> libDom
-cThumbnail -down-> libDom
-cLayer -down-> libDom
-cAsset -down-> libDom
-cCanvas -down-> libDom
-cProperties -down-> libDom
-cAsset -down-> libStorage
-cCanvas -down-> libStorage
-cProperties -down-> libStorage
-cCanvas -down-> libCore
-cProperties -down-> libCore
-
-' --- services -> store / lib ---
-svc -down-> stCore
-svc -down-> libDom
-svc -down-> libStorage
-svc -down-> libCore
-
-' --- store 内と store -> lib ---
-stCore -down-> stSlices
-stSlices -down-> libCore
-stSlices -down-> libStorage
-
-' --- lib 内 ---
-libDom -down-> libCore
-
-' --- types は全パッケージから参照される（矢印は省略） ---
-libCore -down-> tp
-libStorage -down-> tp
+' --- core の中 ---
+cStore -down-> cStorage
+cStore -down-> cModel
+cStorage -down-> cModel
 
 legend left
-  **依存は一方向**：types <- lib <- store <- services <- components
+  **features 同士に矢印は無い。** 共有が要るものは shared か core へ下ろす。
   ====
-  **types** はほとんどのパッケージから参照されるため矢印を省略している
-  （実際に参照していないのは **components/ui**・**components/asset**・**lib/dom** の3つだけ）
-  **lib は store を import しない。** store を使う処理は services に置く（循環するため）
-  **lib/core** は types 以外を import しない。DOMもブラウザAPIも触らないので node で直接検証できる
-  **components/ui** は styles 以外に依存しない汎用の入力部品
-  **styles** は共有する Tailwind のクラス文字列だけを持ち、何にも依存しない
+  **canvas -> project**（PNG書き出し対象の登録）は **shared/lib/surfaceRef** 経由。
+  canvas が set、project が get で、直接は呼び合わない
+  **shared/ui** はストアに触らない。値と更新関数を props で受けるだけ
+  **core/model** は core の外を import しない。node でそのままテストできる
+  **store は feature に分けない。** 8つの slice は1つのオブジェクトを意図的に共有し、
+  互いの state を書く（単一ドキュメントを全機能で編集するエディタとして正しい形）
 endlegend
 
 @enduml

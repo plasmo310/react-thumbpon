@@ -9,51 +9,88 @@
 ```bash
 npm run dev        # 開発サーバー
 npm run typecheck  # tsc --noEmit（tests/ も対象）
-npm run test       # vitest run
+npm run test       # vitest run（層と feature の境界も検証する）
+npm run format     # prettier --write .
 npm run build      # 型チェック + 本番ビルド（変更後はこれを通すこと）
 ```
 
 テストは Vitest でルートの `tests/` に置く。環境は node なので DOM は使えない。
 ブラウザAPIに触るモジュール（`fsAccess` など）は `tests/helpers/` の
-メモリ実装を `vi.mock` で差し込む。純粋関数は `src/lib/core/` に置いてそのまま呼ぶ。
+メモリ実装を `vi.mock` で差し込む。純粋関数は `src/core/model/` に置いてそのまま呼ぶ。
 
 ## ディレクトリ構成
 
-**第1階層＝役割（何に依存してよいか）、第2階層＝関心事（何を扱うか）**の2段で分ける。
-依存は `types / styles → lib → store → services → components` の一方向のみ。逆流させない。
-図は [docs/uml/](docs/uml/)（`layers.puml` が層の全体像、`package-dependencies.puml` が詳細）。
+**1機能＝1ディレクトリ**（Feature-based + Colocation）。依存は次の一方向のみで、
+加えて **features 同士は import しない**。ルールはこの2行だけ。
+
+```
+core  →  shared  →  features  →  App
+```
+
+| 階層 | 役割 | features を知っているか |
+|---|---|---|
+| `core/` | ドキュメントの型・純粋な計算・ストア・永続化。アプリの共通言語 | ✗ |
+| `shared/` | どの feature からも使う UI 部品と道具 | ✗ |
+| `features/` | 画面に出る機能 | 自分以外は ✗ |
+| `App.tsx` | feature を並べるだけ | ○（ここだけ） |
 
 ```
 src/
-  App.tsx        main.tsx     アプリの入口
-  types/         型と定数。何にも依存しない（effects はレイヤーと背景で共通）
-  styles/        複数の場所で共有する Tailwind のクラス文字列。何にも依存しない
-                 （input / panel / menu）
-  lib/
-    core/        純粋関数。DOMもブラウザAPIも触らない
-                 （geometry / snap / factory / project / background / effects）
-    dom/         DOM・ブラウザ操作（pointerDrag / layerRect / dnd / download / notify）
-    storage/     永続化（db / assetRepo / fontRepo / fsAccess）
-  store/
-    slices/      関心事ごとの状態と操作（thumbnail / layer / asset / font / preset / ui / workspace）
-    helpers.ts   patchCurrent / patchLayers
-    selectors.ts useCurrentThumbnail / useSelectedLayer
-  services/      store を使うユーザー操作
-                 workspace（復元と自動保存）/ projectFolder（フォルダ連携）/
-                 projectData（store ⇄ project.json）/ projectFile（.thumbpon.zip）/
-                 exportImage / shortcuts
-  components/    header / thumbnail / layer / asset / properties / effects / canvas / ui
+  App.tsx  main.tsx  shortcuts.ts  styles.css  App.module.css
+  core/
+    model/       純粋。React もブラウザAPIも触らない → node でそのままテストできる
+                 types / factory / geometry / snap / style / project
+    storage/     db / assetRepo / fontRepo / fsAccess / panelLayout
+    store/       index(useEditorStore と selectors) / patch(createPatchers) /
+                 8つの slice（thumbnail / layer / background / asset / font / preset / ui / workspace）
+  shared/
+    ui/          value と onChange で動く表示専用の部品 + ui.module.css
+    lib/         cx / pointerDrag / dnd / notify / download / layerRect /
+                 surfaceRef / useDropTarget / useAsyncAction
+  features/
+    thumbnail/   サムネイル一覧・フォルダ・キャンバスサイズ
+    layer/       レイヤー一覧 + レイヤー/背景のプロパティ + フォント読み込み
+    canvas/      編集キャンバス
+    asset/       素材パネル
+    project/     ヘッダ + 保存/読込 + フォルダ連携 + zip 入出力 + PNG書き出し
 tests/           Vitest。src/ の外に置く
 ```
 
+`features/<x>/index.ts` が各 feature の公開面。App はここだけを見る。
+
 新しいファイルの置き場所は上から順に当てはめる。
 
-1. 複数の場所で使うクラス名の定義だけか → `styles/`（**コンポーネントの隣に置かない**）
-2. 何も import しない純粋な処理か → `lib/core/`
-3. DOM を触るか → `lib/dom/`
-4. IndexedDB を触るか → `lib/storage/`
-5. store を import するか → `services/`（**`lib/` には絶対に置かない**。循環するため）
-6. 画面に出るものか → `components/` の該当する関心事の下
+1. 特定の機能の画面か → `features/` の該当する機能の下（迷ったら、画面のどこに出るかで決める）
+2. 複数の feature から使う UI 部品か → `shared/ui/`
+3. 複数の feature から使う道具（DOM操作・小さなフック）か → `shared/lib/`
+4. ドキュメントの型・純粋な計算か → `core/model/`
+5. IndexedDB / File System Access を触るか → `core/storage/`
+6. 状態と、その更新操作か → `core/store/`
+
+**この境界は `tests/architecture.test.ts` が検証している。** 層の逆流、feature 同士の
+import、使われていない export はテストで落ちるので、散文の約束に頼らなくてよい。
+
+### feature に分けなかったもの
+
+どれも分けると feature 同士の import が必ず生えるため。
+
+- **背景はレイヤーの中**。画面上、背景はレイヤー一覧の一番上の行で、
+  `LayerPanel` が `BackgroundProperties` を直接埋めている
+- **エフェクトとプリセットは feature にしない**。レイヤーと背景の両方から使うので
+  `shared/ui/` に置く（どちらもストアに触らない props 専用の部品）
+- **フォントも feature にしない**。UI はテキストのプロパティ欄にしか出ないので
+  `features/layer/`、実体は `core/storage/fontRepo.ts`
+- **`shortcuts.ts` は `App.tsx` の隣**。Ctrl+S（project）と Delete/矢印（layer）の
+  両方を扱うため
+
+### ストアは feature に分けない（意図的）
+
+8つの slice は**1つのオブジェクトを意図的に共有**していて、互いの state を書く
+（サムネイルを切り替えたらレイヤーの選択を外す、素材を消したらそれを使うレイヤーも消す等）。
+単一のドキュメントを全機能で編集するエディタとして正しい形なので壊さない。
+slice を feature 側に置くと `core/store` が `features/*` を import して確実に循環する。
+
+**slice は「操作のまとまり」であって「状態の所有単位」ではない。**
 
 ## アーキテクチャの要点
 
@@ -66,39 +103,40 @@ tests/           Vitest。src/ の外に置く
   レイヤーパネルも配列順に上から並べるので、**一覧の下にあるものが前面**。
 - **テキストレイヤーは `height` を持たない**（内容に応じて伸びる）。高さが要る箇所
   （選択枠・スナップ）は `[data-layer-id]` の `offsetHeight` から実測する。実測の入口は
-  `lib/dom/layerRect.ts` に集約してあるので、DOMを直接引かずこれを使う。
+  `shared/lib/layerRect.ts` に集約してあるので、DOMを直接引かずこれを使う。
 - **状態はすべて JSON 化できる値に保つ。** objectURL / Blob / DOM 参照をストアに入れない。
-  画像の Blob は IndexedDB、objectURL は `lib/storage/assetRepo.ts` 内の Map に置く。
-- 状態は**すべて `src/store/` の Zustand ストア**に集約する。中身は `slices/` に
-  thumbnail / layer / asset / font / preset / ui の6つに分かれているが、実体は1つの
-  オブジェクトなので slice をまたいだ更新もできる（素材を消したらそれを使うレイヤーも消す等）。
-  レイヤー操作は現在のサムネイルに対して行われる（`helpers.ts` の `patchCurrent` / `patchLayers`）。
-  利用側は `import { useEditorStore, useCurrentThumbnail } from '../store'` の1行で足りる。
+  画像の Blob は IndexedDB、objectURL は `core/storage/assetRepo.ts` 内の Map に置く。
+- 状態は**すべて `src/core/store/` の Zustand ストア**に集約する（上の「ストアは feature に
+  分けない」を参照）。レイヤー操作は現在のサムネイルに対して行われる（`patch.ts` の
+  `patchCurrent` / `patchLayers`）。利用側は
+  `import { useEditorStore, useCurrentThumbnail } from '@/core/store'` の1行で足りる。
 - ドラッグ・リサイズ・回転はライブラリを使わず Pointer Events で実装している
-  （`lib/dom/pointerDrag.ts` + `lib/core/geometry.ts`）。ここにライブラリを足さない。
+  （`shared/lib/pointerDrag.ts` + `core/model/geometry.ts`）。ここにライブラリを足さない。
 - **`draggable` は「掴む行」だけに付ける。行全体には付けない。** 行の中に開くプロパティ欄の
   スライダーや入力を掴んだだけで HTML5 のドラッグが始まり、値を変えられなくなるため。
   `LayerRow` / `ThumbnailRow` はどちらも名前の行にだけ `draggable` を付け、
   `onDragOver` / `onDrop`（落とす先）だけを行全体に付けている。
-- **D&Dの種別・エラー通知・ダウンロードは共通化済み**。`lib/dom/` の `dnd.ts`（`DND_TYPE` /
-  `hasDragType`）、`notify.ts`（`notifyError`）、`download.ts` を使う。各所に書き直さない。
+- **繰り返し出てくる定型は `shared/` に共通化済み**。書き直さずにこれらを使う。
+  `useDropTarget`（ドロップ受け）/ `useAsyncAction`（busy + try/catch + 通知）/
+  `dnd.ts`（`DND_TYPE` / `hasDragType`）/ `notify.ts` / `download.ts` / `cx.ts`、
+  UI 側は `Panel` / `Button` / `SliderRow` / `PercentRow` / `InlineName` / `useFilePicker`。
 
 ## 注意点
 
 - **`idb-keyval` の `createStore` は 1つのDBに 1つの objectStore しか作れない。**
-  同じDB名で2回呼ぶと2つ目は `NotFoundError` になる。そのため `src/lib/storage/db.ts` の
+  同じDB名で2回呼ぶと2つ目は `NotFoundError` になる。そのため `src/core/storage/db.ts` の
   `kv` ひとつだけを使い、キーの接頭辞（`blob:` `meta:` `font:` `project:` `handle:`）で用途を分ける。
   新しい保存先が要るときも createStore を追加せず、接頭辞を足すこと。
 - **書き出しに含めたくないDOMには `data-export-ignore="true"` を付ける。**
-  `exportImage.ts` の filter がこれを除外する（選択枠・スナップガイドが該当）。
+  `features/project/exportImage.ts` の filter がこれを除外する（選択枠・スナップガイドが該当）。
 - `html-to-image` は初回呼び出しでWebフォントや画像の埋め込みが間に合わないことがあるため、
   `exportImage.ts` では意図的に2回呼んで1回目を捨てている。消さないこと。
 - **フォントファイルはプロジェクトに含めない。同梱するとフォントの再配布にあたるため。**
   実体は IndexedDB にのみ保存する。代わりに `project.json` の `fonts` に
   使用フォントのマニフェスト（表示名 / family / local か file か）を持たせ、
   読み込み側で解決できなかったものを `missingFontLabels` に入れて名前で告知する。
-  マニフェストの組み立ては `lib/core/project.ts` の `collectUsedFonts` / `findMissingFonts`。
-- 自動保存（`services/workspace.ts`）は `ready` が true の間だけ動く。復元中に
+  マニフェストの組み立ては `core/model/project.ts` の `collectUsedFonts` / `findMissingFonts`。
+- 自動保存（`features/project/workspace.ts`）は `ready` が true の間だけ動く。復元中に
   上書き保存されないようにするための仕組みなので、順序を変えないこと。
 - **保存先が2つあるので、どちらが正かのルールを崩さない。**
   ローカルフォルダに接続している間は**フォルダが唯一の正本**で、起動時にフォルダを読めたら
@@ -111,48 +149,51 @@ tests/           Vitest。src/ の外に置く
   入れ物（1ファイルか展開したフォルダか）だけが違う。`buildProjectFile()` を両方から使うこと。
   拡張子を `.zip` で終わらせているのは OS から普通の ZIP として扱えるようにするため。
   読み込み側はフォルダごと圧縮された ZIP（中身が「フォルダ名/」の下にある形）も受け付ける。
-- **File System Access API は Chromium 系のみ。** `fsAccess.ts` の
+- **File System Access API は Chromium 系のみ。** `core/storage/fsAccess.ts` の
   `canUseFileSystemAccess()` で判定し、非対応ブラウザでは UI を出さない
   （`fontRepo.ts` の `canQueryLocalFonts()` と同じ段階的強化の形）。
   型は lib.dom に無いので、型定義パッケージを足さず `fsAccess.ts` 内にローカル宣言している。
   権限の要求（`requestPermission`）はユーザー操作の中からしか通らないため、
   起動時の自動復元では要求せず `needs-permission` を立てて通知バーに委ねる。
 - スナップは回転していないレイヤー（`rotation === 0`）だけが対象。矩形が合わないため。
-- **エフェクト（ブラー / シャドウ / 光彩）はレイヤーと背景で共通**。型は `types/effects.ts` の
-  `Effects`、CSS への変換は `lib/core/effects.ts`、UI は `components/effects/` の
-  `EffectsSection`（ストアに触らず値と更新関数を props で受ける）。掛ける先が増えても
-  この3つを使い回す。CSS の `filter` 1本で描き、影に `box-shadow` ではなく `drop-shadow` を
+- **エフェクト（ブラー / シャドウ / 光彩）はレイヤーと背景で共通**。型は `core/model/types.ts` の
+  `Effects`、CSS への変換は `core/model/style.ts`、UI は `shared/ui/EffectsSection`
+  （ストアに触らず値と更新関数を props で受ける）。掛ける先が増えてもこの3つを使い回す。CSS の `filter` 1本で描き、影に `box-shadow` ではなく `drop-shadow` を
   使うのは、要素の矩形ではなく中身の形（文字の輪郭・画像の透過・模様の隙間）に沿った影を
   出すため。光彩は drop-shadow 1回だと薄すぎるので同じものを重ねている。
 - **背景は「下地色」と「絵柄」の2層に分ける**（`backgroundBaseStyle` / `backgroundArtStyle`）。
   エフェクトは絵柄の層だけに掛ける。サーフェス自体に `filter` を掛けるとレイヤーまで
   一緒にぼけるため。ぼかすと絵柄の縁が透けるので、`effectsBleed()` の分だけ外側に
   はみ出させて `overflow: hidden` で切る。単色の背景は絵柄を持たないので効果は出ない。
-- **背景の模様（パターン）は画像を作らず CSS のグラデーションで描く**（`lib/core/background.ts`）。
+- **背景の模様（パターン）は画像を作らず CSS のグラデーションで描く**（`core/model/style.ts`）。
   書き出しでも劣化せず、素材の管理も要らないため。**素材を使う敷き詰め（タイル）は
   パターンではなく背景「画像」の敷き方**（`fit: 'tile'`）に置く。タイルは模様の形ではなく
   1枚の画像の敷き方で、cover / contain と同じ軸のため。素材の参照は `assetId` ひとつ。
 - **`effects` は入れ子フィールドなので浅いマージでは潰れる。** 更新には専用の口
   （レイヤーは `updateLayerEffects`、背景は `setBackgroundEffects`）を使うこと。
-- **後から増えたフィールドは `lib/core/project.ts` の `normalizeThumbnails` で補う。**
+- **後から増えたフィールドは `core/model/project.ts` の `normalizeThumbnails` で補う。**
   `loadProject` が必ず通すので、読み込み後は「必ず在る」前提で書いてよい。
 
 ## コードスタイル
 
-- シングルクォート、セミコロンなし、2スペースインデント（既存ファイルに合わせる）。
-  ユーザーのエディタが Prettier で整形し直すことがあるが、新規コードは既存に揃える。
+- 整形は Prettier に任せる（`npm run format`）。設定は `.prettierrc`
+  （シングルクォート / セミコロンなし / 2スペース / 100桁）。
 - コメントは日本語で、**なぜそうしているか**を書く。何をしているかは書かない。
 - **export する関数・コンポーネントには JSDoc を付け、引数を明記する。** `@param` には
   意味・単位・座標系など、型から読み取れない情報を書く（型が語ることは繰り返さない）。
   コンポーネントの props は `@param props.xxx` の形で書く。
-- **命名**: ディレクトリはすべて小文字。コンポーネントは PascalCase（`components/` 配下と
-  `src/App.tsx` のみ）。それ以外のモジュールは camelCase。
+- **命名**: ディレクトリはすべて小文字。コンポーネントは PascalCase（`features/` と
+  `shared/ui/` 配下、`src/App.tsx`）。それ以外のモジュールは camelCase。
+  CSS Modules のクラス名も camelCase（`styles.panelBody`）。
 - UI文言は日本語。
-- 色は `src/index.css` の `@theme` トークンを使う（`bg-panel` `text-ink-sub` `border-accent` など）。
-  ハードコードした 16進数をコンポーネントに書かない。例外はキャンバス内部に直接描く色
-  （選択枠・ガイド線）で、これらは Tailwind の外なので定数として先頭に置く。
+- **スタイルは CSS Modules**（`*.module.css`）。1 feature につき1枚にまとめ、
+  `shared/ui` も `ui.module.css` の1枚。値は必ず `src/styles.css` のトークンから取り、
+  16進数や px を直接書かない。条件付きの class は `shared/lib/cx.ts` の `cx()` で繋ぐ。
+  例外はキャンバス内部（レイヤー・選択枠・ガイド線）で、実寸座標と表示倍率に依存する
+  動的な値しかないので style オブジェクトのまま書き、色は定数として先頭に置く。
 - 新しい依存は足す前に必要性を確認する。現在の依存は
-  react / zustand / idb-keyval / html-to-image / fflate（開発は vite / tailwind / vitest）のみ。
+  react / zustand / idb-keyval / html-to-image / fflate
+  （開発は vite / typescript / vitest / prettier）のみ。CSS Modules は Vite 標準。
 
 ## 未実装
 
