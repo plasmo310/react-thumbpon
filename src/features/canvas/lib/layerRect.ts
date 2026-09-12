@@ -1,4 +1,4 @@
-import type { SnapRect } from '@/features/canvas/snap'
+import type { SnapRect } from './snap'
 
 /**
  * レイヤーのDOM要素を探す。

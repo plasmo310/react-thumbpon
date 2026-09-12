@@ -1,10 +1,10 @@
 import type { PointerEvent as ReactPointerEvent } from 'react'
-import { snapPosition } from '@/features/canvas/snap'
+import { snapPosition } from '../lib/snap'
 import { layerStyle, textStyle } from '@/domain/layer'
 import type { Layer } from '@/domain/layer'
 import { getAssetUrl } from '@/shared/lib/storage/assetRepo'
 import { useCurrentThumbnail, useEditorStore } from '@/app/store'
-import { collectLayerRects, measureLayerHeight } from './layerRect'
+import { collectLayerRects, measureLayerHeight } from '../lib/layerRect'
 import { startPointerDrag } from '@/shared/lib/pointerDrag'
 
 /** 画面上でのスナップ距離(px) */

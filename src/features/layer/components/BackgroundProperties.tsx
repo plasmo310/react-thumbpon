@@ -3,7 +3,7 @@ import { EffectsSection } from './EffectsSection'
 import { useCurrentThumbnail, useEditorStore } from '@/app/store'
 import type { BackgroundFit, BackgroundType, PatternType } from '@/domain/background'
 import { ColorInput, NumberInput, PercentRow, Row, Select, SliderRow } from '@/shared/ui'
-import styles from './styles.module.css'
+import styles from '../styles.module.css'
 
 /** 背景の種別。4つあり「グラデーション」も入るため、横並びではなくドロップダウンで出す */
 const TYPE_OPTIONS: { label: string; value: BackgroundType }[] = [

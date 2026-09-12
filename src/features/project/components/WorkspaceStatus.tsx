@@ -1,6 +1,6 @@
 import { canUseFileSystemAccess } from '@/shared/lib/storage/fsAccess'
 import { useEditorStore } from '@/app/store'
-import styles from './styles.module.css'
+import styles from '../styles.module.css'
 
 /**
  * 今どのフォルダを正本として作業しているかの表示。

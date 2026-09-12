@@ -4,7 +4,7 @@ import type { Layer } from '@/domain/layer'
 import { NumberInput, Row, TextInput } from '@/shared/ui'
 import { ImageProperties } from './ImageProperties'
 import { TextProperties } from './TextProperties'
-import styles from './styles.module.css'
+import styles from '../styles.module.css'
 
 /**
  * レイヤーのプロパティ欄。共通の項目を出したあと、種別ごとの欄に振り分け、

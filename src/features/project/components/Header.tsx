@@ -1,7 +1,7 @@
 import { ExportButton } from './ExportButton'
 import { ProjectMenu } from './ProjectMenu'
 import { WorkspaceStatus } from './WorkspaceStatus'
-import styles from './styles.module.css'
+import styles from '../styles.module.css'
 
 /**
  * 見出し「サムネぽん！」だけの縦位置の微調整(px)。マイナスで上、プラスで下。小数も可。

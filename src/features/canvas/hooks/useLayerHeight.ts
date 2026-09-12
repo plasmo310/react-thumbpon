@@ -1,5 +1,5 @@
 import { useLayoutEffect, useState } from 'react'
-import { findLayerElement } from './layerRect'
+import { findLayerElement } from '../lib/layerRect'
 import type { Layer } from '@/domain/layer'
 
 /**

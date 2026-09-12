@@ -1,7 +1,7 @@
 import { useEditorStore } from '@/app/store'
 import type { ImageLayer } from '@/domain/layer'
 import { NumberInput, PercentRow, Row } from '@/shared/ui'
-import styles from './styles.module.css'
+import styles from '../styles.module.css'
 
 /**
  * 画像レイヤー固有のプロパティ。画像は height を持つので幅と高さを並べて出す。

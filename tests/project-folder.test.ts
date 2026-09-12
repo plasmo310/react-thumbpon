@@ -11,7 +11,7 @@ import {
   reconnectProjectFolder,
   restoreProjectFolder,
   saveProjectFolder,
-} from '@/features/project/projectFolder'
+} from '@/features/project/lib/projectFolder'
 import { useEditorStore } from '@/app/store'
 import type { AssetMeta } from '@/domain/asset'
 import { DEFAULT_BACKGROUND } from '@/domain/background'

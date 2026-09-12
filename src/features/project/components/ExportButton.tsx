@@ -1,7 +1,7 @@
 import { useCurrentThumbnail } from '@/app/store'
 import { useAsyncAction } from '@/shared/lib/useAsyncAction'
-import { exportPng } from './exportImage'
-import styles from './styles.module.css'
+import { exportPng } from '../lib/exportImage'
+import styles from '../styles.module.css'
 
 /** 現在のサムネイルを PNG として書き出す。書き出し中は二重押しを防ぐ */
 export function ExportButton() {

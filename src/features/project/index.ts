@@ -1,6 +1,6 @@
 /** この feature の公開面。外からはここだけを見る */
-export { Header } from './Header'
-export { WorkspaceNotice } from './WorkspaceNotice'
-export { restoreWorkspace, startAutoSave } from './workspace'
-export { saveProjectFolder } from './projectFolder'
-export { confirmFolderOverwrite } from './confirmOverwrite'
+export { Header } from './components/Header'
+export { WorkspaceNotice } from './components/WorkspaceNotice'
+export { restoreWorkspace, startAutoSave } from './lib/workspace'
+export { saveProjectFolder } from './lib/projectFolder'
+export { confirmFolderOverwrite } from './lib/confirmOverwrite'

@@ -1,7 +1,7 @@
 import { assetPath, collectUsedFonts, findMissingFonts } from '@/domain/project'
 import { getAssetBlob, replaceAssets } from '@/shared/lib/storage/assetRepo'
 import { useEditorStore } from '@/app/store'
-import type { AssetPayload } from './types'
+import type { AssetPayload } from '../types'
 import type { ProjectAssetEntry, ProjectFile } from '@/domain/project'
 
 /**

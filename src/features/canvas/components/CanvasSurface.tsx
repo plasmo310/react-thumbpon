@@ -6,7 +6,7 @@ import { setSurface } from '@/shared/lib/surfaceRef'
 import { useCurrentThumbnail, useEditorStore } from '@/app/store'
 import { BACKGROUND_ID } from '@/domain/background'
 import { LayerView } from './LayerView'
-import styles from './styles.module.css'
+import styles from '../styles.module.css'
 import { SelectionOverlay } from './SelectionOverlay'
 
 const GUIDE_COLOR = '#FF3B8B'

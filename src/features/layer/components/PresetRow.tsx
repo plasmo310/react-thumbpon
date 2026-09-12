@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import styles from './styles.module.css'
+import styles from '../styles.module.css'
 import { IconButton, Row } from '@/shared/ui'
 
 /**

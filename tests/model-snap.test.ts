@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { snapPosition, type SnapRect } from '@/features/canvas/snap'
+import { snapPosition, type SnapRect } from '@/features/canvas/lib/snap'
 
 const canvas = { width: 1000, height: 500 }
 const THRESHOLD = 8

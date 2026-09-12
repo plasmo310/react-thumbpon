@@ -11,7 +11,7 @@ import {
 } from '@/domain/geometry'
 import { startPointerDrag } from '@/shared/lib/pointerDrag'
 import { useEditorStore, useSelectedLayer } from '@/app/store'
-import { useLayerHeight } from './useLayerHeight'
+import { useLayerHeight } from '../hooks/useLayerHeight'
 
 const ACCENT = '#FF8A5B'
 const HANDLE_SIZE = 10

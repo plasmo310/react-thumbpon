@@ -5,8 +5,8 @@ import { cx } from '@/shared/lib/cx'
 import { DND_TYPE } from '@/shared/lib/dnd'
 import { EyeIcon, EyeOffIcon, IconButton } from '@/shared/ui'
 import { LayerProperties } from './LayerProperties'
-import type { DropMark } from './types'
-import styles from './styles.module.css'
+import type { DropMark } from '../types'
+import styles from '../styles.module.css'
 
 /**
  * レイヤー一覧の1行。選択中は操作ボタンとプロパティ欄をその場に開く。

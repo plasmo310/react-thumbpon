@@ -4,8 +4,8 @@ import { DND_TYPE } from '@/shared/lib/dnd'
 import { notifyError } from '@/shared/lib/notify'
 import { useDropTarget } from '@/shared/lib/useDropTarget'
 import { CanvasSurface } from './CanvasSurface'
-import { useCanvasView } from './useCanvasView'
-import styles from './styles.module.css'
+import { useCanvasView } from '../hooks/useCanvasView'
+import styles from '../styles.module.css'
 
 /**
  * キャンバスを中央に置く土台。素材・画像ファイルのドロップと、右下の操作を受け持つ。

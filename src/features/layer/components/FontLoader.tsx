@@ -2,7 +2,7 @@ import { addFontFiles, canQueryLocalFonts, queryLocalFonts } from '@/shared/lib/
 import { useEditorStore } from '@/app/store'
 import { useAsyncAction } from '@/shared/lib/useAsyncAction'
 import { Button, useFilePicker } from '@/shared/ui'
-import styles from './styles.module.css'
+import styles from '../styles.module.css'
 
 const ACCEPT = '.ttf,.otf,.woff,.woff2,font/*'
 

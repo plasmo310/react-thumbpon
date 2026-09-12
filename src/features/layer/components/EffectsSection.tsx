@@ -1,5 +1,5 @@
 import { DEFAULT_EFFECTS, type Effects } from '@/domain/effects'
-import styles from './styles.module.css'
+import styles from '../styles.module.css'
 import { ColorInput, NumberInput, PercentRow, Row, SliderRow } from '@/shared/ui'
 
 /**

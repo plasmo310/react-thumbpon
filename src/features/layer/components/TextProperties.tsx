@@ -13,7 +13,7 @@ import {
   TextArea,
 } from '@/shared/ui'
 import { FontLoader } from './FontLoader'
-import styles from './styles.module.css'
+import styles from '../styles.module.css'
 
 /**
  * テキストレイヤー固有のプロパティ。

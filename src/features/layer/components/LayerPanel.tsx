@@ -7,8 +7,8 @@ import { useCurrentThumbnail, useEditorStore } from '@/app/store'
 import { BACKGROUND_ID } from '@/domain/background'
 import { BackgroundProperties } from './BackgroundProperties'
 import { LayerRow } from './LayerRow'
-import type { DropMark } from './types'
-import styles from './styles.module.css'
+import type { DropMark } from '../types'
+import styles from '../styles.module.css'
 
 /** レイヤーの一覧。配列順に上から並べるので、一覧の下にあるものが前面になる */
 export function LayerPanel() {
