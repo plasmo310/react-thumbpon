@@ -1,9 +1,8 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
-import tailwindcss from '@tailwindcss/vite'
 
 export default defineConfig({
-  plugins: [react(), tailwindcss()],
+  plugins: [react()],
   resolve: {
     // '/src' はプロジェクトルート起点として解決される。
     // fileURLToPath を使うと @types/node が要るので、依存を増やさずに済むこの形にしている。
