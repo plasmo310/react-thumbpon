@@ -1,10 +1,5 @@
 import { createId } from '../../lib/core/factory'
-import {
-  deleteAsset,
-  loadAssets,
-  readImageSize,
-  saveAsset,
-} from '../../lib/storage/assetRepo'
+import { deleteAsset, loadAssets, readImageSize, saveAsset } from '../../lib/storage/assetRepo'
 import type { AssetMeta } from '../../types'
 import type { SliceCreator } from '../types'
 
@@ -68,8 +63,7 @@ export const createAssetSlice: SliceCreator<AssetSlice> = (set, get) => ({
       thumbnails: get().thumbnails.map((t) => ({
         ...t,
         layers: t.layers.filter((l) => l.type !== 'image' || l.assetId !== id),
-        background:
-          t.background.assetId === id ? { ...t.background, assetId: null } : t.background,
+        background: t.background.assetId === id ? { ...t.background, assetId: null } : t.background,
       })),
     })
   },

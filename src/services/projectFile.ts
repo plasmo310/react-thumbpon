@@ -1,6 +1,11 @@
 import { strFromU8, strToU8, unzipSync, zipSync } from 'fflate'
 import { downloadBlob } from '../lib/dom/download'
-import { applyProjectFile, buildProjectFile, collectAssetPayloads, isProjectFile } from './projectData'
+import {
+  applyProjectFile,
+  buildProjectFile,
+  collectAssetPayloads,
+  isProjectFile,
+} from './projectData'
 
 const PROJECT_JSON = 'project.json'
 

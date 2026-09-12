@@ -13,9 +13,7 @@ export function ThumbnailSizeRow() {
   const setCanvasSize = useEditorStore((s) => s.setCanvasSize)
   const [customMode, setCustomMode] = useState(false)
 
-  const matched = CANVAS_PRESETS.find(
-    (p) => p.width === canvas.width && p.height === canvas.height,
-  )
+  const matched = CANVAS_PRESETS.find((p) => p.width === canvas.width && p.height === canvas.height)
   const presetValue = matched && !customMode ? matched.id : CUSTOM_PRESET_ID
   const showCustom = presetValue === CUSTOM_PRESET_ID
 

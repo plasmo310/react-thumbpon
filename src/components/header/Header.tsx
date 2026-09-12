@@ -1,6 +1,6 @@
-import { ExportButton } from "./ExportButton";
-import { ProjectMenu } from "./ProjectMenu";
-import { WorkspaceStatus } from "./WorkspaceStatus";
+import { ExportButton } from './ExportButton'
+import { ProjectMenu } from './ProjectMenu'
+import { WorkspaceStatus } from './WorkspaceStatus'
 
 /**
  * 見出し「サムネぽん！」だけの縦位置の微調整(px)。マイナスで上、プラスで下。小数も可。
@@ -9,7 +9,7 @@ import { WorkspaceStatus } from "./WorkspaceStatus";
  * 隣より 5px 大きい文字なので、同じ揃え方でも ascent と descent の非対称さの分
  * （Noto Sans JP は ascent の方が 0.87em 大きい）だけ差が出る。目で見て詰めるための値。
  */
-const TITLE_OFFSET_Y = -1;
+const TITLE_OFFSET_Y = -1
 
 /**
  * 画面上部のツールバー。中身の状態は各ボタン側に閉じているので、ここは並べるだけ。
@@ -54,5 +54,5 @@ export default function Header() {
         </span>
       </div>
     </header>
-  );
+  )
 }

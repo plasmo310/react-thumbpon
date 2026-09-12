@@ -129,7 +129,10 @@ describe('往復', () => {
   it('使用フォントは名前だけ引き継がれ、解決できないものが告知される', async () => {
     useEditorStore.setState({
       thumbnails: [thumbnail([textLayer('"Mine"')])],
-      fonts: [...BUILTIN_FONTS, { id: 'file:Mine', family: '"Mine"', label: 'Mine', source: 'file' }],
+      fonts: [
+        ...BUILTIN_FONTS,
+        { id: 'file:Mine', family: '"Mine"', label: 'Mine', source: 'file' },
+      ],
     })
 
     const file = await exported()

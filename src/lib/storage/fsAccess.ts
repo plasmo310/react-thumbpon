@@ -68,7 +68,10 @@ export async function pickDirectory(): Promise<DirectoryHandle | null> {
  * @param request true のときだけ権限を要求する。要求はユーザー操作の中からしか通らないため、
  *                起動時の自動復元では false で呼ぶこと
  */
-export async function verifyPermission(handle: DirectoryHandle, request: boolean): Promise<boolean> {
+export async function verifyPermission(
+  handle: DirectoryHandle,
+  request: boolean,
+): Promise<boolean> {
   const options: PermissionOptions = { mode: 'readwrite' }
   if ((await handle.queryPermission(options)) === 'granted') return true
   if (!request) return false

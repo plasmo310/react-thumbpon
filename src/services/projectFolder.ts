@@ -14,7 +14,12 @@ import {
   writeFile,
 } from '../lib/storage/fsAccess'
 import { useEditorStore } from '../store'
-import { applyProjectFile, buildProjectFile, collectAssetPayloads, isProjectFile } from './projectData'
+import {
+  applyProjectFile,
+  buildProjectFile,
+  collectAssetPayloads,
+  isProjectFile,
+} from './projectData'
 
 const PROJECT_JSON = 'project.json'
 const ASSETS_DIR = 'assets'
@@ -89,7 +94,8 @@ async function saveTo(dir: Directory) {
 export async function openProjectFolder(): Promise<boolean> {
   const dir = await pickDirectory()
   if (!dir) return false
-  if (!(await verifyPermission(dir, true))) throw new Error('フォルダへの書き込みが許可されませんでした')
+  if (!(await verifyPermission(dir, true)))
+    throw new Error('フォルダへの書き込みが許可されませんでした')
 
   const hasProject = (await readFile(dir, PROJECT_JSON)) !== null
   if (hasProject) {

@@ -18,7 +18,12 @@ export const BUILTIN_FONTS: FontEntry[] = [
     source: 'builtin',
   },
   { id: 'system', family: 'system-ui, sans-serif', label: 'System UI', source: 'builtin' },
-  { id: 'mono', family: 'ui-monospace, "Consolas", monospace', label: 'Monospace', source: 'builtin' },
+  {
+    id: 'mono',
+    family: 'ui-monospace, "Consolas", monospace',
+    label: 'Monospace',
+    source: 'builtin',
+  },
 ]
 
 export const FONT_WEIGHTS = [400, 700, 900]

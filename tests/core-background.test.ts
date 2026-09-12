@@ -68,7 +68,11 @@ describe('backgroundArtStyle', () => {
   })
 
   it('知らない模様が入っていても水玉として描く', () => {
-    const stale = { ...DEFAULT_BACKGROUND, type: 'pattern', pattern: 'tile' } as unknown as Background
+    const stale = {
+      ...DEFAULT_BACKGROUND,
+      type: 'pattern',
+      pattern: 'tile',
+    } as unknown as Background
     expect(backgroundArtStyle(stale, null).backgroundImage).toContain('radial-gradient')
   })
 })

@@ -16,7 +16,8 @@ export default function AssetPanel() {
     if (!files || files.length === 0) return
     try {
       const added = await addAssetFiles(Array.from(files))
-      if (added.length === 0) window.alert('画像ファイル（PNG / JPEG / WebP / SVG）を選んでください')
+      if (added.length === 0)
+        window.alert('画像ファイル（PNG / JPEG / WebP / SVG）を選んでください')
     } catch (error) {
       notifyError('素材の追加に失敗しました', error)
     }

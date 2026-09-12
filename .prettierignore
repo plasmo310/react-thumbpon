@@ -1,0 +1,6 @@
+dist
+node_modules
+package-lock.json
+
+# ドキュメントは手で揃えた ASCII 図と表を含むので整形しない
+*.md

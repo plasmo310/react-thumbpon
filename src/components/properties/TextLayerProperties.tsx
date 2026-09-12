@@ -1,14 +1,7 @@
 import { extractTextStyle } from '../../lib/core/factory'
 import { useEditorStore } from '../../store'
 import { FONT_WEIGHTS, type TextAlign, type TextLayer } from '../../types'
-import {
-  ColorInput,
-  NumberInput,
-  Row,
-  SegmentedControl,
-  Select,
-  TextArea,
-} from '../ui'
+import { ColorInput, NumberInput, Row, SegmentedControl, Select, TextArea } from '../ui'
 import { FontLoader } from './FontLoader'
 import { OpacityRow } from './OpacityRow'
 import { PresetRow } from './PresetRow'
@@ -60,7 +53,11 @@ export function TextLayerProperties({ layer }: { layer: TextLayer }) {
       <FontLoader />
       <div className="flex gap-2">
         <Row label="サイズ">
-          <NumberInput value={layer.fontSize} min={4} onChange={(fontSize) => patch({ fontSize })} />
+          <NumberInput
+            value={layer.fontSize}
+            min={4}
+            onChange={(fontSize) => patch({ fontSize })}
+          />
         </Row>
         <Row label="太さ">
           <Select
@@ -121,7 +118,10 @@ export function TextLayerProperties({ layer }: { layer: TextLayer }) {
       </Row>
       {layer.strokeWidth > 0 && (
         <Row label="縁の色">
-          <ColorInput value={layer.strokeColor} onChange={(strokeColor) => patch({ strokeColor })} />
+          <ColorInput
+            value={layer.strokeColor}
+            onChange={(strokeColor) => patch({ strokeColor })}
+          />
         </Row>
       )}
     </>
