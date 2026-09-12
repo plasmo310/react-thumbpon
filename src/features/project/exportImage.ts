@@ -1,18 +1,7 @@
 import { toPng } from 'html-to-image'
 import { downloadDataUrl } from '@/shared/lib/download'
+import { getSurface } from '@/shared/lib/surfaceRef'
 import type { CanvasSize } from '@/core/model/types'
-
-let surfaceElement: HTMLElement | null = null
-
-/**
- * 書き出し対象のキャンバス要素を登録する。
- * ref を props で引き回さずに済ませるため、モジュール側で参照を持つ。
- *
- * @param element キャンバスの実寸要素。アンマウント時は null を渡す
- */
-export function registerSurface(element: HTMLElement | null) {
-  surfaceElement = element
-}
 
 /**
  * サムネイル名をファイル名として使えるようにする。
@@ -35,7 +24,8 @@ function toFileName(name: string): string {
  * @param name   ファイル名のもと。サムネイル名をそのまま渡す
  */
 export async function exportPng(canvas: CanvasSize, name: string) {
-  if (!surfaceElement) throw new Error('キャンバスが準備できていません')
+  const surface = getSurface()
+  if (!surface) throw new Error('キャンバスが準備できていません')
 
   const options = {
     width: canvas.width,
@@ -51,8 +41,8 @@ export async function exportPng(canvas: CanvasSize, name: string) {
   }
 
   // 1回目はWebフォントや画像の埋め込みが間に合わないことがあるため捨てる（html-to-imageの既知の挙動）
-  await toPng(surfaceElement, options)
-  const dataUrl = await toPng(surfaceElement, options)
+  await toPng(surface, options)
+  const dataUrl = await toPng(surface, options)
 
   downloadDataUrl(dataUrl, `${toFileName(name)}.png`)
 }

@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { notifyError } from '@/shared/lib/notify'
 import { canUseFileSystemAccess } from '@/core/storage/fsAccess'
 import { exportProjectFile, importProjectFile } from './projectFile'
+import { confirmFolderOverwrite } from './confirmOverwrite'
 import { openProjectFolder, saveProjectFolder } from './projectFolder'
 import { newProject } from './workspace'
 import { menuItem, menuSeparator, toolbarButton } from '@/styles'
@@ -112,7 +113,11 @@ export function ProjectMenu() {
                 role="menuitem"
                 className={menuItem}
                 title="ローカルのフォルダをワークスペースとして開く"
-                onClick={() => void run('フォルダを開けませんでした', openProjectFolder)}
+                onClick={() =>
+                  void run('フォルダを開けませんでした', () =>
+                    openProjectFolder(confirmFolderOverwrite),
+                  )
+                }
               >
                 フォルダを開く
               </button>
@@ -121,7 +126,9 @@ export function ProjectMenu() {
                 role="menuitem"
                 className={menuItem}
                 title="ワークスペースフォルダに保存する（未接続なら保存先を選ぶ）"
-                onClick={() => void run('保存に失敗しました', saveProjectFolder)}
+                onClick={() =>
+                  void run('保存に失敗しました', () => saveProjectFolder(confirmFolderOverwrite))
+                }
               >
                 フォルダに保存
                 <span className="ml-auto text-[10px] text-ink-sub">Ctrl+S</span>

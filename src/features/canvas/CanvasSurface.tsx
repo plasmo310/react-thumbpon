@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react'
 import { backgroundArtStyle, backgroundBaseStyle } from '@/core/model/style'
 import { effectsBleed, effectsFilter } from '@/core/model/style'
 import { getAssetUrl } from '@/core/storage/assetRepo'
-import { registerSurface } from '@/features/project/exportImage'
+import { setSurface } from '@/shared/lib/surfaceRef'
 import { useCurrentThumbnail, useEditorStore } from '@/core/store'
 import { BACKGROUND_ID } from '@/core/model/types'
 import { LayerView } from './LayerView'
@@ -24,8 +24,8 @@ export function CanvasSurface({ scale }: { scale: number }) {
   const bleed = effectsBleed(background.effects)
 
   useEffect(() => {
-    registerSurface(surfaceRef.current)
-    return () => registerSurface(null)
+    setSurface(surfaceRef.current)
+    return () => setSurface(null)
   }, [])
 
   return (

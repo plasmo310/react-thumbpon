@@ -3,7 +3,7 @@ import { notifyError } from '@/shared/lib/notify'
 import { canUseFileSystemAccess } from '@/core/storage/fsAccess'
 import { useEditorStore } from '@/core/store'
 import { BACKGROUND_ID } from '@/core/model/types'
-import { saveProjectFolder } from '@/features/project'
+import { confirmFolderOverwrite, saveProjectFolder } from '@/features/project'
 
 const EDITABLE = ['INPUT', 'TEXTAREA', 'SELECT']
 
@@ -33,7 +33,9 @@ export function useKeyboardShortcuts() {
         canUseFileSystemAccess()
       ) {
         event.preventDefault()
-        void saveProjectFolder().catch((error) => notifyError('保存に失敗しました', error))
+        void saveProjectFolder(confirmFolderOverwrite).catch((error) =>
+          notifyError('保存に失敗しました', error),
+        )
         return
       }
 

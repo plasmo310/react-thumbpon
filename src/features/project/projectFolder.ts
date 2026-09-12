@@ -85,13 +85,18 @@ async function saveTo(dir: Directory) {
   useEditorStore.getState().markWorkspaceSaved()
 }
 
+/** 中身のあるフォルダを開くときの確認。読み込んでよければ true を返す */
+export type ConfirmOverwrite = (folderName: string) => boolean
+
 /**
  * フォルダを接続する。中身があれば読み込み、空なら現在の内容をそこに書き出す。
  * 「保存」を未接続の状態で押したときもここに来る（保存先を聞かれる形になる）。
  *
+ * @param confirmOverwrite 中身のあるフォルダだったときに呼ぶ確認。
+ *                         ブラウザのダイアログを層の奥に埋めないよう、呼び出し側から渡す
  * @returns 接続できたか。ダイアログのキャンセルや確認の取り消しでは false
  */
-export async function openProjectFolder(): Promise<boolean> {
+export async function openProjectFolder(confirmOverwrite: ConfirmOverwrite): Promise<boolean> {
   const dir = await pickDirectory()
   if (!dir) return false
   if (!(await verifyPermission(dir, true)))
@@ -99,9 +104,7 @@ export async function openProjectFolder(): Promise<boolean> {
 
   const hasProject = (await readFile(dir, PROJECT_JSON)) !== null
   if (hasProject) {
-    if (!window.confirm(`「${dir.name}」の内容を読み込みます。現在の内容は破棄されます。`)) {
-      return false
-    }
+    if (!confirmOverwrite(dir.name)) return false
     await loadFrom(dir)
   }
 
@@ -162,11 +165,13 @@ export async function reconnectProjectFolder() {
 /**
  * 現在の内容をフォルダに保存する。
  * 未接続なら先にフォルダを選んでもらう（＝保存先を聞く）。
+ *
+ * @param confirmOverwrite 未接続で、選んだフォルダに中身があったときの確認
  */
-export async function saveProjectFolder() {
+export async function saveProjectFolder(confirmOverwrite: ConfirmOverwrite) {
   const dir = getCurrentDirectory()
   if (!dir) {
-    await openProjectFolder()
+    await openProjectFolder(confirmOverwrite)
     return
   }
   if (!(await verifyPermission(dir, true))) {

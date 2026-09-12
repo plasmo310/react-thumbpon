@@ -35,15 +35,13 @@ const assetsOf = (dir: FakeDir) => [...(dir.dirs.get('assets')?.files.keys() ?? 
 const projectOf = async (dir: FakeDir) =>
   JSON.parse(await (dir.files.get('project.json') as Blob).text())
 
-/** window.confirm を使う経路のためのスタブ。answer が確認ダイアログの結果になる */
-function stubConfirm(answer: boolean) {
-  vi.stubGlobal('window', { confirm: () => answer })
-}
+/** 中身のあるフォルダを開くときの確認。読み込む / 読み込まない */
+const agree = () => true
+const decline = () => false
 
 beforeEach(() => {
   resetFake()
   resetAssets()
-  vi.unstubAllGlobals()
   useEditorStore.setState({
     folders: [],
     thumbnails: [
@@ -71,7 +69,7 @@ describe('openProjectFolder', () => {
     fake.picked = dir
     seed(['a1'])
 
-    expect(await openProjectFolder()).toBe(true)
+    expect(await openProjectFolder(agree)).toBe(true)
 
     const state = useEditorStore.getState()
     expect(state.workspaceStatus).toBe('connected')
@@ -83,7 +81,7 @@ describe('openProjectFolder', () => {
 
   it('ダイアログをキャンセルすると何も変えない', async () => {
     fake.picked = null
-    expect(await openProjectFolder()).toBe(false)
+    expect(await openProjectFolder(agree)).toBe(false)
     expect(useEditorStore.getState().workspaceStatus).toBe('none')
   })
 
@@ -91,14 +89,12 @@ describe('openProjectFolder', () => {
     const dir = makeDir('work')
     fake.picked = dir
     seed(['a1'])
-    stubConfirm(true)
-    await openProjectFolder()
+    await openProjectFolder(agree)
 
     useEditorStore.setState({ thumbnails: [], assets: [] })
     fake.current = null
-    stubConfirm(false)
 
-    expect(await openProjectFolder()).toBe(false)
+    expect(await openProjectFolder(decline)).toBe(false)
     expect(useEditorStore.getState().thumbnails).toEqual([])
   })
 
@@ -106,12 +102,11 @@ describe('openProjectFolder', () => {
     const dir = makeDir('work')
     fake.picked = dir
     seed(['a1'])
-    stubConfirm(true)
-    await openProjectFolder()
+    await openProjectFolder(agree)
 
     useEditorStore.setState({ thumbnails: [], assets: [] })
     fake.current = null
-    await openProjectFolder()
+    await openProjectFolder(agree)
 
     const state = useEditorStore.getState()
     expect(state.thumbnails.map((t) => t.id)).toEqual(['th1'])
@@ -123,19 +118,19 @@ describe('openProjectFolder', () => {
 describe('saveProjectFolder', () => {
   it('未接続なら保存先を聞く', async () => {
     fake.picked = makeDir('work')
-    await saveProjectFolder()
+    await saveProjectFolder(agree)
     expect(useEditorStore.getState().workspaceFolderName).toBe('work')
   })
 
   it('接続済みならダイアログ無しでそのフォルダへ書く', async () => {
     const dir = makeDir('work')
     fake.picked = dir
-    await openProjectFolder()
+    await openProjectFolder(agree)
 
     // 再びピッカーが出たら（＝未接続扱いなら）保存先を見失うようにしておく
     fake.picked = null
     useEditorStore.getState().setWorkspaceDirty(true)
-    await saveProjectFolder()
+    await saveProjectFolder(agree)
 
     expect(useEditorStore.getState().workspaceDirty).toBe(false)
     expect(dir.files.has('project.json')).toBe(true)
@@ -145,17 +140,17 @@ describe('saveProjectFolder', () => {
     const dir = makeDir('work')
     fake.picked = dir
     seed(['a1'])
-    await openProjectFolder()
+    await openProjectFolder(agree)
 
     seed(['a1', 'a2'])
     fake.writeLog = []
-    await saveProjectFolder()
+    await saveProjectFolder(agree)
     expect(assetsOf(dir)).toEqual(['a1.png', 'a2.png'])
     expect(fake.writeLog).toEqual(['assets/a2.png', 'project.json'])
 
     seed(['a2'])
     fake.writeLog = []
-    await saveProjectFolder()
+    await saveProjectFolder(agree)
     expect(assetsOf(dir)).toEqual(['a2.png'])
     expect(fake.writeLog).toEqual(['project.json'])
   })
@@ -164,21 +159,21 @@ describe('saveProjectFolder', () => {
     const dir = makeDir('work')
     fake.picked = dir
     seed(['a1'])
-    await openProjectFolder()
+    await openProjectFolder(agree)
 
     fake.writeLog = []
-    await saveProjectFolder()
+    await saveProjectFolder(agree)
     expect(fake.writeLog).toEqual(['project.json'])
   })
 
   it('権限を失っていたら再接続待ちにして投げる', async () => {
     const dir = makeDir('work')
     fake.picked = dir
-    await openProjectFolder()
+    await openProjectFolder(agree)
 
     fake.permission = false
     fake.grantOnRequest = false
-    await expect(saveProjectFolder()).rejects.toThrow()
+    await expect(saveProjectFolder(agree)).rejects.toThrow()
     expect(useEditorStore.getState().workspaceStatus).toBe('needs-permission')
   })
 })
@@ -188,7 +183,7 @@ describe('restoreProjectFolder', () => {
     const dir = makeDir('work')
     fake.picked = dir
     seed(['a1'])
-    await openProjectFolder()
+    await openProjectFolder(agree)
 
     // リロード相当。ストアには IndexedDB から復元された古い内容が載っているとする
     useEditorStore.setState({
@@ -218,7 +213,7 @@ describe('restoreProjectFolder', () => {
   it('権限が切れていたら再接続待ちにして、内容には触らない', async () => {
     const dir = makeDir('work')
     fake.picked = dir
-    await openProjectFolder()
+    await openProjectFolder(agree)
 
     useEditorStore.setState({ workspaceStatus: 'none' })
     fake.current = null
@@ -246,7 +241,7 @@ describe('restoreProjectFolder', () => {
 describe('reconnectProjectFolder', () => {
   it('許可されれば接続に戻す', async () => {
     fake.picked = makeDir('work')
-    await openProjectFolder()
+    await openProjectFolder(agree)
     fake.current = null
     fake.permission = false
     await restoreProjectFolder()
@@ -258,7 +253,7 @@ describe('reconnectProjectFolder', () => {
 
   it('拒否されたら再接続待ちのまま', async () => {
     fake.picked = makeDir('work')
-    await openProjectFolder()
+    await openProjectFolder(agree)
     fake.current = null
     fake.permission = false
     await restoreProjectFolder()
@@ -272,7 +267,7 @@ describe('reconnectProjectFolder', () => {
 describe('disconnectProjectFolder', () => {
   it('接続を切って、次の起動で復元しないようにする', async () => {
     fake.picked = makeDir('work')
-    await openProjectFolder()
+    await openProjectFolder(agree)
 
     await disconnectProjectFolder()
     expect(useEditorStore.getState().workspaceStatus).toBe('none')
