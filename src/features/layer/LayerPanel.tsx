@@ -3,11 +3,11 @@ import type { DragEvent } from 'react'
 import { DND_TYPE, hasDragType } from '@/shared/lib/dnd'
 import { useCurrentThumbnail, useEditorStore } from '@/core/store'
 import { BACKGROUND_ID } from '@/core/model/types'
-import { BackgroundProperties } from '../properties/BackgroundProperties'
+import { BackgroundProperties } from './BackgroundProperties'
 import { LayerRow, type DropMark } from './LayerRow'
 
 /** レイヤーの一覧。配列順に上から並べるので、一覧の下にあるものが前面になる */
-export default function LayerPanel() {
+export function LayerPanel() {
   const { layers } = useCurrentThumbnail()
   const selectedId = useEditorStore((s) => s.selectedId)
   const propertiesOpen = useEditorStore((s) => s.propertiesOpen)

@@ -12,7 +12,7 @@ import { PresetRow } from '@/shared/ui'
  *
  * @param props.layer 編集対象のテキストレイヤー
  */
-export function TextLayerProperties({ layer }: { layer: TextLayer }) {
+export function TextProperties({ layer }: { layer: TextLayer }) {
   const updateLayer = useEditorStore((s) => s.updateLayer)
   const fonts = useEditorStore((s) => s.fonts)
   const textPresets = useEditorStore((s) => s.textPresets)

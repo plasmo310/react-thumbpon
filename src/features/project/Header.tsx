@@ -16,7 +16,7 @@ const TITLE_OFFSET_Y = -1
  * ファイル操作は「プロジェクト」メニューに畳んであるので、
  * 常用する PNG書き出しだけが一番右に出る。
  */
-export default function Header() {
+export function Header() {
   return (
     <header className="shrink-0">
       <div className="flex h-12 items-center gap-3 border-b border-line bg-panel px-5">

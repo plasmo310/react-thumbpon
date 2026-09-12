@@ -1,15 +1,15 @@
 import { useEffect, useRef, useState } from 'react'
-import AssetPanel from '@/components/asset/AssetPanel'
-import CanvasStage from '@/components/canvas/CanvasStage'
-import Header from '@/components/header/Header'
-import { WorkspaceNotice } from '@/components/header/WorkspaceNotice'
-import LayerPanel from '@/components/layer/LayerPanel'
-import ThumbnailPanel from '@/components/thumbnail/ThumbnailPanel'
+import { AssetPanel } from '@/features/asset'
+import { CanvasStage } from '@/features/canvas'
+import { Header } from '@/features/project'
+import { WorkspaceNotice } from '@/features/project'
+import { LayerPanel } from '@/features/layer'
+import { ThumbnailPanel } from '@/features/thumbnail'
 import { Splitter } from '@/shared/ui'
 import { clamp } from '@/core/model/geometry'
 import { loadPanelLayout, savePanelLayout } from '@/core/storage/panelLayout'
-import { useKeyboardShortcuts } from '@/services/shortcuts'
-import { restoreWorkspace, startAutoSave } from '@/services/workspace'
+import { useKeyboardShortcuts } from '@/shortcuts'
+import { restoreWorkspace, startAutoSave } from '@/features/project'
 
 const MIN_SIDEBAR = 240
 const MAX_SIDEBAR = 640

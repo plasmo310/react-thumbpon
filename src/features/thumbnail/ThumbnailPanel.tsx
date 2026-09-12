@@ -5,7 +5,7 @@ import { FolderDropZone } from './FolderDropZone'
 import { ThumbnailRow } from './ThumbnailRow'
 
 /** サムネイルとフォルダの一覧。未分類を先に、そのあとフォルダごとに並べる */
-export default function ThumbnailPanel() {
+export function ThumbnailPanel() {
   const folders = useEditorStore((s) => s.folders)
   const thumbnails = useEditorStore((s) => s.thumbnails)
   const clipboard = useEditorStore((s) => s.clipboard)

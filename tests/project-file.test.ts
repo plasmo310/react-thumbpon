@@ -10,7 +10,7 @@ vi.mock('@/shared/lib/download', () => ({
 
 import { zipSync, strToU8, unzipSync } from 'fflate'
 import { blobs, resetAssets, seedAsset } from './helpers/fakeAssetRepo'
-import { exportProjectFile, importProjectFile } from '@/services/projectFile'
+import { exportProjectFile, importProjectFile } from '@/features/project/projectFile'
 import { useEditorStore } from '@/core/store'
 import {
   BUILTIN_FONTS,

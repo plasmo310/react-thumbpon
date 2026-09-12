@@ -4,7 +4,7 @@ import { notifyError } from '@/shared/lib/notify'
 import { getAssetUrl } from '@/core/storage/assetRepo'
 import { useEditorStore } from '@/core/store'
 
-export default function AssetPanel() {
+export function AssetPanel() {
   const assets = useEditorStore((s) => s.assets)
   const addAssetFiles = useEditorStore((s) => s.addAssetFiles)
   const removeAsset = useEditorStore((s) => s.removeAsset)

@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
 import { notifyError } from '@/shared/lib/notify'
 import { canUseFileSystemAccess } from '@/core/storage/fsAccess'
-import { exportProjectFile, importProjectFile } from '../../services/projectFile'
-import { openProjectFolder, saveProjectFolder } from '../../services/projectFolder'
-import { newProject } from '../../services/workspace'
+import { exportProjectFile, importProjectFile } from './projectFile'
+import { openProjectFolder, saveProjectFolder } from './projectFolder'
+import { newProject } from './workspace'
 import { menuItem, menuSeparator, toolbarButton } from '@/styles'
 
 /**

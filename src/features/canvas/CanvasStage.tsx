@@ -5,7 +5,7 @@ import { DND_TYPE, hasDragType } from '@/shared/lib/dnd'
 import { notifyError } from '@/shared/lib/notify'
 import { startPointerDrag } from '@/shared/lib/pointerDrag'
 import { useCurrentThumbnail, useEditorStore } from '@/core/store'
-import CanvasSurface from './CanvasSurface'
+import { CanvasSurface } from './CanvasSurface'
 
 const STAGE_PADDING = 64
 const MIN_SCALE = 0.05
@@ -20,7 +20,7 @@ type View = { scale: number; x: number; y: number }
  * キャンバスを中央に置く土台。表示倍率の計算と、素材・画像ファイルのドロップを受け持つ。
  * ホイールでズーム、中ボタンドラッグで移動できる。
  */
-export default function CanvasStage() {
+export function CanvasStage() {
   const stageRef = useRef<HTMLDivElement>(null)
   const surfaceWrapRef = useRef<HTMLDivElement>(null)
   const [fitScale, setFitScale] = useState(1)

@@ -1,5 +1,5 @@
 import { notifyError } from '@/shared/lib/notify'
-import { reconnectProjectFolder } from '../../services/projectFolder'
+import { reconnectProjectFolder } from './projectFolder'
 import { useEditorStore } from '@/core/store'
 
 const noticeBar =

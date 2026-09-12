@@ -48,7 +48,7 @@ const TEXT_HANDLES: Handle[] = ['nw', 'ne', 'se', 'sw', 'e', 'w']
  *
  * @param props.scale 表示倍率。枠やハンドルが倍率によらず同じ太さに見えるよう実寸に割り戻す
  */
-export default function SelectionOverlay({ scale }: { scale: number }) {
+export function SelectionOverlay({ scale }: { scale: number }) {
   const layer = useSelectedLayer()
   const updateLayer = useEditorStore((s) => s.updateLayer)
   const overlayRef = useRef<HTMLDivElement>(null)

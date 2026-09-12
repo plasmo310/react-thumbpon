@@ -16,7 +16,7 @@ const SNAP_THRESHOLD = 8
  * @param props.layer 描画するレイヤー
  * @param props.scale 表示倍率。ポインタの移動量を実寸に直すのと、スナップ距離の換算に使う
  */
-export default function LayerView({ layer, scale }: { layer: Layer; scale: number }) {
+export function LayerView({ layer, scale }: { layer: Layer; scale: number }) {
   const select = useEditorStore((s) => s.select)
   const updateLayer = useEditorStore((s) => s.updateLayer)
   const snapEnabled = useEditorStore((s) => s.snapEnabled)

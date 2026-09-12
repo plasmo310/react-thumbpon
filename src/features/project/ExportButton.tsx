@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { notifyError } from '@/shared/lib/notify'
-import { exportPng } from '../../services/exportImage'
+import { exportPng } from './exportImage'
 import { useCurrentThumbnail } from '@/core/store'
 
 /** 現在のサムネイルを PNG として書き出す。書き出し中は二重押しを防ぐ */

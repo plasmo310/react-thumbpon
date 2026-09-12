@@ -2,11 +2,11 @@ import { useEffect, useRef } from 'react'
 import { backgroundArtStyle, backgroundBaseStyle } from '@/core/model/style'
 import { effectsBleed, effectsFilter } from '@/core/model/style'
 import { getAssetUrl } from '@/core/storage/assetRepo'
-import { registerSurface } from '../../services/exportImage'
+import { registerSurface } from '@/features/project/exportImage'
 import { useCurrentThumbnail, useEditorStore } from '@/core/store'
 import { BACKGROUND_ID } from '@/core/model/types'
-import LayerView from './LayerView'
-import SelectionOverlay from './SelectionOverlay'
+import { LayerView } from './LayerView'
+import { SelectionOverlay } from './SelectionOverlay'
 
 const GUIDE_COLOR = '#FF3B8B'
 
@@ -16,7 +16,7 @@ const GUIDE_COLOR = '#FF3B8B'
  *
  * @param props.scale 表示倍率
  */
-export default function CanvasSurface({ scale }: { scale: number }) {
+export function CanvasSurface({ scale }: { scale: number }) {
   const surfaceRef = useRef<HTMLDivElement>(null)
   const { canvas, background, layers } = useCurrentThumbnail()
   const select = useEditorStore((s) => s.select)

@@ -8,7 +8,7 @@ import { OpacityRow } from './OpacityRow'
  *
  * @param props.layer 編集対象の画像レイヤー
  */
-export function ImageLayerProperties({ layer }: { layer: ImageLayer }) {
+export function ImageProperties({ layer }: { layer: ImageLayer }) {
   const updateLayer = useEditorStore((s) => s.updateLayer)
 
   return (

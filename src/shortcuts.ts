@@ -3,7 +3,7 @@ import { notifyError } from '@/shared/lib/notify'
 import { canUseFileSystemAccess } from '@/core/storage/fsAccess'
 import { useEditorStore } from '@/core/store'
 import { BACKGROUND_ID } from '@/core/model/types'
-import { saveProjectFolder } from './projectFolder'
+import { saveProjectFolder } from '@/features/project'
 
 const EDITABLE = ['INPUT', 'TEXTAREA', 'SELECT']
 

@@ -3,8 +3,8 @@ import { panelBody } from '@/styles'
 import type { Layer } from '@/core/model/types'
 import { EffectsSection } from '@/shared/ui'
 import { NumberInput, Row, TextInput } from '@/shared/ui'
-import { ImageLayerProperties } from './ImageLayerProperties'
-import { TextLayerProperties } from './TextLayerProperties'
+import { ImageProperties } from './ImageProperties'
+import { TextProperties } from './TextProperties'
 
 /**
  * レイヤーのプロパティ欄。共通の項目を出したあと、種別ごとの欄に振り分け、
@@ -31,9 +31,9 @@ export function LayerProperties({ layer }: { layer: Layer }) {
       </div>
 
       {layer.type === 'image' ? (
-        <ImageLayerProperties layer={layer} />
+        <ImageProperties layer={layer} />
       ) : (
-        <TextLayerProperties layer={layer} />
+        <TextProperties layer={layer} />
       )}
 
       <EffectsSection

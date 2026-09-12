@@ -2,7 +2,7 @@ import type { DragEvent } from 'react'
 import { DND_TYPE } from '@/shared/lib/dnd'
 import { useEditorStore } from '@/core/store'
 import type { Layer } from '@/core/model/types'
-import { LayerProperties } from '../properties/LayerProperties'
+import { LayerProperties } from './LayerProperties'
 import { EyeIcon, EyeOffIcon, IconButton } from '@/shared/ui'
 
 /** ドラッグ中に挿入位置を示す線を、どの行のどちら側に出すか */
