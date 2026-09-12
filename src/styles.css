@@ -1,0 +1,58 @@
+/*
+ * 画面全体で共有するトークンとリセット。
+ * 色は要件定義で決めたものをそのまま持つ。値は1箇所でしか決めない。
+ *
+ * CSS Modules から var() で参照する。Tailwind の @theme を置き換えるもので、
+ * 移行が終わるまでは index.css と両方が読み込まれる（同じ値なので競合しない）。
+ */
+
+:root {
+  --color-app: #f5f6f8;
+  --color-panel: #ffffff;
+  --color-line: #e3e6ea;
+  --color-ink: #25282d;
+  --color-ink-sub: #7a8088;
+  --color-accent: #ff8a5b;
+  --color-accent-hover: #ff7440;
+  --color-accent-soft: #fff1eb;
+  /* キャンバスの外側。白いサムネイルでも縁が分かるよう少し暗くする */
+  --color-stage: #e5e7ea;
+
+  --radius: 6px;
+  --radius-lg: 8px;
+
+  /* 本文と入力欄 / ラベルと補助文字 / アイコン脇の極小文字 */
+  --font-body: 12px;
+  --font-label: 11px;
+  --font-mini: 10px;
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+
+  /* スライダー右の数値欄。ここが揃っていないと桁で行がずれる */
+  --value-col: 40px;
+  /* プロパティ欄のラベル列 */
+  --label-col: 64px;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: 'Noto Sans JP', system-ui, sans-serif;
+  color: var(--color-ink);
+  background: var(--color-app);
+  -webkit-font-smoothing: antialiased;
+}
+
+input[type='color'] {
+  padding: 0;
+  border: 1px solid var(--color-line);
+  border-radius: 4px;
+  background: none;
+}

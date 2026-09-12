@@ -1,3 +1,8 @@
+/*
+ * Tailwind と、そのテーマトークン。
+ * リセットと値の定義は src/styles.css へ移してあるので、ここは Tailwind のためだけに残している。
+ * CSS Modules への移行が終わったらこのファイルごと消す。
+ */
 @import 'tailwindcss';
 
 @theme {
@@ -10,25 +15,4 @@
   --color-accent-hover: #ff7440;
   --color-accent-soft: #fff1eb;
   --color-stage: #e5e7ea;
-}
-
-html,
-body,
-#root {
-  height: 100%;
-}
-
-body {
-  margin: 0;
-  font-family: 'Noto Sans JP', system-ui, sans-serif;
-  color: var(--color-ink);
-  background: var(--color-app);
-  -webkit-font-smoothing: antialiased;
-}
-
-input[type='color'] {
-  padding: 0;
-  border: 1px solid var(--color-line);
-  border-radius: 4px;
-  background: none;
 }
