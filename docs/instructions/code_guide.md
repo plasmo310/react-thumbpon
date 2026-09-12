@@ -17,9 +17,10 @@ src/
     main.tsx           入口（index.html が指す）
     App.tsx            画面のレイアウト
     styles.module.css
-    shortcuts.ts       画面全体のキーボード操作
-    LayerMenu.tsx      レイヤーの右クリックメニュー（layer と canvas の両方から出す）
-    panelLayout.ts     パネル分割サイズの保存（App だけが使う）
+    layout/
+      panelLayout.ts   パネル分割サイズの保存（App だけが使う）
+    config/
+      shortcuts.ts     画面全体のキーボード操作
     store/             Zustand。8つの slice もここ
 
   domain/              UIに依存しないドメインモデル・型・ロジック
@@ -100,10 +101,12 @@ domain  →  shared  →  app/store  →  features  →  app
 - **背景はレイヤーの中**。画面上、背景はレイヤー一覧の一番上の行で、
   `LayerPanel` が `BackgroundProperties` を直接埋めている
 - **フォントの UI も layer**。テキストのプロパティ欄にしか出ない（実体は `shared/lib/storage/fontRepo.ts`）
-- **`shortcuts.ts` は app**。Ctrl+S（project）と Delete/矢印（layer）の両方を扱う
-- **`LayerMenu.tsx` も app**。レイヤー一覧（layer）とキャンバス（canvas）の両方から
-  同じ右クリックメニューを出すので、どちらの feature にも置けない。
-  feature 側は「どのレイヤーをどこで右クリックしたか」をストアに伝えるだけにする
+- **`config/shortcuts.ts` は app**。Ctrl+S（project）と Delete/矢印（layer）の両方を扱うので、
+  どちらの feature にも置けない
+- **`LayerMenu` は layer**。レイヤー一覧（layer）とキャンバス（canvas）の両方から
+  同じ右クリックメニューを出すが、中身はレイヤーの操作しかない。
+  開く側は「どのレイヤーをどこで右クリックしたか」をストアに伝えるだけなので、
+  canvas から layer を import せずに済む（描くのは App が1つだけ）
 
 `features/project` は project / workspace / export を抱えているが、
 今のファイル数なら分けない。肥大化したら `project` / `workspace` / `export` への分割を検討する。

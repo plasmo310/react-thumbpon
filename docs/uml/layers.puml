@@ -20,7 +20,7 @@ skinparam rectangle {
 
 rectangle "**app**
 feature を並べる
-main / App / shortcuts / panelLayout" as lApp #FFF1EB
+main / App / layout（panelLayout）/ config（shortcuts）" as lApp #FFF1EB
 rectangle "**features**
 画面に出る機能。1機能＝1ディレクトリ
 thumbnail / layer / canvas / asset / project" as lFeatures

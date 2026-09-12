@@ -28,7 +28,7 @@ skinparam rectangle {
 
 package "app" {
   rectangle "main / App
-shortcuts / panelLayout" as cApp #FFF1EB
+layout / config" as cApp #FFF1EB
   rectangle "store
 useEditorStore / patch
 8つの slice" as cStore

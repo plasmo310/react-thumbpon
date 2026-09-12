@@ -304,7 +304,7 @@ PNG のファイル名は**サムネイル名**になります。同名のファ
 ```
 src/
   styles.css       色・余白・文字サイズのトークンとリセット
-  app/             アプリの組み立て。main / App / shortcuts / LayerMenu / store（Zustand）
+  app/             アプリの組み立て。main / App / layout / config / store（Zustand）
   domain/          UIに依存しない型と純粋な計算。entity ごとに分かれる
                    layer / background / effects / crop / thumbnail / project / geometry ...
   features/        画面に出る機能。中は components / hooks / lib の3分類まで

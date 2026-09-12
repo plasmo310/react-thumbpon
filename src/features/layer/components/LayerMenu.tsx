@@ -4,9 +4,10 @@ import { ContextMenu, type ContextMenuItem } from '@/shared/ui'
 /**
  * レイヤーの右クリックメニュー。
  *
- * レイヤー一覧（layer）とキャンバス（canvas）の両方から同じメニューを出すので、
- * どちらの feature にも置けない。`shortcuts.ts` と同じ理由で app に置き、
- * 各 feature は「どのレイヤーをどこで右クリックしたか」をストアに伝えるだけにする。
+ * レイヤー一覧（layer）とキャンバス（canvas）の両方から同じメニューを出すが、
+ * 中身はレイヤーの操作しかないので layer が持つ。開く側は
+ * 「どのレイヤーをどこで右クリックしたか」を `openLayerMenu` でストアに伝えるだけなので、
+ * canvas からこの feature を import せずに済む。描くのは App が1つだけ。
  */
 export function LayerMenu() {
   const { layers } = useCurrentThumbnail()

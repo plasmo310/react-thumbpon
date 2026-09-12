@@ -34,8 +34,8 @@ domain  →  shared  →  app/store  →  features  →  app
 ```
 src/
   styles.css       トークンとリセット（唯一のグローバルCSS）
-  app/             main / App / shortcuts / LayerMenu / panelLayout /
-                   store（Zustand と8つの slice）
+  app/             main / App / layout（panelLayout）/ config（shortcuts）/
+                   store（Zustand と8つの slice）。機能固有のUIは置かない
   domain/          UIに依存しない型と純粋な計算。entity ごとに分ける
                    id / asset / font / effects / crop / background / layer /
                    thumbnail / preset / project / geometry
@@ -68,11 +68,12 @@ import、feature 直下への置きっぱなし、使われていない export �
 - **背景はレイヤーの中**。画面上それはレイヤー一覧の一番上の行で、
   `LayerPanel` が `BackgroundProperties` を直接埋めている
 - **フォントの UI も layer**。テキストのプロパティ欄にしか出ない
-- **`shortcuts.ts` は app**。Ctrl+S（project）と Delete/矢印（layer）の両方を扱う
-- **右クリックメニュー（`app/LayerMenu.tsx`）も app**。レイヤー一覧（layer）とキャンバス
-  （canvas）の両方から同じメニューを出すため、どちらの feature にも置けない。
-  各 feature は `openLayerMenu(id, clientX, clientY)` でストアに伝えるだけで、
-  App が `<LayerMenu />` を1つだけ描く
+- **`app/config/shortcuts.ts` は app**。Ctrl+S（project）と Delete/矢印（layer）の
+  両方を扱うので、どちらの feature にも置けない
+- **右クリックメニュー（`features/layer/components/LayerMenu.tsx`）は layer**。レイヤー一覧
+  （layer）とキャンバス（canvas）の両方から出すが、中身はレイヤーの操作しかない。
+  開く側は `openLayerMenu(id, clientX, clientY)` でストアに伝えるだけなので
+  canvas から layer を import せずに済み、App が `<LayerMenu />` を1つだけ描く
 
 ### ストアは feature に分けない（意図的）
 

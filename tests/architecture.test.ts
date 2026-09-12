@@ -32,7 +32,7 @@ const LAYERS: [prefix: string, layer: (typeof ORDER)[number]][] = [
 /**
  * その階層の番号。
  * '@/app/store' のようにディレクトリを直接指す書き方も拾えるよう、境界まで含めて見る。
- * どれにも当てはまらない src/app 直下（App / main / shortcuts）が最上位で、
+ * どれにも当てはまらない app/store 以外の src/app（App / main / layout / config）が最上位で、
  * feature を組み立てる場所なので何を見てもよい。
  */
 function rankOf(path: string): number {
