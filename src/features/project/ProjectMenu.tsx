@@ -5,7 +5,8 @@ import { exportProjectFile, importProjectFile } from './projectFile'
 import { confirmFolderOverwrite } from './confirmOverwrite'
 import { openProjectFolder, saveProjectFolder } from './projectFolder'
 import { newProject } from './workspace'
-import { menuItem, menuSeparator, toolbarButton } from '@/styles'
+import { Button } from '@/shared/ui'
+import styles from './project.module.css'
 
 /**
  * 新規作成からファイル書き出しまで、プロジェクト単位の操作をまとめたメニュー。
@@ -74,30 +75,20 @@ export function ProjectMenu() {
   }
 
   return (
-    <div className="relative" ref={rootRef}>
-      <button
-        type="button"
-        className={`${toolbarButton} flex items-center gap-1.5`}
-        aria-haspopup="menu"
-        aria-expanded={open}
-        disabled={busy}
-        onClick={() => setOpen((current) => !current)}
-      >
-        プロジェクト
-        <span aria-hidden className="text-[8px] leading-none">
+    <div className={styles.menuRoot} ref={rootRef}>
+      <Button size="md" disabled={busy} onClick={() => setOpen((current) => !current)}>
+        プロジェクト{' '}
+        <span aria-hidden className={styles.menuCaret}>
           ▼
         </span>
-      </button>
+      </Button>
 
       {open && (
-        <div
-          role="menu"
-          className="absolute right-0 top-full z-20 mt-1 w-60 rounded-md border border-line bg-panel py-1 shadow-lg"
-        >
+        <div role="menu" className={styles.menu}>
           <button
             type="button"
             role="menuitem"
-            className={menuItem}
+            className={styles.menuItem}
             title="現在の内容を破棄して新しいプロジェクトを作る（フォルダ接続も解除される）"
             onClick={() => void run('新規作成に失敗しました', handleNew)}
           >
@@ -107,11 +98,11 @@ export function ProjectMenu() {
           {/* フォルダ連携は Chromium 系のみ。非対応ブラウザでは区切りごと出さない */}
           {canUseFolder && (
             <>
-              <div className={menuSeparator} />
+              <div className={styles.menuSeparator} />
               <button
                 type="button"
                 role="menuitem"
-                className={menuItem}
+                className={styles.menuItem}
                 title="ローカルのフォルダをワークスペースとして開く"
                 onClick={() =>
                   void run('フォルダを開けませんでした', () =>
@@ -124,23 +115,23 @@ export function ProjectMenu() {
               <button
                 type="button"
                 role="menuitem"
-                className={menuItem}
+                className={styles.menuItem}
                 title="ワークスペースフォルダに保存する（未接続なら保存先を選ぶ）"
                 onClick={() =>
                   void run('保存に失敗しました', () => saveProjectFolder(confirmFolderOverwrite))
                 }
               >
                 フォルダに保存
-                <span className="ml-auto text-[10px] text-ink-sub">Ctrl+S</span>
+                <span className={styles.shortcut}>Ctrl+S</span>
               </button>
             </>
           )}
 
-          <div className={menuSeparator} />
+          <div className={styles.menuSeparator} />
           <button
             type="button"
             role="menuitem"
-            className={menuItem}
+            className={styles.menuItem}
             title=".thumbpon.zip ファイルを読み込む"
             onClick={() => {
               setOpen(false)
@@ -152,7 +143,7 @@ export function ProjectMenu() {
           <button
             type="button"
             role="menuitem"
-            className={menuItem}
+            className={styles.menuItem}
             title="プロジェクトを .thumbpon.zip ファイル1つとして書き出す"
             onClick={() => void run('書き出しに失敗しました', exportProjectFile)}
           >

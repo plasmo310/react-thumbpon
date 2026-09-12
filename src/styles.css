@@ -29,6 +29,7 @@
   --space-1: 4px;
   --space-2: 8px;
   --space-3: 12px;
+  --space-4: 16px;
 
   /* スライダー右の数値欄。ここが揃っていないと桁で行がずれる */
   --value-col: 40px;

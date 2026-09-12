@@ -1,0 +1,26 @@
+.app {
+  display: flex;
+  height: 100%;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.main {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+}
+
+.sidebar {
+  display: flex;
+  flex-shrink: 0;
+  flex-direction: column;
+  background: var(--color-panel);
+}
+
+/* 高さは Splitter のドラッグで決まるので、幅・高さだけ style 側で与える */
+.pane {
+  display: flex;
+  min-height: 0;
+  flex-direction: column;
+}

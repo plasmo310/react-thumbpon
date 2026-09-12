@@ -1,32 +1,21 @@
-import { useState } from 'react'
-import { notifyError } from '@/shared/lib/notify'
-import { exportPng } from './exportImage'
 import { useCurrentThumbnail } from '@/core/store'
+import { useAsyncAction } from '@/shared/lib/useAsyncAction'
+import { exportPng } from './exportImage'
+import styles from './project.module.css'
 
 /** 現在のサムネイルを PNG として書き出す。書き出し中は二重押しを防ぐ */
 export function ExportButton() {
   const { canvas, name } = useCurrentThumbnail()
-  const [exporting, setExporting] = useState(false)
-
-  const handleExport = async () => {
-    setExporting(true)
-    try {
-      await exportPng(canvas, name)
-    } catch (error) {
-      notifyError('書き出しに失敗しました', error)
-    } finally {
-      setExporting(false)
-    }
-  }
+  const { busy, run } = useAsyncAction()
 
   return (
     <button
       type="button"
-      onClick={() => void handleExport()}
-      disabled={exporting}
-      className="rounded-md bg-accent px-4 py-1.5 text-xs font-bold text-white transition hover:bg-accent-hover disabled:opacity-50"
+      onClick={() => void run('書き出しに失敗しました', () => exportPng(canvas, name))}
+      disabled={busy}
+      className={styles.export}
     >
-      {exporting ? '書き出し中…' : 'PNG書き出し'}
+      {busy ? '書き出し中…' : 'PNG書き出し'}
     </button>
   )
 }

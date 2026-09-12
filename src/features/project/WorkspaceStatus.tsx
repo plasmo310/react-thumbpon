@@ -1,5 +1,6 @@
 import { canUseFileSystemAccess } from '@/core/storage/fsAccess'
 import { useEditorStore } from '@/core/store'
+import styles from './project.module.css'
 
 /**
  * 今どのフォルダを正本として作業しているかの表示。
@@ -14,7 +15,7 @@ export function WorkspaceStatus() {
 
   return (
     <span
-      className="max-w-[200px] truncate text-[11px] text-ink-sub"
+      className={styles.workspace}
       title={
         dirty
           ? `ワークスペース: ${folderName}（未保存の変更があります）`

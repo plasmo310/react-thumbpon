@@ -70,3 +70,11 @@
   border-color: var(--color-accent);
   color: var(--color-accent-hover);
 }
+
+/* 実寸のキャンバス本体。位置とサイズは倍率で決まるので style 側で与える */
+.surface {
+  position: absolute;
+  top: 0;
+  left: 0;
+  overflow: hidden;
+}

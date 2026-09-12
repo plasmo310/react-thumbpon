@@ -6,6 +6,7 @@ import { setSurface } from '@/shared/lib/surfaceRef'
 import { useCurrentThumbnail, useEditorStore } from '@/core/store'
 import { BACKGROUND_ID } from '@/core/model/types'
 import { LayerView } from './LayerView'
+import styles from './canvas.module.css'
 import { SelectionOverlay } from './SelectionOverlay'
 
 const GUIDE_COLOR = '#FF3B8B'
@@ -31,7 +32,7 @@ export function CanvasSurface({ scale }: { scale: number }) {
   return (
     <div
       ref={surfaceRef}
-      className="absolute left-0 top-0 overflow-hidden"
+      className={styles.surface}
       style={{
         width: canvas.width,
         height: canvas.height,

@@ -6,6 +6,7 @@ import { WorkspaceNotice } from '@/features/project'
 import { LayerPanel } from '@/features/layer'
 import { ThumbnailPanel } from '@/features/thumbnail'
 import { Splitter } from '@/shared/ui'
+import styles from './App.module.css'
 import { clamp } from '@/core/model/geometry'
 import { loadPanelLayout, savePanelLayout } from '@/core/storage/panelLayout'
 import { useKeyboardShortcuts } from '@/shortcuts'
@@ -42,16 +43,12 @@ export default function App() {
   }
 
   return (
-    <div className="flex h-full flex-col overflow-hidden">
+    <div className={styles.app}>
       <Header />
       <WorkspaceNotice />
-      <div className="flex min-h-0 flex-1">
-        <aside
-          ref={sidebarRef}
-          className="flex shrink-0 flex-col bg-panel"
-          style={{ width: layout.sidebarWidth }}
-        >
-          <div className="flex min-h-0 flex-col" style={{ height: layout.thumbnailHeight }}>
+      <div className={styles.main}>
+        <aside ref={sidebarRef} className={styles.sidebar} style={{ width: layout.sidebarWidth }}>
+          <div className={styles.pane} style={{ height: layout.thumbnailHeight }}>
             <ThumbnailPanel />
           </div>
           <Splitter
@@ -80,7 +77,7 @@ export default function App() {
               }))
             }
           />
-          <div className="flex min-h-0 flex-col" style={{ height: layout.assetHeight }}>
+          <div className={styles.pane} style={{ height: layout.assetHeight }}>
             <AssetPanel />
           </div>
         </aside>
