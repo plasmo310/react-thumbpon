@@ -1,4 +1,4 @@
-import { inputBase } from '../../styles'
+import { inputBase } from '@/styles'
 
 /**
  * 複数行のテキスト入力。

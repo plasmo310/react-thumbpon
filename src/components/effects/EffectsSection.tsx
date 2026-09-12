@@ -1,4 +1,4 @@
-import { DEFAULT_EFFECTS, type Effects } from '../../types'
+import { DEFAULT_EFFECTS, type Effects } from '@/core/model/types'
 import { ColorInput, NumberInput, Row, Slider } from '../ui'
 import { EffectToggle } from './EffectToggle'
 

@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import type { DragEvent } from 'react'
-import { DND_TYPE, hasDragType } from '../../lib/dom/dnd'
-import { useCurrentThumbnail, useEditorStore } from '../../store'
-import { BACKGROUND_ID } from '../../types'
+import { DND_TYPE, hasDragType } from '@/lib/dom/dnd'
+import { useCurrentThumbnail, useEditorStore } from '@/core/store'
+import { BACKGROUND_ID } from '@/core/model/types'
 import { BackgroundProperties } from '../properties/BackgroundProperties'
 import { LayerRow, type DropMark } from './LayerRow'
 

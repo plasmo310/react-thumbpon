@@ -5,7 +5,7 @@ import {
   extensionFor,
   findMissingFonts,
   normalizeThumbnails,
-} from '../src/lib/core/project'
+} from '@/core/model/project'
 import {
   DEFAULT_BACKGROUND,
   DEFAULT_EFFECTS,
@@ -13,7 +13,7 @@ import {
   type FontEntry,
   type TextLayer,
   type Thumbnail,
-} from '../src/types'
+} from '@/core/model/types'
 
 const meta = (over: Partial<AssetMeta>): AssetMeta => ({
   id: 'a1',

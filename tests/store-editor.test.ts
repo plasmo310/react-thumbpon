@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest'
-import { createTextLayer, createThumbnail } from '../src/lib/core/factory'
-import { useEditorStore } from '../src/store'
-import { BACKGROUND_ID, type Thumbnail } from '../src/types'
+import { createTextLayer, createThumbnail } from '@/core/model/factory'
+import { useEditorStore } from '@/core/store'
+import { BACKGROUND_ID, type Thumbnail } from '@/core/model/types'
 
 /** 名前で追えるようにした、中身の無いテキストレイヤー */
 function layer(name: string) {

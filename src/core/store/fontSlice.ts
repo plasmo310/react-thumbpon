@@ -1,5 +1,5 @@
-import { BUILTIN_FONTS, type FontEntry } from '../../types'
-import type { SliceCreator } from '../types'
+import { BUILTIN_FONTS, type FontEntry } from '@/core/model/types'
+import type { SliceCreator } from './index'
 
 export type FontSlice = {
   fonts: FontEntry[]

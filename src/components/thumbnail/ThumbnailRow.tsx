@@ -1,7 +1,7 @@
 import { useState } from 'react'
-import { DND_TYPE } from '../../lib/dom/dnd'
-import { useEditorStore } from '../../store'
-import type { Thumbnail } from '../../types'
+import { DND_TYPE } from '@/lib/dom/dnd'
+import { useEditorStore } from '@/core/store'
+import type { Thumbnail } from '@/core/model/types'
 import { IconButton } from '../ui'
 import { ThumbnailSizeRow } from './ThumbnailSizeRow'
 

@@ -8,8 +8,8 @@ import {
   createTextLayer,
   createThumbnail,
   extractTextStyle,
-} from '../src/lib/core/factory'
-import { CANVAS_PRESETS, TEXT_STYLE_KEYS, type TextLayer } from '../src/types'
+} from '@/core/model/factory'
+import { CANVAS_PRESETS, TEXT_STYLE_KEYS, type TextLayer } from '@/core/model/types'
 
 describe('createId', () => {
   it('呼ぶたびに違う id を返す', () => {

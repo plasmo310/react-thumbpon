@@ -1,4 +1,4 @@
-import { inputBase } from '../../styles'
+import { inputBase } from '@/styles'
 
 /**
  * ドロップダウン選択。

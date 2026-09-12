@@ -1,16 +1,14 @@
-import { cloneLayer, createImageLayer, createTextLayer } from '../../lib/core/factory'
-import { fitInto } from '../../lib/core/geometry'
-import { createPatchers } from '../helpers'
-import { DEFAULT_EFFECTS, type Background, type Effects, type Layer } from '../../types'
-import type { SliceCreator } from '../types'
+import { cloneLayer, createImageLayer, createTextLayer } from '@/core/model/factory'
+import { fitInto } from '@/core/model/geometry'
+import { createPatchers } from './patch'
+import { DEFAULT_EFFECTS, type Effects, type Layer } from '@/core/model/types'
+import type { SliceCreator } from './index'
 
 export type LayerSlice = {
   /** 選択中のレイヤー。背景を選んでいるときは BACKGROUND_ID が入る */
   selectedId: string | null
 
   select: (id: string | null) => void
-  setBackground: (patch: Partial<Background>) => void
-  setBackgroundEffects: (patch: Partial<Effects>) => void
   addImageLayer: (assetId: string, center?: { x: number; y: number }) => void
   addTextLayer: () => void
   updateLayer: (id: string, patch: Partial<Layer>) => void
@@ -27,7 +25,7 @@ export type LayerSlice = {
  * レイヤーの重なり順は配列順で、index 0 が最背面（zIndex フィールドは持たない）。
  */
 export const createLayerSlice: SliceCreator<LayerSlice> = (set, get) => {
-  const { current, patchCurrent, patchLayers } = createPatchers(set, get)
+  const { current, patchLayers } = createPatchers(set, get)
 
   return {
     selectedId: null,
@@ -43,29 +41,6 @@ export const createLayerSlice: SliceCreator<LayerSlice> = (set, get) => {
       set((s) => ({
         selectedId: id,
         propertiesOpen: s.selectedId === id ? s.propertiesOpen : true,
-      })),
-
-    /**
-     * 現在のサムネイルの背景設定を部分的に更新する。
-     *
-     * @param patch 変更したい項目だけ。種別を切り替えても他の設定は残る
-     */
-    setBackground: (patch) =>
-      patchCurrent((t) => ({ ...t, background: { ...t.background, ...patch } })),
-
-    /**
-     * 現在のサムネイルの背景のエフェクトを部分的に更新する。
-     * effects は入れ子なので setBackground の浅いマージでは潰れてしまうため、専用の口を用意する。
-     *
-     * @param patch 変更したい項目だけ
-     */
-    setBackgroundEffects: (patch) =>
-      patchCurrent((t) => ({
-        ...t,
-        background: {
-          ...t.background,
-          effects: { ...DEFAULT_EFFECTS, ...t.background.effects, ...patch },
-        },
       })),
 
     /**

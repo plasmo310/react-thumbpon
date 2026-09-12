@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-vi.mock('../src/lib/storage/fsAccess', () => import('./helpers/fakeFs'))
-vi.mock('../src/lib/storage/assetRepo', () => import('./helpers/fakeAssetRepo'))
+vi.mock('@/core/storage/fsAccess', () => import('./helpers/fakeFs'))
+vi.mock('@/core/storage/assetRepo', () => import('./helpers/fakeAssetRepo'))
 
 import { fake, makeDir, resetFake, type FakeDir } from './helpers/fakeFs'
 import { blobs, resetAssets, seedAsset } from './helpers/fakeAssetRepo'
@@ -11,9 +11,9 @@ import {
   reconnectProjectFolder,
   restoreProjectFolder,
   saveProjectFolder,
-} from '../src/services/projectFolder'
-import { useEditorStore } from '../src/store'
-import { DEFAULT_BACKGROUND, type AssetMeta } from '../src/types'
+} from '@/services/projectFolder'
+import { useEditorStore } from '@/core/store'
+import { DEFAULT_BACKGROUND, type AssetMeta } from '@/core/model/types'
 
 const meta = (id: string): AssetMeta => ({
   id,

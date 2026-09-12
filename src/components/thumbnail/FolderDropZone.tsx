@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import type { ReactNode } from 'react'
-import { DND_TYPE, hasDragType } from '../../lib/dom/dnd'
-import { useEditorStore } from '../../store'
+import { DND_TYPE, hasDragType } from '@/lib/dom/dnd'
+import { useEditorStore } from '@/core/store'
 
 /**
  * フォルダ、または未分類グループにサムネイルをドロップできる領域。

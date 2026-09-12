@@ -1,7 +1,7 @@
 import type { DragEvent } from 'react'
-import { DND_TYPE } from '../../lib/dom/dnd'
-import { useEditorStore } from '../../store'
-import type { Layer } from '../../types'
+import { DND_TYPE } from '@/lib/dom/dnd'
+import { useEditorStore } from '@/core/store'
+import type { Layer } from '@/core/model/types'
 import { LayerProperties } from '../properties/LayerProperties'
 import { EyeIcon, EyeOffIcon, IconButton } from '../ui'
 

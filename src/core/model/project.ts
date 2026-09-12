@@ -6,7 +6,7 @@ import {
   type Layer,
   type ProjectFontRef,
   type Thumbnail,
-} from '../../types'
+} from './types'
 
 const EXTENSION_BY_MIME: Record<string, string> = {
   'image/png': '.png',

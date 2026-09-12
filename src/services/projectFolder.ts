@@ -12,8 +12,8 @@ import {
   setCurrentDirectory,
   verifyPermission,
   writeFile,
-} from '../lib/storage/fsAccess'
-import { useEditorStore } from '../store'
+} from '@/core/storage/fsAccess'
+import { useEditorStore } from '@/core/store'
 import {
   applyProjectFile,
   buildProjectFile,

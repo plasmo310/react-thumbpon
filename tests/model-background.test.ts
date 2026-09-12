@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { backgroundArtStyle, backgroundBaseStyle } from '../src/lib/core/background'
-import { DEFAULT_BACKGROUND, type Background } from '../src/types'
+import { backgroundArtStyle, backgroundBaseStyle } from '@/core/model/style'
+import { DEFAULT_BACKGROUND, type Background } from '@/core/model/types'
 
 const background = (over: Partial<Background>): Background => ({ ...DEFAULT_BACKGROUND, ...over })
 

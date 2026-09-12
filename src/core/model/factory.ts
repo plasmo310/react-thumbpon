@@ -11,7 +11,7 @@ import {
   type TextLayer,
   type TextStyle,
   type Thumbnail,
-} from '../../types'
+} from './types'
 
 /** 新規サムネイルの既定サイズ。プリセットの先頭を正とする */
 export const DEFAULT_CANVAS: CanvasSize = {

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useEditorStore } from '../../store'
+import { useEditorStore } from '@/core/store'
 import { IconButton } from '../ui'
 import { FolderDropZone } from './FolderDropZone'
 import { ThumbnailRow } from './ThumbnailRow'

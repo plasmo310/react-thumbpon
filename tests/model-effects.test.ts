@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { effectsBleed, effectsFilter } from '../src/lib/core/effects'
-import { DEFAULT_EFFECTS, type Effects } from '../src/types'
+import { effectsBleed, effectsFilter } from '@/core/model/style'
+import { DEFAULT_EFFECTS, type Effects } from '@/core/model/types'
 
 const effects = (over: Partial<Effects>): Effects => ({ ...DEFAULT_EFFECTS, ...over })
 

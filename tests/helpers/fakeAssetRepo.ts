@@ -1,7 +1,7 @@
 import type { AssetMeta } from '../../src/types'
 
 /**
- * src/lib/storage/assetRepo.ts のうち、プロジェクトの入出力が使う部分だけを
+ * src/core/storage/assetRepo.ts のうち、プロジェクトの入出力が使う部分だけを
  * メモリ上の Map に置き換えたもの。IndexedDB は Node では動かないため。
  */
 export const blobs = new Map<string, Blob>()

@@ -1,6 +1,6 @@
 import { useState } from 'react'
-import { useCurrentThumbnail, useEditorStore } from '../../store'
-import { CANVAS_PRESETS, CUSTOM_PRESET_ID } from '../../types'
+import { useCurrentThumbnail, useEditorStore } from '@/core/store'
+import { CANVAS_PRESETS, CUSTOM_PRESET_ID } from '@/core/model/types'
 import { NumberInput, Select } from '../ui'
 
 /**

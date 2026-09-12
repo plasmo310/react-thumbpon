@@ -1,11 +1,11 @@
 import type { CSSProperties, PointerEvent as ReactPointerEvent } from 'react'
-import { getAssetUrl } from '../../lib/storage/assetRepo'
-import { startPointerDrag } from '../../lib/dom/pointerDrag'
-import { effectsFilter } from '../../lib/core/effects'
-import { snapPosition } from '../../lib/core/snap'
-import { collectLayerRects, measureLayerHeight } from '../../lib/dom/layerRect'
-import { useCurrentThumbnail, useEditorStore } from '../../store'
-import type { Layer } from '../../types'
+import { getAssetUrl } from '@/core/storage/assetRepo'
+import { startPointerDrag } from '@/lib/dom/pointerDrag'
+import { effectsFilter } from '@/core/model/style'
+import { snapPosition } from '@/core/model/snap'
+import { collectLayerRects, measureLayerHeight } from '@/lib/dom/layerRect'
+import { useCurrentThumbnail, useEditorStore } from '@/core/store'
+import type { Layer } from '@/core/model/types'
 
 /** 画面上でのスナップ距離(px) */
 const SNAP_THRESHOLD = 8

@@ -1,5 +1,5 @@
-import { canUseFileSystemAccess } from '../../lib/storage/fsAccess'
-import { useEditorStore } from '../../store'
+import { canUseFileSystemAccess } from '@/core/storage/fsAccess'
+import { useEditorStore } from '@/core/store'
 
 /**
  * 今どのフォルダを正本として作業しているかの表示。

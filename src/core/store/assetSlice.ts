@@ -1,7 +1,7 @@
-import { createId } from '../../lib/core/factory'
-import { deleteAsset, loadAssets, readImageSize, saveAsset } from '../../lib/storage/assetRepo'
-import type { AssetMeta } from '../../types'
-import type { SliceCreator } from '../types'
+import { createId } from '@/core/model/factory'
+import { deleteAsset, loadAssets, readImageSize, saveAsset } from '@/core/storage/assetRepo'
+import type { AssetMeta } from '@/core/model/types'
+import type { SliceCreator } from './index'
 
 export type AssetSlice = {
   /** 素材のメタ情報だけを持つ。画像の実体は IndexedDB 側にある */

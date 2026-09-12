@@ -1,5 +1,5 @@
 /**
- * src/lib/storage/fsAccess.ts をメモリ上のフォルダに置き換えたもの。
+ * src/core/storage/fsAccess.ts をメモリ上のフォルダに置き換えたもの。
  * File System Access API は Node では動かないので、テストではこれを vi.mock で差し込む。
  * 書き込みは writeLog に残るので、「変わっていない素材を書き直していない」ことも検証できる。
  */

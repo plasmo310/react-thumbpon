@@ -1,10 +1,10 @@
 import { get, set } from 'idb-keyval'
-import { kv } from '../lib/storage/db'
-import { loadAssets, replaceAssets } from '../lib/storage/assetRepo'
-import { loadStoredFonts } from '../lib/storage/fontRepo'
-import { useEditorStore } from '../store'
+import { kv } from '@/core/storage/db'
+import { loadAssets, replaceAssets } from '@/core/storage/assetRepo'
+import { loadStoredFonts } from '@/core/storage/fontRepo'
+import { useEditorStore } from '@/core/store'
 import { disconnectProjectFolder, restoreProjectFolder } from './projectFolder'
-import type { BackgroundPreset, Folder, TextPreset, Thumbnail } from '../types'
+import type { BackgroundPreset, Folder, TextPreset, Thumbnail } from '@/core/model/types'
 
 const WORKSPACE_KEY = 'project:current'
 

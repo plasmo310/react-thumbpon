@@ -1,6 +1,6 @@
 import type { StoreApi } from 'zustand'
-import type { Layer, Thumbnail } from '../types'
-import type { EditorState } from './types'
+import type { Layer, Thumbnail } from '../model/types'
+import type { EditorState } from './index'
 
 type Set = StoreApi<EditorState>['setState']
 type Get = StoreApi<EditorState>['getState']
@@ -8,6 +8,9 @@ type Get = StoreApi<EditorState>['getState']
 /**
  * 「現在のサムネイル」に対する更新をまとめたヘルパを作る。
  * レイヤー操作はすべて現在のサムネイルに対して行われるため、各 slice の先頭でこれを取り出して使う。
+ *
+ * index.ts からは型だけを取り込む。実行時の import を持たせると
+ * index → slice → ここ → index の循環になるため。
  *
  * @param set slice に渡される set
  * @param get slice に渡される get

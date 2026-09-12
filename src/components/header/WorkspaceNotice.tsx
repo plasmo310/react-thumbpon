@@ -1,6 +1,6 @@
-import { notifyError } from '../../lib/dom/notify'
+import { notifyError } from '@/lib/dom/notify'
 import { reconnectProjectFolder } from '../../services/projectFolder'
-import { useEditorStore } from '../../store'
+import { useEditorStore } from '@/core/store'
 
 const noticeBar =
   'flex items-center gap-3 border-b border-line bg-panel px-5 py-1.5 text-[11px] text-ink-sub'

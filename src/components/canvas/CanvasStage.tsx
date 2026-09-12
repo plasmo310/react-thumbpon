@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { PointerEvent as ReactPointerEvent } from 'react'
-import { clamp } from '../../lib/core/geometry'
-import { DND_TYPE, hasDragType } from '../../lib/dom/dnd'
-import { notifyError } from '../../lib/dom/notify'
-import { startPointerDrag } from '../../lib/dom/pointerDrag'
-import { useCurrentThumbnail, useEditorStore } from '../../store'
+import { clamp } from '@/core/model/geometry'
+import { DND_TYPE, hasDragType } from '@/lib/dom/dnd'
+import { notifyError } from '@/lib/dom/notify'
+import { startPointerDrag } from '@/lib/dom/pointerDrag'
+import { useCurrentThumbnail, useEditorStore } from '@/core/store'
 import CanvasSurface from './CanvasSurface'
 
 const STAGE_PADDING = 64

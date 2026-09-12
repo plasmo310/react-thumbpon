@@ -8,9 +8,9 @@ import {
   resizeRect,
   snapAngle,
   type Handle,
-} from '../../lib/core/geometry'
-import { startPointerDrag } from '../../lib/dom/pointerDrag'
-import { useEditorStore, useSelectedLayer } from '../../store'
+} from '@/core/model/geometry'
+import { startPointerDrag } from '@/lib/dom/pointerDrag'
+import { useEditorStore, useSelectedLayer } from '@/core/store'
 import { useLayerHeight } from './useLayerHeight'
 
 const ACCENT = '#FF8A5B'

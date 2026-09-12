@@ -1,7 +1,7 @@
-import { assetPath, collectUsedFonts, findMissingFonts } from '../lib/core/project'
-import { getAssetBlob, replaceAssets } from '../lib/storage/assetRepo'
-import { useEditorStore } from '../store'
-import type { AssetMeta, ProjectAssetEntry, ProjectFile } from '../types'
+import { assetPath, collectUsedFonts, findMissingFonts } from '@/core/model/project'
+import { getAssetBlob, replaceAssets } from '@/core/storage/assetRepo'
+import { useEditorStore } from '@/core/store'
+import type { AssetMeta, ProjectAssetEntry, ProjectFile } from '@/core/model/types'
 
 /** 書き出し前に集めた素材。path は ZIP のエントリ名にもフォルダ内のパスにもそのまま使う */
 export type AssetPayload = { meta: AssetMeta; blob: Blob; path: string }

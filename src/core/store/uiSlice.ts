@@ -1,4 +1,4 @@
-import type { SliceCreator } from '../types'
+import type { SliceCreator } from './index'
 
 export type UiSlice = {
   /** 復元が終わったか。自動保存は これが true の間だけ動く */

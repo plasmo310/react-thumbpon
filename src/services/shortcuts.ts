@@ -1,8 +1,8 @@
 import { useEffect } from 'react'
-import { notifyError } from '../lib/dom/notify'
-import { canUseFileSystemAccess } from '../lib/storage/fsAccess'
-import { useEditorStore } from '../store'
-import { BACKGROUND_ID } from '../types'
+import { notifyError } from '@/lib/dom/notify'
+import { canUseFileSystemAccess } from '@/core/storage/fsAccess'
+import { useEditorStore } from '@/core/store'
+import { BACKGROUND_ID } from '@/core/model/types'
 import { saveProjectFolder } from './projectFolder'
 
 const EDITABLE = ['INPUT', 'TEXTAREA', 'SELECT']

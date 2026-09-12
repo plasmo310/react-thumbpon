@@ -1,10 +1,10 @@
 import { useEffect, useRef, useState } from 'react'
-import { notifyError } from '../../lib/dom/notify'
-import { canUseFileSystemAccess } from '../../lib/storage/fsAccess'
+import { notifyError } from '@/lib/dom/notify'
+import { canUseFileSystemAccess } from '@/core/storage/fsAccess'
 import { exportProjectFile, importProjectFile } from '../../services/projectFile'
 import { openProjectFolder, saveProjectFolder } from '../../services/projectFolder'
 import { newProject } from '../../services/workspace'
-import { menuItem, menuSeparator, toolbarButton } from '../../styles'
+import { menuItem, menuSeparator, toolbarButton } from '@/styles'
 
 /**
  * 新規作成からファイル書き出しまで、プロジェクト単位の操作をまとめたメニュー。

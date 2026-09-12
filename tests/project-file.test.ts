@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-vi.mock('../src/lib/storage/assetRepo', () => import('./helpers/fakeAssetRepo'))
-vi.mock('../src/lib/dom/download', () => ({
+vi.mock('@/core/storage/assetRepo', () => import('./helpers/fakeAssetRepo'))
+vi.mock('@/lib/dom/download', () => ({
   downloadBlob: (blob: Blob, filename: string) => {
     downloaded = { blob, filename }
   },
@@ -10,8 +10,8 @@ vi.mock('../src/lib/dom/download', () => ({
 
 import { zipSync, strToU8, unzipSync } from 'fflate'
 import { blobs, resetAssets, seedAsset } from './helpers/fakeAssetRepo'
-import { exportProjectFile, importProjectFile } from '../src/services/projectFile'
-import { useEditorStore } from '../src/store'
+import { exportProjectFile, importProjectFile } from '@/services/projectFile'
+import { useEditorStore } from '@/core/store'
 import {
   BUILTIN_FONTS,
   DEFAULT_BACKGROUND,
@@ -19,7 +19,7 @@ import {
   type AssetMeta,
   type TextLayer,
   type Thumbnail,
-} from '../src/types'
+} from '@/core/model/types'
 
 let downloaded: { blob: Blob; filename: string } | null = null
 

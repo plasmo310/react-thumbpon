@@ -1,4 +1,4 @@
-import type { SliceCreator } from '../types'
+import type { SliceCreator } from './index'
 
 /**
  * none            フォルダ未接続。IndexedDB だけで作業している
@@ -26,7 +26,7 @@ export type WorkspaceSlice = {
 /**
  * ローカルフォルダとの接続状態。
  * FileSystemDirectoryHandle は JSON 化できないのでここには入れず、
- * lib/storage/fsAccess.ts のモジュール変数に置いている。
+ * core/storage/fsAccess.ts のモジュール変数に置いている。
  */
 export const createWorkspaceSlice: SliceCreator<WorkspaceSlice> = (set) => ({
   workspaceFolderName: null,

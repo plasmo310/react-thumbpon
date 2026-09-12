@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { inputBase } from '../../styles'
+import { inputBase } from '@/styles'
 
 /**
  * 数値入力。

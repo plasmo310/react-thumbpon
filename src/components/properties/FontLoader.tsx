@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react'
-import { notifyError } from '../../lib/dom/notify'
-import { addFontFiles, canQueryLocalFonts, queryLocalFonts } from '../../lib/storage/fontRepo'
-import { useEditorStore } from '../../store'
+import { notifyError } from '@/lib/dom/notify'
+import { addFontFiles, canQueryLocalFonts, queryLocalFonts } from '@/core/storage/fontRepo'
+import { useEditorStore } from '@/core/store'
 
 /**
  * ローカルフォントの読み込み（PCのフォント一覧の取得 / フォントファイルの追加）。
