@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import type { DragEvent } from 'react'
-import { DND_TYPE, hasDragType } from '@/lib/dom/dnd'
+import { DND_TYPE, hasDragType } from '@/shared/lib/dnd'
 import { useCurrentThumbnail, useEditorStore } from '@/core/store'
 import { BACKGROUND_ID } from '@/core/model/types'
 import { BackgroundProperties } from '../properties/BackgroundProperties'

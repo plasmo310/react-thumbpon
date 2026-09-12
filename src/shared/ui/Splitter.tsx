@@ -1,5 +1,5 @@
 import type { PointerEvent as ReactPointerEvent } from 'react'
-import { startPointerDrag } from '@/lib/dom/pointerDrag'
+import { startPointerDrag } from '@/shared/lib/pointerDrag'
 
 type SplitterProps = {
   /** 'x' なら左右の幅、'y' なら上下の高さを変える */

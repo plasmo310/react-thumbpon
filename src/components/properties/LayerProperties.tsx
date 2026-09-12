@@ -1,8 +1,8 @@
 import { useEditorStore } from '@/core/store'
 import { panelBody } from '@/styles'
 import type { Layer } from '@/core/model/types'
-import { EffectsSection } from '../effects/EffectsSection'
-import { NumberInput, Row, TextInput } from '../ui'
+import { EffectsSection } from '@/shared/ui'
+import { NumberInput, Row, TextInput } from '@/shared/ui'
 import { ImageLayerProperties } from './ImageLayerProperties'
 import { TextLayerProperties } from './TextLayerProperties'
 

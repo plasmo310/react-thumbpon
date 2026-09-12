@@ -1,4 +1,4 @@
-import { notifyError } from '@/lib/dom/notify'
+import { notifyError } from '@/shared/lib/notify'
 import { reconnectProjectFolder } from '../../services/projectFolder'
 import { useEditorStore } from '@/core/store'
 

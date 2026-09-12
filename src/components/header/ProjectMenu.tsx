@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { notifyError } from '@/lib/dom/notify'
+import { notifyError } from '@/shared/lib/notify'
 import { canUseFileSystemAccess } from '@/core/storage/fsAccess'
 import { exportProjectFile, importProjectFile } from '../../services/projectFile'
 import { openProjectFolder, saveProjectFolder } from '../../services/projectFolder'

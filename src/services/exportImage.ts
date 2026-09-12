@@ -1,5 +1,5 @@
 import { toPng } from 'html-to-image'
-import { downloadDataUrl } from '@/lib/dom/download'
+import { downloadDataUrl } from '@/shared/lib/download'
 import type { CanvasSize } from '@/core/model/types'
 
 let surfaceElement: HTMLElement | null = null

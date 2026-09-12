@@ -1,4 +1,4 @@
-import { Row, Slider } from '../ui'
+import { Row, Slider } from '@/shared/ui'
 
 /**
  * 不透明度の行。ストアは 0..1 で持ち、画面には % で見せる。

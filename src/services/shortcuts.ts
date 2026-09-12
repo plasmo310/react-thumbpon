@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { notifyError } from '@/lib/dom/notify'
+import { notifyError } from '@/shared/lib/notify'
 import { canUseFileSystemAccess } from '@/core/storage/fsAccess'
 import { useEditorStore } from '@/core/store'
 import { BACKGROUND_ID } from '@/core/model/types'

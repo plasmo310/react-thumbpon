@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import type { ReactNode } from 'react'
-import { DND_TYPE, hasDragType } from '@/lib/dom/dnd'
+import { DND_TYPE, hasDragType } from '@/shared/lib/dnd'
 import { useEditorStore } from '@/core/store'
 
 /**

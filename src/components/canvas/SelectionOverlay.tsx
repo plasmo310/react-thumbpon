@@ -9,7 +9,7 @@ import {
   snapAngle,
   type Handle,
 } from '@/core/model/geometry'
-import { startPointerDrag } from '@/lib/dom/pointerDrag'
+import { startPointerDrag } from '@/shared/lib/pointerDrag'
 import { useEditorStore, useSelectedLayer } from '@/core/store'
 import { useLayerHeight } from './useLayerHeight'
 

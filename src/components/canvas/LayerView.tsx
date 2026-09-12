@@ -1,9 +1,9 @@
 import type { CSSProperties, PointerEvent as ReactPointerEvent } from 'react'
 import { getAssetUrl } from '@/core/storage/assetRepo'
-import { startPointerDrag } from '@/lib/dom/pointerDrag'
+import { startPointerDrag } from '@/shared/lib/pointerDrag'
 import { effectsFilter } from '@/core/model/style'
 import { snapPosition } from '@/core/model/snap'
-import { collectLayerRects, measureLayerHeight } from '@/lib/dom/layerRect'
+import { collectLayerRects, measureLayerHeight } from '@/shared/lib/layerRect'
 import { useCurrentThumbnail, useEditorStore } from '@/core/store'
 import type { Layer } from '@/core/model/types'
 

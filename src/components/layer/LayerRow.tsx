@@ -1,9 +1,9 @@
 import type { DragEvent } from 'react'
-import { DND_TYPE } from '@/lib/dom/dnd'
+import { DND_TYPE } from '@/shared/lib/dnd'
 import { useEditorStore } from '@/core/store'
 import type { Layer } from '@/core/model/types'
 import { LayerProperties } from '../properties/LayerProperties'
-import { EyeIcon, EyeOffIcon, IconButton } from '../ui'
+import { EyeIcon, EyeOffIcon, IconButton } from '@/shared/ui'
 
 /** ドラッグ中に挿入位置を示す線を、どの行のどちら側に出すか */
 export type DropMark = { index: number; position: 'before' | 'after' } | null

@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react'
-import { notifyError } from '@/lib/dom/notify'
+import { notifyError } from '@/shared/lib/notify'
 import { addFontFiles, canQueryLocalFonts, queryLocalFonts } from '@/core/storage/fontRepo'
 import { useEditorStore } from '@/core/store'
 

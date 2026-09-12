@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { notifyError } from '@/lib/dom/notify'
+import { notifyError } from '@/shared/lib/notify'
 import { exportPng } from '../../services/exportImage'
 import { useCurrentThumbnail } from '@/core/store'
 

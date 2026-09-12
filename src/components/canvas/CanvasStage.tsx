@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import type { PointerEvent as ReactPointerEvent } from 'react'
 import { clamp } from '@/core/model/geometry'
-import { DND_TYPE, hasDragType } from '@/lib/dom/dnd'
-import { notifyError } from '@/lib/dom/notify'
-import { startPointerDrag } from '@/lib/dom/pointerDrag'
+import { DND_TYPE, hasDragType } from '@/shared/lib/dnd'
+import { notifyError } from '@/shared/lib/notify'
+import { startPointerDrag } from '@/shared/lib/pointerDrag'
 import { useCurrentThumbnail, useEditorStore } from '@/core/store'
 import CanvasSurface from './CanvasSurface'
 

@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 vi.mock('@/core/storage/assetRepo', () => import('./helpers/fakeAssetRepo'))
-vi.mock('@/lib/dom/download', () => ({
+vi.mock('@/shared/lib/download', () => ({
   downloadBlob: (blob: Blob, filename: string) => {
     downloaded = { blob, filename }
   },

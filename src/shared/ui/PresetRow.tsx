@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { IconButton, Row } from '../ui'
+import { IconButton } from './IconButton'
+import { Row } from './Row'
 
 /**
  * プリセットの適用・保存・削除をまとめた行。

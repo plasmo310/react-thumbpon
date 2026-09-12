@@ -1,6 +1,6 @@
 import { useEditorStore } from '@/core/store'
 import type { ImageLayer } from '@/core/model/types'
-import { NumberInput, Row } from '../ui'
+import { NumberInput, Row } from '@/shared/ui'
 import { OpacityRow } from './OpacityRow'
 
 /**

@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react'
-import { DND_TYPE, hasDragType } from '@/lib/dom/dnd'
-import { notifyError } from '@/lib/dom/notify'
+import { DND_TYPE, hasDragType } from '@/shared/lib/dnd'
+import { notifyError } from '@/shared/lib/notify'
 import { getAssetUrl } from '@/core/storage/assetRepo'
 import { useEditorStore } from '@/core/store'
 

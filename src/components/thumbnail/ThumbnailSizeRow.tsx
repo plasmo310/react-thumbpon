@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useCurrentThumbnail, useEditorStore } from '@/core/store'
 import { CANVAS_PRESETS, CUSTOM_PRESET_ID } from '@/core/model/types'
-import { NumberInput, Select } from '../ui'
+import { NumberInput, Select } from '@/shared/ui'
 
 /**
  * 選択中のサムネイルのキャンバスサイズを変える行。

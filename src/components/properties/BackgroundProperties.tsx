@@ -1,9 +1,9 @@
 import { useCurrentThumbnail, useEditorStore } from '@/core/store'
 import { panelBody } from '@/styles'
 import type { BackgroundFit, BackgroundType, PatternType } from '@/core/model/types'
-import { EffectsSection } from '../effects/EffectsSection'
-import { ColorInput, NumberInput, Row, Select, Slider } from '../ui'
-import { PresetRow } from './PresetRow'
+import { EffectsSection } from '@/shared/ui'
+import { ColorInput, NumberInput, Row, Select, Slider } from '@/shared/ui'
+import { PresetRow } from '@/shared/ui'
 
 /** 背景の種別。4つあり「グラデーション」も入るため、横並びではなくドロップダウンで出す */
 const TYPE_OPTIONS: { label: string; value: BackgroundType }[] = [

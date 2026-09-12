@@ -1,10 +1,10 @@
 import { extractTextStyle } from '@/core/model/factory'
 import { useEditorStore } from '@/core/store'
 import { FONT_WEIGHTS, type TextAlign, type TextLayer } from '@/core/model/types'
-import { ColorInput, NumberInput, Row, SegmentedControl, Select, TextArea } from '../ui'
+import { ColorInput, NumberInput, Row, SegmentedControl, Select, TextArea } from '@/shared/ui'
 import { FontLoader } from './FontLoader'
 import { OpacityRow } from './OpacityRow'
-import { PresetRow } from './PresetRow'
+import { PresetRow } from '@/shared/ui'
 
 /**
  * テキストレイヤー固有のプロパティ。

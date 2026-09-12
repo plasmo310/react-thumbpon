@@ -1,5 +1,5 @@
 import { strFromU8, strToU8, unzipSync, zipSync } from 'fflate'
-import { downloadBlob } from '@/lib/dom/download'
+import { downloadBlob } from '@/shared/lib/download'
 import {
   applyProjectFile,
   buildProjectFile,
