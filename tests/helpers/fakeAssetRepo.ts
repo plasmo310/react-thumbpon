@@ -1,4 +1,4 @@
-import type { AssetMeta } from '../../src/types'
+import type { AssetMeta } from '@/core/model/types'
 
 /**
  * src/core/storage/assetRepo.ts のうち、プロジェクトの入出力が使う部分だけを
