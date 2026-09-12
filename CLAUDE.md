@@ -2,7 +2,8 @@
 
 サムネぽん / ThumbPon — テンプレートをベースにサムネイル画像を量産するブラウザ完結型のWebツール。
 
-概要と使い方は [README.md](README.md)、要件は [docs/plan/thumbpon-spec.md](docs/plan/thumbpon-spec.md) を参照。
+概要と使い方は [README.md](README.md)、要件は [docs/plan/thumbpon-spec.md](docs/plan/thumbpon-spec.md)、
+**コーディング規約は [docs/instructions/code_guide.md](docs/instructions/code_guide.md)** を参照。
 
 ## コマンド
 
@@ -16,79 +17,60 @@ npm run build      # 型チェック + 本番ビルド（変更後はこれを�
 
 テストは Vitest でルートの `tests/` に置く。環境は node なので DOM は使えない。
 ブラウザAPIに触るモジュール（`fsAccess` など）は `tests/helpers/` の
-メモリ実装を `vi.mock` で差し込む。純粋関数は `src/core/model/` に置いてそのまま呼ぶ。
+メモリ実装を `vi.mock` で差し込む。純粋関数は `src/domain/` に置いてそのまま呼ぶ。
 
 ## ディレクトリ構成
 
+**詳しい決まりごとは [docs/instructions/code_guide.md](docs/instructions/code_guide.md) を読むこと。**
+ここには要点だけ置く。
+
 **1機能＝1ディレクトリ**（Feature-based + Colocation）。依存は次の一方向のみで、
-加えて **features 同士は import しない**。ルールはこの2行だけ。
+加えて **features 同士は import しない**。
 
 ```
-core  →  shared  →  features  →  App
+domain  →  shared  →  app/store  →  features  →  app
 ```
-
-| 階層 | 役割 | features を知っているか |
-|---|---|---|
-| `core/` | ドキュメントの型・純粋な計算・ストア・永続化。アプリの共通言語 | ✗ |
-| `shared/` | どの feature からも使う UI 部品と道具 | ✗ |
-| `features/` | 画面に出る機能 | 自分以外は ✗ |
-| `App.tsx` | feature を並べるだけ | ○（ここだけ） |
 
 ```
 src/
-  App.tsx  main.tsx  shortcuts.ts  styles.css  App.module.css
-  core/
-    model/       純粋。React もブラウザAPIも触らない → node でそのままテストできる
-                 types / factory / geometry / snap / style / project
-    storage/     db / assetRepo / fontRepo / fsAccess / panelLayout
-    store/       index(useEditorStore と selectors) / patch(createPatchers) /
-                 8つの slice（thumbnail / layer / background / asset / font / preset / ui / workspace）
+  styles.css       トークンとリセット（唯一のグローバルCSS）
+  app/             main / App / shortcuts / panelLayout / store（Zustand と8つの slice）
+  domain/          UIに依存しない型と純粋な計算。entity ごとに分ける
+                   id / asset / font / effects / background / layer / thumbnail /
+                   preset / project / geometry
+  features/        thumbnail / layer / canvas / asset / project
   shared/
-    ui/          value と onChange で動く表示専用の部品 + ui.module.css
-    lib/         cx / pointerDrag / dnd / notify / download / layerRect /
-                 surfaceRef / useDropTarget / useAsyncAction
-  features/
-    thumbnail/   サムネイル一覧・フォルダ・キャンバスサイズ
-    layer/       レイヤー一覧 + レイヤー/背景のプロパティ + フォント読み込み
-    canvas/      編集キャンバス
-    asset/       素材パネル
-    project/     ヘッダ + 保存/読込 + フォルダ連携 + zip 入出力 + PNG書き出し
-tests/           Vitest。src/ の外に置く
+    ui/            汎用UI部品 + styles.module.css
+    lib/           DOMの小物とフック（storage/ に IndexedDB と File System Access）
+tests/             Vitest。src/ の外に置く
 ```
 
 `features/<x>/index.ts` が各 feature の公開面。App はここだけを見る。
 
-新しいファイルの置き場所は上から順に当てはめる。
-
-1. 特定の機能の画面か → `features/` の該当する機能の下（迷ったら、画面のどこに出るかで決める）
-2. 複数の feature から使う UI 部品か → `shared/ui/`
-3. 複数の feature から使う道具（DOM操作・小さなフック）か → `shared/lib/`
-4. ドキュメントの型・純粋な計算か → `core/model/`
-5. IndexedDB / File System Access を触るか → `core/storage/`
-6. 状態と、その更新操作か → `core/store/`
-
 **この境界は `tests/architecture.test.ts` が検証している。** 層の逆流、feature 同士の
 import、使われていない export はテストで落ちるので、散文の約束に頼らなくてよい。
 
+### 判断に迷ったとき
+
+- **UI 部品を shared に出すか** → 「別の React アプリに持っていっても意味が通るか？」
+  YES なら `shared/ui/`、NO なら feature 側（`EffectsSection` と `PresetRow` は feature 側）
+- **道具を shared に出すか** → 1つの feature からしか使わないなら、その feature に置く
+  （`snap.ts` `layerRect.ts` は canvas、`download.ts` は project）
+- **feature を分けるか** → 分けると feature 同士の import が生えるなら分けない
+
 ### feature に分けなかったもの
 
-どれも分けると feature 同士の import が必ず生えるため。
-
-- **背景はレイヤーの中**。画面上、背景はレイヤー一覧の一番上の行で、
+- **背景はレイヤーの中**。画面上それはレイヤー一覧の一番上の行で、
   `LayerPanel` が `BackgroundProperties` を直接埋めている
-- **エフェクトとプリセットは feature にしない**。レイヤーと背景の両方から使うので
-  `shared/ui/` に置く（どちらもストアに触らない props 専用の部品）
-- **フォントも feature にしない**。UI はテキストのプロパティ欄にしか出ないので
-  `features/layer/`、実体は `core/storage/fontRepo.ts`
-- **`shortcuts.ts` は `App.tsx` の隣**。Ctrl+S（project）と Delete/矢印（layer）の
-  両方を扱うため
+- **フォントの UI も layer**。テキストのプロパティ欄にしか出ない
+- **`shortcuts.ts` は app**。Ctrl+S（project）と Delete/矢印（layer）の両方を扱う
 
 ### ストアは feature に分けない（意図的）
 
 8つの slice は**1つのオブジェクトを意図的に共有**していて、互いの state を書く
 （サムネイルを切り替えたらレイヤーの選択を外す、素材を消したらそれを使うレイヤーも消す等）。
 単一のドキュメントを全機能で編集するエディタとして正しい形なので壊さない。
-slice を feature 側に置くと `core/store` が `features/*` を import して確実に循環する。
+slice を feature 側に置くと `app/store` が `features/*` を import して確実に循環する。
 
 **slice は「操作のまとまり」であって「状態の所有単位」ではない。**
 
@@ -103,15 +85,15 @@ slice を feature 側に置くと `core/store` が `features/*` を import し�
   レイヤーパネルも配列順に上から並べるので、**一覧の下にあるものが前面**。
 - **テキストレイヤーは `height` を持たない**（内容に応じて伸びる）。高さが要る箇所
   （選択枠・スナップ）は `[data-layer-id]` の `offsetHeight` から実測する。実測の入口は
-  `shared/lib/layerRect.ts` に集約してあるので、DOMを直接引かずこれを使う。
+  `features/canvas/layerRect.ts` に集約してあるので、DOMを直接引かずこれを使う。
 - **状態はすべて JSON 化できる値に保つ。** objectURL / Blob / DOM 参照をストアに入れない。
-  画像の Blob は IndexedDB、objectURL は `core/storage/assetRepo.ts` 内の Map に置く。
-- 状態は**すべて `src/core/store/` の Zustand ストア**に集約する（上の「ストアは feature に
+  画像の Blob は IndexedDB、objectURL は `shared/lib/storage/assetRepo.ts` 内の Map に置く。
+- 状態は**すべて `src/app/store/` の Zustand ストア**に集約する（上の「ストアは feature に
   分けない」を参照）。レイヤー操作は現在のサムネイルに対して行われる（`patch.ts` の
   `patchCurrent` / `patchLayers`）。利用側は
-  `import { useEditorStore, useCurrentThumbnail } from '@/core/store'` の1行で足りる。
+  `import { useEditorStore, useCurrentThumbnail } from '@/app/store'` の1行で足りる。
 - ドラッグ・リサイズ・回転はライブラリを使わず Pointer Events で実装している
-  （`shared/lib/pointerDrag.ts` + `core/model/geometry.ts`）。ここにライブラリを足さない。
+  （`shared/lib/pointerDrag.ts` + `domain/geometry.ts`）。ここにライブラリを足さない。
 - **`draggable` は「掴む行」だけに付ける。行全体には付けない。** 行の中に開くプロパティ欄の
   スライダーや入力を掴んだだけで HTML5 のドラッグが始まり、値を変えられなくなるため。
   `LayerRow` / `ThumbnailRow` はどちらも名前の行にだけ `draggable` を付け、
@@ -124,7 +106,7 @@ slice を feature 側に置くと `core/store` が `features/*` を import し�
 ## 注意点
 
 - **`idb-keyval` の `createStore` は 1つのDBに 1つの objectStore しか作れない。**
-  同じDB名で2回呼ぶと2つ目は `NotFoundError` になる。そのため `src/core/storage/db.ts` の
+  同じDB名で2回呼ぶと2つ目は `NotFoundError` になる。そのため `src/shared/lib/storage/db.ts` の
   `kv` ひとつだけを使い、キーの接頭辞（`blob:` `meta:` `font:` `project:` `handle:`）で用途を分ける。
   新しい保存先が要るときも createStore を追加せず、接頭辞を足すこと。
 - **書き出しに含めたくないDOMには `data-export-ignore="true"` を付ける。**
@@ -135,7 +117,7 @@ slice を feature 側に置くと `core/store` が `features/*` を import し�
   実体は IndexedDB にのみ保存する。代わりに `project.json` の `fonts` に
   使用フォントのマニフェスト（表示名 / family / local か file か）を持たせ、
   読み込み側で解決できなかったものを `missingFontLabels` に入れて名前で告知する。
-  マニフェストの組み立ては `core/model/project.ts` の `collectUsedFonts` / `findMissingFonts`。
+  マニフェストの組み立ては `domain/project.ts` の `collectUsedFonts` / `findMissingFonts`。
 - 自動保存（`features/project/workspace.ts`）は `ready` が true の間だけ動く。復元中に
   上書き保存されないようにするための仕組みなので、順序を変えないこと。
 - **保存先が2つあるので、どちらが正かのルールを崩さない。**
@@ -149,15 +131,14 @@ slice を feature 側に置くと `core/store` が `features/*` を import し�
   入れ物（1ファイルか展開したフォルダか）だけが違う。`buildProjectFile()` を両方から使うこと。
   拡張子を `.zip` で終わらせているのは OS から普通の ZIP として扱えるようにするため。
   読み込み側はフォルダごと圧縮された ZIP（中身が「フォルダ名/」の下にある形）も受け付ける。
-- **File System Access API は Chromium 系のみ。** `core/storage/fsAccess.ts` の
+- **File System Access API は Chromium 系のみ。** `shared/lib/storage/fsAccess.ts` の
   `canUseFileSystemAccess()` で判定し、非対応ブラウザでは UI を出さない
   （`fontRepo.ts` の `canQueryLocalFonts()` と同じ段階的強化の形）。
   型は lib.dom に無いので、型定義パッケージを足さず `fsAccess.ts` 内にローカル宣言している。
   権限の要求（`requestPermission`）はユーザー操作の中からしか通らないため、
   起動時の自動復元では要求せず `needs-permission` を立てて通知バーに委ねる。
 - スナップは回転していないレイヤー（`rotation === 0`）だけが対象。矩形が合わないため。
-- **エフェクト（ブラー / シャドウ / 光彩）はレイヤーと背景で共通**。型は `core/model/types.ts` の
-  `Effects`、CSS への変換は `core/model/style.ts`、UI は `shared/ui/EffectsSection`
+- **エフェクト（ブラー / シャドウ / 光彩）はレイヤーと背景で共通**。型も CSS への変換も `domain/effects.ts`、UI は `features/layer/EffectsSection`
   （ストアに触らず値と更新関数を props で受ける）。掛ける先が増えてもこの3つを使い回す。CSS の `filter` 1本で描き、影に `box-shadow` ではなく `drop-shadow` を
   使うのは、要素の矩形ではなく中身の形（文字の輪郭・画像の透過・模様の隙間）に沿った影を
   出すため。光彩は drop-shadow 1回だと薄すぎるので同じものを重ねている。
@@ -165,13 +146,13 @@ slice を feature 側に置くと `core/store` が `features/*` を import し�
   エフェクトは絵柄の層だけに掛ける。サーフェス自体に `filter` を掛けるとレイヤーまで
   一緒にぼけるため。ぼかすと絵柄の縁が透けるので、`effectsBleed()` の分だけ外側に
   はみ出させて `overflow: hidden` で切る。単色の背景は絵柄を持たないので効果は出ない。
-- **背景の模様（パターン）は画像を作らず CSS のグラデーションで描く**（`core/model/style.ts`）。
+- **背景の模様（パターン）は画像を作らず CSS のグラデーションで描く**（`domain/background.ts`）。
   書き出しでも劣化せず、素材の管理も要らないため。**素材を使う敷き詰め（タイル）は
   パターンではなく背景「画像」の敷き方**（`fit: 'tile'`）に置く。タイルは模様の形ではなく
   1枚の画像の敷き方で、cover / contain と同じ軸のため。素材の参照は `assetId` ひとつ。
 - **`effects` は入れ子フィールドなので浅いマージでは潰れる。** 更新には専用の口
   （レイヤーは `updateLayerEffects`、背景は `setBackgroundEffects`）を使うこと。
-- **後から増えたフィールドは `core/model/project.ts` の `normalizeThumbnails` で補う。**
+- **後から増えたフィールドは `domain/project.ts` の `normalizeThumbnails` で補う。**
   `loadProject` が必ず通すので、読み込み後は「必ず在る」前提で書いてよい。
 
 ## コードスタイル
@@ -186,8 +167,8 @@ slice を feature 側に置くと `core/store` が `features/*` を import し�
   `shared/ui/` 配下、`src/App.tsx`）。それ以外のモジュールは camelCase。
   CSS Modules のクラス名も camelCase（`styles.panelBody`）。
 - UI文言は日本語。
-- **スタイルは CSS Modules**（`*.module.css`）。1 feature につき1枚にまとめ、
-  `shared/ui` も `ui.module.css` の1枚。値は必ず `src/styles.css` のトークンから取り、
+- **スタイルは CSS Modules**（`*.module.css`）。1 feature につき1枚 `styles.module.css` にまとめ、
+  `shared/ui` も1枚。値は必ず `src/styles.css` のトークンから取り、
   16進数や px を直接書かない。条件付きの class は `shared/lib/cx.ts` の `cx()` で繋ぐ。
   例外はキャンバス内部（レイヤー・選択枠・ガイド線）で、実寸座標と表示倍率に依存する
   動的な値しかないので style オブジェクトのまま書き、色は定数として先頭に置く。

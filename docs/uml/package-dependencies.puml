@@ -27,26 +27,39 @@ skinparam rectangle {
 }
 
 package "app" {
-  rectangle "App.tsx / main.tsx\nshortcuts.ts" as cApp #FFF1EB
+  rectangle "main / App
+shortcuts / panelLayout" as cApp #FFF1EB
+  rectangle "store
+useEditorStore / patch
+8つの slice" as cStore
 }
 
 package "features" {
   rectangle "thumbnail" as fThumbnail
-  rectangle "layer" as fLayer
-  rectangle "canvas" as fCanvas
+  rectangle "layer
+(+ EffectsSection / PresetRow)" as fLayer
+  rectangle "canvas
+(+ snap / layerRect)" as fCanvas
   rectangle "asset" as fAsset
-  rectangle "project" as fProject
+  rectangle "project
+(+ download)" as fProject
 }
 
 package "shared" {
-  rectangle "ui\n表示専用の部品\nPanel / Button / Row / SliderRow ...\nEffectsSection / PresetRow" as sUi
-  rectangle "lib\ncx / pointerDrag / dnd / notify\ndownload / layerRect / surfaceRef\nuseDropTarget / useAsyncAction" as sLib
+  rectangle "ui
+Button / Panel / Row / SliderRow
+PercentRow / 各種入力 / Splitter" as sUi
+  rectangle "lib
+cx / pointerDrag / dnd / notify
+surfaceRef / useDropTarget / useAsyncAction" as sLib
+  rectangle "lib/storage
+db / assetRepo / fontRepo / fsAccess" as sStorage
 }
 
-package "core" {
-  rectangle "store\nuseEditorStore / patch\n8つの slice" as cStore
-  rectangle "storage\ndb / assetRepo / fontRepo\nfsAccess / panelLayout" as cStorage
-  rectangle "model\ntypes / factory / geometry\nsnap / style / project" as cModel #F5F6F8
+package "domain" {
+  rectangle "layer / background / effects
+thumbnail / preset / asset / font
+project / geometry / id" as cDomain #F5F6F8
 }
 
 ' --- app が組み立てる ---
@@ -57,47 +70,46 @@ cApp -down-> fAsset
 cApp -down-> fProject
 cApp -down-> sUi : Splitter
 
-' --- features -> shared ---
-fThumbnail -down-> sUi
-fLayer -down-> sUi
-fCanvas -down-> sLib
-fAsset -down-> sUi
-fProject -down-> sUi
-fThumbnail -down-> sLib
-fLayer -down-> sLib
-fAsset -down-> sLib
-fProject -down-> sLib
-
-' --- features -> core ---
+' --- features -> app/store ---
 fThumbnail -down-> cStore
 fLayer -down-> cStore
 fCanvas -down-> cStore
 fAsset -down-> cStore
 fProject -down-> cStore
-fCanvas -down-> cModel
-fLayer -down-> cModel
-fProject -down-> cModel
-fCanvas -down-> cStorage
-fAsset -down-> cStorage
-fLayer -down-> cStorage
-fProject -down-> cStorage
 
-' --- shared -> core ---
-sUi -down-> cModel : 型だけ
-sLib -down-> cModel
+' --- features -> shared ---
+fThumbnail -down-> sUi
+fLayer -down-> sUi
+fAsset -down-> sUi
+fProject -down-> sUi
+fCanvas -down-> sLib
+fLayer -down-> sLib
+fAsset -down-> sLib
+fProject -down-> sLib
+fLayer -down-> sStorage
+fProject -down-> sStorage
+fCanvas -down-> sStorage
+fAsset -down-> sStorage
 
-' --- core の中 ---
-cStore -down-> cStorage
-cStore -down-> cModel
-cStorage -down-> cModel
+' --- features -> domain ---
+fCanvas -down-> cDomain
+fLayer -down-> cDomain
+fThumbnail -down-> cDomain
+fProject -down-> cDomain
+
+' --- store / shared -> domain ---
+cStore -down-> sStorage
+cStore -down-> cDomain
+sUi -down-> cDomain
+sStorage -down-> cDomain
 
 legend left
-  **features 同士に矢印は無い。** 共有が要るものは shared か core へ下ろす。
+  **features 同士に矢印は無い。** 共有が要るものは shared か domain へ下ろす。
   ====
   **canvas -> project**（PNG書き出し対象の登録）は **shared/lib/surfaceRef** 経由。
   canvas が set、project が get で、直接は呼び合わない
   **shared/ui** はストアに触らない。値と更新関数を props で受けるだけ
-  **core/model** は core の外を import しない。node でそのままテストできる
+  **domain** は何も import しない。node でそのままテストできる
   **store は feature に分けない。** 8つの slice は1つのオブジェクトを意図的に共有し、
   互いの state を書く（単一ドキュメントを全機能で編集するエディタとして正しい形）
 endlegend

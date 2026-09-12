@@ -234,31 +234,33 @@ PNG のファイル名は**サムネイル名**になります。同名のファ
 
 ### ディレクトリ
 
-**1機能＝1ディレクトリ**（Feature-based + Colocation）。
-依存は `core → shared → features → App` の一方向のみで、**features 同士は import しません**。
+**1機能＝1ディレクトリ**（Feature-based Architecture + Colocation）。
+依存は `domain → shared → app/store → features → app` の一方向のみで、
+**features 同士は import しません**。
 
 ```
 src/
-  App.tsx  main.tsx  shortcuts.ts
-  styles.css         色・余白・文字サイズのトークンとリセット
-  core/
-    model/           純粋な型と計算。React もブラウザAPIも触らない
-    storage/         IndexedDB と File System Access
-    store/           Zustand。8つの slice を1つのオブジェクトとして合成する
+  styles.css       色・余白・文字サイズのトークンとリセット
+  app/             アプリの組み立て。main / App / shortcuts / store（Zustand）
+  domain/          UIに依存しない型と純粋な計算。entity ごとに分かれる
+                   layer / background / effects / thumbnail / project / geometry ...
+  features/        画面に出る機能
+    thumbnail/     サムネイル一覧・フォルダ・キャンバスサイズ
+    layer/         レイヤー一覧 + レイヤー/背景のプロパティ + フォント読み込み
+    canvas/        編集キャンバス
+    asset/         素材パネル
+    project/       保存/読込・フォルダ連携・インポート/エクスポート・PNG書き出し
   shared/
-    ui/              value と onChange で動く表示専用の部品
-    lib/             DOM・ブラウザ操作の小物と小さなフック
-  features/
-    thumbnail/       サムネイル一覧・フォルダ・キャンバスサイズ
-    layer/           レイヤー一覧 + レイヤー/背景のプロパティ + フォント読み込み
-    canvas/          編集キャンバス
-    asset/           素材パネル
-    project/         保存/読込・フォルダ連携・インポート/エクスポート・PNG書き出し
-tests/               Vitest。純粋関数・ストア・プロジェクト入出力と、層の境界を検証する
+    ui/            汎用UI部品
+    lib/           DOM操作の小物（storage/ に IndexedDB と File System Access）
+tests/             Vitest。純粋関数・ストア・入出力と、層の境界を検証する
 ```
 
 この境界は `tests/architecture.test.ts` が検証しているので、
 層の逆流や feature 同士の import は `npm run test` で落ちます。
+
+コーディング規約は [docs/instructions/code_guide.md](docs/instructions/code_guide.md) にあります。
+
 
 ### 設計メモ
 

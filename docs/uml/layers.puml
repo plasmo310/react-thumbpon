@@ -18,32 +18,40 @@ skinparam rectangle {
   FontColor #25282D
 }
 
-rectangle "**App.tsx**\nfeature を並べるだけ\n(+ shortcuts.ts)" as lApp #FFF1EB
-rectangle "**features**\n画面に出る機能。1機能＝1ディレクトリ\nthumbnail / layer / canvas / asset / project" as lFeatures
-rectangle "**shared**\nどの feature からも使う\nui（表示専用の部品） / lib（DOMの小物）" as lShared
-rectangle "**core**\nアプリの共通言語\nmodel（型と純粋な計算） / storage（永続化） / store（状態）" as lCore #F5F6F8
+rectangle "**app**
+feature を並べる
+main / App / shortcuts / panelLayout" as lApp #FFF1EB
+rectangle "**features**
+画面に出る機能。1機能＝1ディレクトリ
+thumbnail / layer / canvas / asset / project" as lFeatures
+rectangle "**app/store**
+アプリ全体の状態
+Zustand と8つの slice" as lStore
+rectangle "**shared**
+複数の feature から使うものだけ
+ui（汎用UI部品） / lib（DOMの小物・storage）" as lShared
+rectangle "**domain**
+UIに依存しない型と純粋な計算
+layer / background / effects / thumbnail / project ..." as lDomain #F5F6F8
 
 lApp -down-> lFeatures
-lApp -down-> lShared
-lApp -down-> lCore
-lFeatures -down-> lShared
-lFeatures -down-> lCore
-lShared -down-> lCore
+lFeatures -down-> lStore
+lStore -down-> lShared
+lShared -down-> lDomain
 
 note right of lFeatures
   **features 同士は import しない。**
-  共有が要るものは shared か core へ下ろす。
+  共有が要るものは shared か domain へ下ろす。
 
   依存は上から下への**一方向**のみ。
   この2つは tests/architecture.test.ts が
   機械で検証している。
 end note
 
-note bottom of lCore
-  core の中も一方向:
-  model -> storage -> store
-  model は core の外を import しない
-  （node でそのままテストできる状態を守る）
+note right of lDomain
+  domain は何も import しない
+  （React の型を除く）。
+  node でそのままテストできる状態を守る。
 end note
 
 @enduml
