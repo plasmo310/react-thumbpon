@@ -1,6 +1,6 @@
 import { get, set } from 'idb-keyval'
 import { kv } from '@/core/storage/db'
-import { loadAssets, replaceAssets } from '@/core/storage/assetRepo'
+import { replaceAssets } from '@/core/storage/assetRepo'
 import { loadStoredFonts } from '@/core/storage/fontRepo'
 import { useEditorStore } from '@/core/store'
 import { disconnectProjectFolder, restoreProjectFolder } from './projectFolder'
@@ -30,8 +30,7 @@ type Workspace = {
 export async function restoreWorkspace() {
   const store = useEditorStore.getState()
 
-  const assets = await loadAssets()
-  useEditorStore.setState({ assets })
+  await store.initAssets()
 
   try {
     const fonts = await loadStoredFonts()

@@ -4,7 +4,6 @@ import type { SliceCreator } from './index'
 export type FontSlice = {
   fonts: FontEntry[]
 
-  setFonts: (fonts: FontEntry[]) => void
   addFonts: (fonts: FontEntry[]) => void
 }
 
@@ -14,13 +13,6 @@ export type FontSlice = {
  */
 export const createFontSlice: SliceCreator<FontSlice> = (set) => ({
   fonts: BUILTIN_FONTS,
-
-  /**
-   * 一覧をまるごと入れ替える。
-   *
-   * @param fonts 入れ替え後の一覧
-   */
-  setFonts: (fonts) => set({ fonts }),
 
   /**
    * 一覧に追加する。family が既にあるものは読み飛ばす。

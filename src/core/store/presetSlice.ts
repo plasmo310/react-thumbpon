@@ -18,10 +18,6 @@ export type PresetSlice = {
   addBackgroundPreset: (name: string) => void
   applyBackgroundPreset: (presetId: string) => void
   removeBackgroundPreset: (presetId: string) => void
-  setPresets: (presets: {
-    textPresets?: TextPreset[]
-    backgroundPresets?: BackgroundPreset[]
-  }) => void
 }
 
 /** よく使う見た目を名前を付けて保存し、他のレイヤーやサムネイルに使い回すためのもの */
@@ -98,16 +94,5 @@ export const createPresetSlice: SliceCreator<PresetSlice> = (set, get) => {
      */
     removeBackgroundPreset: (presetId) =>
       set((s) => ({ backgroundPresets: s.backgroundPresets.filter((p) => p.id !== presetId) })),
-
-    /**
-     * プリセットをまとめて差し替える。プロジェクト読み込みで使う。
-     *
-     * @param presets 省略した種別は現在の内容を残す
-     */
-    setPresets: ({ textPresets, backgroundPresets }) =>
-      set((s) => ({
-        textPresets: textPresets ?? s.textPresets,
-        backgroundPresets: backgroundPresets ?? s.backgroundPresets,
-      })),
   }
 }

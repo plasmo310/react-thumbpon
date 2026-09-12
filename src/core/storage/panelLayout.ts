@@ -10,7 +10,7 @@ export type PanelLayout = {
 
 const STORAGE_KEY = 'thumbpon:panel-layout'
 
-export const DEFAULT_PANEL_LAYOUT: PanelLayout = {
+const DEFAULT_PANEL_LAYOUT: PanelLayout = {
   sidebarWidth: 340,
   thumbnailHeight: 220,
   assetHeight: 220,

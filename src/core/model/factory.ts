@@ -69,7 +69,7 @@ export function cloneThumbnail(source: Thumbnail, name: string): Thumbnail {
  *
  * @param name レイヤーパネルに出す名前
  */
-export function createLayerBase(name: string): LayerBase {
+function createLayerBase(name: string): LayerBase {
   return {
     id: createId(),
     name,
