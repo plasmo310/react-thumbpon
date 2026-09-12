@@ -1,5 +1,6 @@
 import { DEFAULT_BACKGROUND, type Background } from './background'
 import { createId } from './id'
+import { copyLayer } from './layer'
 import type { Layer } from './layer'
 
 export type CanvasSize = { width: number; height: number }
@@ -68,6 +69,6 @@ export function cloneThumbnail(source: Thumbnail, name: string): Thumbnail {
     name,
     canvas: { ...source.canvas },
     background: { ...source.background },
-    layers: source.layers.map((l) => ({ ...l, id: createId(), effects: { ...l.effects } })),
+    layers: source.layers.map(copyLayer),
   }
 }

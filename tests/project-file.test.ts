@@ -21,13 +21,14 @@ import type { Thumbnail } from '@/domain/thumbnail'
 
 let downloaded: { blob: Blob; filename: string } | null = null
 
-const meta = (id: string): AssetMeta => ({
+const meta = (id: string, folderId: string | null = null): AssetMeta => ({
   id,
   name: `${id}.png`,
   mime: 'image/png',
   width: 10,
   height: 10,
   createdAt: 0,
+  folderId,
 })
 
 const textLayer = (fontFamily: string): TextLayer => ({
@@ -79,6 +80,7 @@ beforeEach(() => {
     thumbnails: [thumbnail([])],
     currentThumbnailId: 'th1',
     assets: [],
+    assetFolders: [],
     fonts: BUILTIN_FONTS,
     missingFontLabels: [],
   })
@@ -122,6 +124,45 @@ describe('往復', () => {
     expect(state.thumbnails[0].layers.map((l) => l.id)).toEqual(['tx1'])
     expect(state.assets.map((a) => a.id)).toEqual(['a1'])
     expect(await (blobs.get('a1') as Blob).text()).toBe('image-bytes')
+  })
+
+  it('素材フォルダは ZIP の中でもフォルダ分けされ、そのまま戻る', async () => {
+    useEditorStore.setState({
+      assets: [meta('a1', 'f1')],
+      assetFolders: [{ id: 'f1', name: '風景', collapsed: false }],
+    })
+    seedAsset('a1', new Blob(['image-bytes']))
+
+    const file = await exported()
+    const entries = unzipSync(new Uint8Array(await file.arrayBuffer()))
+    expect(Object.keys(entries)).toContain('assets/風景/a1.png')
+
+    useEditorStore.setState({ assets: [], assetFolders: [] })
+    resetAssets()
+    await importProjectFile(file)
+
+    const state = useEditorStore.getState()
+    expect(state.assetFolders.map((f) => f.name)).toEqual(['風景'])
+    expect(state.assets[0].folderId).toBe('f1')
+    expect(await (blobs.get('a1') as Blob).text()).toBe('image-bytes')
+  })
+
+  it('素材フォルダを持たない旧形式は、素材を未分類として読む', async () => {
+    const legacy = {
+      format: 'thumbpon-project',
+      version: 3,
+      folders: [],
+      thumbnails: [thumbnail([])],
+      currentThumbnailId: 'th1',
+      assets: [
+        { meta: { ...meta('a1'), folderId: 'gone' }, dataUrl: 'data:image/png;base64,aGVsbG8=' },
+      ],
+    }
+    await importProjectFile(new File([JSON.stringify(legacy)], 'old.thumbpon.zip'))
+
+    const state = useEditorStore.getState()
+    expect(state.assetFolders).toEqual([])
+    expect(state.assets[0].folderId).toBeNull()
   })
 
   it('使用フォントは名前だけ引き継がれ、解決できないものが告知される', async () => {

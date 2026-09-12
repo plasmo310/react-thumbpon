@@ -142,6 +142,34 @@
   border-top: 1px solid var(--color-line);
 }
 
+/* --- 欄の中の小見出し（エフェクト / クロップ）と、その右に並べる操作 --- */
+
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.sectionTitle {
+  flex: 1;
+  font-size: var(--font-label);
+  font-weight: bold;
+  color: var(--color-ink-sub);
+}
+
+.toggle {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--font-label);
+  color: var(--color-ink-sub);
+  cursor: pointer;
+}
+
+.checkbox {
+  accent-color: var(--color-accent);
+}
+
 /* --- フォントの読み込みボタン --- */
 
 .fontButtons {

@@ -1,5 +1,6 @@
 export { Button } from './Button'
 export { ColorInput } from './ColorInput'
+export { ContextMenu, type ContextMenuItem } from './ContextMenu'
 export { EyeIcon, EyeOffIcon } from './Icons'
 export { IconButton } from './IconButton'
 export { InlineName } from './InlineName'

@@ -16,22 +16,35 @@ import { useEditorStore } from '@/app/store'
 import type { AssetMeta } from '@/domain/asset'
 import { DEFAULT_BACKGROUND } from '@/domain/background'
 
-const meta = (id: string): AssetMeta => ({
+const meta = (id: string, folderId: string | null = null): AssetMeta => ({
   id,
   name: `${id}.png`,
   mime: 'image/png',
   width: 10,
   height: 10,
   createdAt: 0,
+  folderId,
 })
 
 /** 素材をストアと（実体を持つ）リポジトリの両方に積む */
 function seed(ids: string[]) {
-  useEditorStore.setState({ assets: ids.map(meta) })
+  useEditorStore.setState({ assets: ids.map((id) => meta(id)) })
   for (const id of ids) seedAsset(id, new Blob([id]))
 }
 
 const assetsOf = (dir: FakeDir) => [...(dir.dirs.get('assets')?.files.keys() ?? [])].sort()
+
+/** assets/ 配下のファイルを、素材フォルダぶんの階層を含めたパスで見る */
+function assetPathsOf(dir: FakeDir): string[] {
+  const walk = (target: FakeDir | undefined, prefix: string): string[] => {
+    if (!target) return []
+    return [
+      ...[...target.files.keys()].map((name) => prefix + name),
+      ...[...target.dirs].flatMap(([name, child]) => walk(child, `${prefix}${name}/`)),
+    ]
+  }
+  return walk(dir.dirs.get('assets'), '').sort()
+}
 
 const projectOf = async (dir: FakeDir) =>
   JSON.parse(await (dir.files.get('project.json') as Blob).text())
@@ -57,6 +70,7 @@ beforeEach(() => {
     ],
     currentThumbnailId: 'th1',
     assets: [],
+    assetFolders: [],
     workspaceStatus: 'none',
     workspaceFolderName: null,
     workspaceDirty: true,
@@ -154,6 +168,66 @@ describe('saveProjectFolder', () => {
     await saveProjectFolder(agree)
     expect(assetsOf(dir)).toEqual(['a2.png'])
     expect(fake.writeLog).toEqual(['project.json'])
+  })
+
+  it('素材フォルダの名前でフォルダ分けして書く', async () => {
+    const dir = makeDir('work')
+    fake.picked = dir
+    useEditorStore.setState({
+      assets: [meta('a1', 'f1'), meta('a2')],
+      assetFolders: [{ id: 'f1', name: '風景', collapsed: false }],
+    })
+    seedAsset('a1', new Blob(['a1']))
+    seedAsset('a2', new Blob(['a2']))
+
+    await openProjectFolder(agree)
+
+    expect(assetPathsOf(dir)).toEqual(['a2.png', '風景/a1.png'])
+    const project = await projectOf(dir)
+    expect(project.assets.map((a: { file: string }) => a.file).sort()).toEqual([
+      'assets/a2.png',
+      'assets/風景/a1.png',
+    ])
+    expect(project.assetFolders).toEqual([{ id: 'f1', name: '風景', collapsed: false }])
+  })
+
+  it('フォルダ名を変えると素材を移し、空になったフォルダは残さない', async () => {
+    const dir = makeDir('work')
+    fake.picked = dir
+    useEditorStore.setState({
+      assets: [meta('a1', 'f1')],
+      assetFolders: [{ id: 'f1', name: '風景', collapsed: false }],
+    })
+    seedAsset('a1', new Blob(['a1']))
+    await openProjectFolder(agree)
+
+    await useEditorStore.getState().renameAssetFolder('f1', '人物')
+    fake.writeLog = []
+    await saveProjectFolder(agree)
+
+    expect(assetPathsOf(dir)).toEqual(['人物/a1.png'])
+    expect(fake.writeLog).toEqual(['人物/a1.png', 'project.json'])
+    expect(dir.dirs.get('assets')?.dirs.has('風景')).toBe(false)
+  })
+
+  it('フォルダ分けしたまま読み込み直せる', async () => {
+    const dir = makeDir('work')
+    fake.picked = dir
+    useEditorStore.setState({
+      assets: [meta('a1', 'f1')],
+      assetFolders: [{ id: 'f1', name: '風景', collapsed: false }],
+    })
+    seedAsset('a1', new Blob(['a1']))
+    await openProjectFolder(agree)
+
+    useEditorStore.setState({ assets: [], assetFolders: [] })
+    fake.current = null
+    await openProjectFolder(agree)
+
+    const state = useEditorStore.getState()
+    expect(state.assetFolders.map((f) => f.name)).toEqual(['風景'])
+    expect(state.assets[0].folderId).toBe('f1')
+    expect(await (blobs.get('a1') as Blob).text()).toBe('a1')
   })
 
   it('素材が変わらなければ画像を書き直さない', async () => {

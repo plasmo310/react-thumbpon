@@ -1,4 +1,5 @@
 import type { CSSProperties } from 'react'
+import { DEFAULT_CROP, type Crop } from './crop'
 import { DEFAULT_EFFECTS, effectsFilter, type Effects } from './effects'
 import { createId } from './id'
 import { BUILTIN_FONTS } from './font'
@@ -27,6 +28,10 @@ export type ImageLayer = LayerBase & {
   type: 'image'
   assetId: string
   height: number
+  /** 表示する範囲。素材のどこを切り落とすかを割合で持つ */
+  crop: Crop
+  /** 左右反転。枠は動かさず中身だけを鏡像にする */
+  flipX: boolean
 }
 
 /** テキストは height を持たず内容に応じて伸びる */
@@ -109,7 +114,14 @@ export function createImageLayer(
   assetId: string,
   rect: { x: number; y: number; width: number; height: number },
 ): ImageLayer {
-  return { ...createLayerBase(name), type: 'image', assetId, ...rect }
+  return {
+    ...createLayerBase(name),
+    type: 'image',
+    assetId,
+    crop: { ...DEFAULT_CROP },
+    flipX: false,
+    ...rect,
+  }
 }
 
 /**
@@ -141,15 +153,24 @@ export function createTextLayer(canvas: CanvasSize): TextLayer {
 }
 
 /**
+ * レイヤーを、入れ子のフィールドまで作り直して複製する。
+ * 位置も名前もそのままなので、サムネイルごと複製するときに使う。
+ *
+ * @param source 複製元のレイヤー。effects / crop は共有せず作り直す
+ */
+export function copyLayer(source: Layer): Layer {
+  const copy = { ...source, id: createId(), effects: { ...source.effects } }
+  return copy.type === 'image' ? { ...copy, crop: { ...copy.crop } } : copy
+}
+
+/**
  * レイヤーを複製する。重なって見えないよう少しずらす。
  *
  * @param source 複製元のレイヤー
  */
 export function cloneLayer(source: Layer): Layer {
   return {
-    ...source,
-    id: createId(),
-    effects: { ...source.effects },
+    ...copyLayer(source),
     name: `${source.name} のコピー`,
     x: source.x + 24,
     y: source.y + 24,
@@ -188,6 +209,21 @@ export function layerStyle(layer: Layer): CSSProperties {
     filter: effectsFilter(layer.effects),
     pointerEvents: layer.locked ? 'none' : 'auto',
     cursor: layer.locked ? 'default' : 'move',
+  }
+}
+
+/**
+ * 画像レイヤーの中身を入れる層。レイヤーの枠いっぱいに広げ、左右反転をここで掛ける。
+ * レイヤー自体に反転を掛けないのは、影や光彩の向きまで一緒に反転してしまうため
+ * （エフェクトは枠の側に掛かっている）。
+ *
+ * @param layer 対象の画像レイヤー
+ */
+export function imageFrameStyle(layer: ImageLayer): CSSProperties {
+  return {
+    position: 'absolute',
+    inset: 0,
+    transform: layer.flipX ? 'scaleX(-1)' : undefined,
   }
 }
 

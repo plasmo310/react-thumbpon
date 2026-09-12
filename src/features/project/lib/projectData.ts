@@ -1,7 +1,9 @@
+import { normalizeAssets } from '@/domain/asset'
 import { assetPath, collectUsedFonts, findMissingFonts } from '@/domain/project'
 import { getAssetBlob, replaceAssets } from '@/shared/lib/storage/assetRepo'
 import { useEditorStore } from '@/app/store'
-import type { AssetPayload } from '../types'
+import type { AssetPayload, AssetReference } from '../types'
+import type { AssetMeta } from '@/domain/asset'
 import type { ProjectAssetEntry, ProjectFile } from '@/domain/project'
 
 /**
@@ -9,12 +11,12 @@ import type { ProjectAssetEntry, ProjectFile } from '@/domain/project'
  * 実体を失っているメタは黙って読み飛ばす（メタだけ残っていても復元できないため）。
  */
 export async function collectAssetPayloads(): Promise<AssetPayload[]> {
-  const { assets } = useEditorStore.getState()
+  const { assets, assetFolders } = useEditorStore.getState()
   const payloads: AssetPayload[] = []
   for (const meta of assets) {
     const blob = await getAssetBlob(meta.id)
     if (!blob) continue
-    payloads.push({ meta, blob, path: assetPath(meta) })
+    payloads.push({ meta, blob, path: assetPath(meta, assetFolders) })
   }
   return payloads
 }
@@ -22,22 +24,31 @@ export async function collectAssetPayloads(): Promise<AssetPayload[]> {
 /**
  * 現在の状態から保存する中身を組み立てる。ZIP とワークスペースフォルダで共通。
  *
- * @param payloads collectAssetPayloads() の結果。素材の参照はここから作る
+ * @param payloads 書き出す素材。素材の参照（メタと格納先パス）はここから作る。
+ *                 実体を持たないもの（既にコンテナ側にあるファイル）も渡せる
  */
-export function buildProjectFile(payloads: AssetPayload[]): ProjectFile {
-  const { folders, thumbnails, currentThumbnailId, textPresets, backgroundPresets, fonts } =
-    useEditorStore.getState()
+export function buildProjectFile(payloads: AssetReference[]): ProjectFile {
+  const {
+    folders,
+    thumbnails,
+    currentThumbnailId,
+    textPresets,
+    backgroundPresets,
+    fonts,
+    assetFolders,
+  } = useEditorStore.getState()
   const entries: ProjectAssetEntry[] = payloads.map(({ meta, path }) => ({ meta, file: path }))
 
   return {
     format: 'thumbpon-project',
-    version: 3,
+    version: 4,
     folders,
     thumbnails,
     currentThumbnailId,
     textPresets,
     backgroundPresets,
     assets: entries,
+    assetFolders,
     fonts: collectUsedFonts(thumbnails, fonts),
   }
 }
@@ -65,15 +76,30 @@ export function isProjectFile(value: unknown): value is ProjectFile {
  * @param blobs   素材の実体。素材の id で引ける形で渡す
  */
 export async function applyProjectFile(project: ProjectFile, blobs: Map<string, Blob>) {
-  const entries = project.assets
-    .filter((asset) => blobs.has(asset.meta.id))
-    .map((asset) => ({ meta: asset.meta, blob: blobs.get(asset.meta.id) as Blob }))
+  const assetFolders = project.assetFolders ?? []
+  const entries: { meta: AssetMeta; blob: Blob }[] = []
+  const lost: string[] = []
 
-  const assets = await replaceAssets(entries)
+  for (const asset of project.assets) {
+    /*
+     * コンテナ側に実体が無くても、同じ id の画像が IndexedDB に残っているならそれを使う。
+     * 読み込みは replaceAssets で素材をまるごと入れ替えるので、ここで拾わないと
+     * 「確かめられなかっただけ」の素材まで消えてしまう。
+     */
+    const blob = blobs.get(asset.meta.id) ?? (await getAssetBlob(asset.meta.id))
+    if (blob) entries.push({ meta: asset.meta, blob })
+    else lost.push(asset.meta.name)
+  }
+
+  const assets = await replaceAssets(entries, assetFolders)
   const store = useEditorStore.getState()
   useEditorStore.setState({
-    assets,
+    // 素材フォルダを持たない頃のファイルもあるので、参照先の無いフォルダ指定は落とす
+    assets: normalizeAssets(assets, assetFolders),
+    assetFolders,
     missingFontLabels: findMissingFonts(project.fonts, store.fonts),
+    // 黙って落とすと画像が消えた理由が分からないので、名前で知らせる
+    missingAssetNames: lost,
   })
   store.loadProject({
     folders: project.folders,

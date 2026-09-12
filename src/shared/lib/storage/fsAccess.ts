@@ -10,10 +10,11 @@ const HANDLE_KEY = 'handle:workspace'
  */
 type PermissionOptions = { mode: 'read' | 'readwrite' }
 type DirectoryHandle = FileSystemDirectoryHandle & {
-  keys: () => AsyncIterableIterator<string>
+  entries: () => AsyncIterableIterator<[string, FileSystemHandle]>
   queryPermission: (options: PermissionOptions) => Promise<PermissionState>
   requestPermission: (options: PermissionOptions) => Promise<PermissionState>
 }
+
 type WindowWithPicker = Window & {
   showDirectoryPicker?: (options?: {
     mode?: 'read' | 'readwrite'
@@ -155,26 +156,37 @@ export async function writeFile(
   }
 }
 
+/** フォルダ直下の1項目。ファイルとフォルダを見分けるために kind を持つ */
+export type DirectoryEntry = { name: string; kind: 'file' | 'directory' }
+
 /**
- * フォルダ直下の名前を列挙する。保存時に「既にあるファイル」を知るために使う。
+ * フォルダ直下の項目を列挙する。保存時に「既にあるもの」を知るために使う。
+ * 素材はフォルダ分けされるので、ファイルと子フォルダを見分けられる形で返す。
  *
  * @param dir 対象のフォルダ
  */
-export async function listNames(dir: DirectoryHandle): Promise<Set<string>> {
-  const names = new Set<string>()
-  for await (const name of dir.keys()) names.add(name)
-  return names
+export async function listEntries(dir: DirectoryHandle): Promise<DirectoryEntry[]> {
+  const entries: DirectoryEntry[] = []
+  for await (const [name, handle] of dir.entries()) {
+    entries.push({ name, kind: handle.kind === 'directory' ? 'directory' : 'file' })
+  }
+  return entries
 }
 
 /**
- * ファイルを消す。無い場合は何もしない。
+ * ファイルかフォルダを消す。無い場合は何もしない。
  *
- * @param dir  対象のフォルダ
- * @param name 消すファイル名
+ * @param dir       対象のフォルダ
+ * @param name      消す項目の名前
+ * @param recursive フォルダを中身ごと消すか。false のとき、空でないフォルダは消せない
  */
-export async function removeFile(dir: DirectoryHandle, name: string): Promise<void> {
+export async function removeEntry(
+  dir: DirectoryHandle,
+  name: string,
+  recursive = false,
+): Promise<void> {
   try {
-    await dir.removeEntry(name)
+    await dir.removeEntry(name, { recursive })
   } catch (error) {
     if (error instanceof DOMException && error.name === 'NotFoundError') return
     throw error

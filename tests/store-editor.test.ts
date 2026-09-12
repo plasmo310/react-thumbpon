@@ -1,8 +1,9 @@
 import { beforeEach, describe, expect, it } from 'vitest'
-import { createTextLayer } from '@/domain/layer'
+import { createImageLayer, createTextLayer } from '@/domain/layer'
 import { createThumbnail } from '@/domain/thumbnail'
 import { useEditorStore } from '@/app/store'
 import { BACKGROUND_ID } from '@/domain/background'
+import type { ImageLayer } from '@/domain/layer'
 import type { Thumbnail } from '@/domain/thumbnail'
 
 /** 名前で追えるようにした、中身の無いテキストレイヤー */
@@ -71,17 +72,60 @@ describe('reorderLayer', () => {
 describe('moveLayer', () => {
   beforeEach(() => withLayers(['a', 'b', 'c']))
 
-  it('1 で前面へ、-1 で背面へ隣と入れ替える', () => {
-    useEditorStore.getState().moveLayer(idOf('a'), 1)
+  it('forward で前面へ、backward で背面へ隣と入れ替える', () => {
+    useEditorStore.getState().moveLayer(idOf('a'), 'forward')
     expect(order()).toEqual(['b', 'a', 'c'])
-    useEditorStore.getState().moveLayer(idOf('a'), -1)
+    useEditorStore.getState().moveLayer(idOf('a'), 'backward')
+    expect(order()).toEqual(['a', 'b', 'c'])
+  })
+
+  it('front / back で端まで送る', () => {
+    useEditorStore.getState().moveLayer(idOf('a'), 'front')
+    expect(order()).toEqual(['b', 'c', 'a'])
+    useEditorStore.getState().moveLayer(idOf('a'), 'back')
     expect(order()).toEqual(['a', 'b', 'c'])
   })
 
   it('端では何もしない', () => {
-    useEditorStore.getState().moveLayer(idOf('a'), -1)
-    useEditorStore.getState().moveLayer(idOf('c'), 1)
+    useEditorStore.getState().moveLayer(idOf('a'), 'backward')
+    useEditorStore.getState().moveLayer(idOf('a'), 'back')
+    useEditorStore.getState().moveLayer(idOf('c'), 'forward')
+    useEditorStore.getState().moveLayer(idOf('c'), 'front')
     expect(order()).toEqual(['a', 'b', 'c'])
+  })
+})
+
+describe('updateLayerCrop', () => {
+  /** 画像レイヤー1枚だけの状態にして、その id を返す */
+  function withImage() {
+    const layer = createImageLayer('a1.png', 'a1', { x: 0, y: 0, width: 100, height: 100 })
+    const thumbnail: Thumbnail = { ...createThumbnail('サムネイル 1'), layers: [layer] }
+    useEditorStore.setState({ thumbnails: [thumbnail], currentThumbnailId: thumbnail.id })
+    return layer.id
+  }
+
+  /** 現在の画像レイヤー */
+  const image = () => useEditorStore.getState().thumbnails[0].layers[0] as ImageLayer
+
+  it('指定した辺だけを変える（入れ子なので専用の口を通す）', () => {
+    const id = withImage()
+    useEditorStore.getState().updateLayerCrop(id, { top: 0.2 })
+    useEditorStore.getState().updateLayerCrop(id, { left: 0.1 })
+    expect(image().crop).toEqual({ top: 0.2, right: 0, bottom: 0, left: 0.1 })
+  })
+
+  it('枠も一緒に詰める（キャンバスで端を掴んだとき）', () => {
+    const id = withImage()
+    useEditorStore.getState().updateLayerCrop(id, { left: 0.25 }, { x: 25, width: 75 })
+    expect(image()).toMatchObject({ x: 25, width: 75 })
+    expect(image().crop.left).toBe(0.25)
+  })
+
+  it('画像以外のレイヤーには効かない', () => {
+    withLayers(['a'])
+    const id = idOf('a')
+    useEditorStore.getState().updateLayerCrop(id, { top: 0.5 })
+    expect(useEditorStore.getState().thumbnails[0].layers[0]).not.toHaveProperty('crop')
   })
 })
 
@@ -101,6 +145,25 @@ describe('removeLayer', () => {
     useEditorStore.getState().select(selected)
     useEditorStore.getState().removeLayer(idOf('b'))
     expect(useEditorStore.getState().selectedId).toBe(selected)
+  })
+})
+
+describe('openLayerMenu', () => {
+  beforeEach(() => withLayers(['a', 'b']))
+
+  it('対象を選んでから、出す位置を控える', () => {
+    const id = idOf('b')
+    useEditorStore.getState().openLayerMenu(id, 120, 240)
+    const state = useEditorStore.getState()
+    // どのレイヤーへの操作なのかが見て分かるよう、選択も移す
+    expect(state.selectedId).toBe(id)
+    expect(state.layerMenu).toEqual({ layerId: id, x: 120, y: 240 })
+  })
+
+  it('閉じると消える', () => {
+    useEditorStore.getState().openLayerMenu(idOf('a'), 0, 0)
+    useEditorStore.getState().closeLayerMenu()
+    expect(useEditorStore.getState().layerMenu).toBeNull()
   })
 })
 

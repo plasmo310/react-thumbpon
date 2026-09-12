@@ -54,7 +54,12 @@ export async function restoreWorkspace() {
  */
 export async function newProject() {
   await replaceAssets([])
-  useEditorStore.setState({ assets: [], missingFontLabels: [] })
+  useEditorStore.setState({
+    assets: [],
+    assetFolders: [],
+    missingFontLabels: [],
+    missingAssetNames: [],
+  })
   useEditorStore.getState().loadProject({
     folders: [],
     thumbnails: [],

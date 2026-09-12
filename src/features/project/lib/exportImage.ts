@@ -1,4 +1,5 @@
 import { toPng } from 'html-to-image'
+import { sanitizePathName } from '@/domain/project'
 import { downloadDataUrl } from './download'
 import { getSurface } from '@/shared/lib/surfaceRef'
 import type { CanvasSize } from '@/domain/thumbnail'
@@ -9,12 +10,7 @@ import type { CanvasSize } from '@/domain/thumbnail'
  * @param name サムネイルの名前。空になったら 'thumbpon' で代替する
  */
 function toFileName(name: string): string {
-  const cleaned = name
-    .replace(/[\\/:*?"<>|]/g, '')
-    .replace(/\s+/g, ' ')
-    .replace(/^\.+/, '')
-    .trim()
-  return cleaned || 'thumbpon'
+  return sanitizePathName(name) || 'thumbpon'
 }
 
 /**

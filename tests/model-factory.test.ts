@@ -1,6 +1,13 @@
 import { describe, expect, it } from 'vitest'
 import { createId } from '@/domain/id'
-import { cloneLayer, createImageLayer, createTextLayer, extractTextStyle } from '@/domain/layer'
+import {
+  cloneLayer,
+  createImageLayer,
+  createTextLayer,
+  extractTextStyle,
+  imageFrameStyle,
+} from '@/domain/layer'
+import { DEFAULT_CROP } from '@/domain/crop'
 import { DEFAULT_CANVAS, cloneThumbnail, createThumbnail } from '@/domain/thumbnail'
 import { TEXT_STYLE_KEYS, type TextLayer } from '@/domain/layer'
 import { CANVAS_PRESETS } from '@/domain/thumbnail'
@@ -92,7 +99,22 @@ describe('createImageLayer', () => {
       opacity: 1,
       visible: true,
       locked: false,
+      crop: DEFAULT_CROP,
+      flipX: false,
     })
+  })
+})
+
+describe('imageFrameStyle', () => {
+  const layer = () => createImageLayer('a.png', 'asset-1', { x: 0, y: 0, width: 100, height: 100 })
+
+  it('枠いっぱいに広げる', () => {
+    expect(imageFrameStyle(layer())).toMatchObject({ position: 'absolute', inset: 0 })
+  })
+
+  it('反転は中身の層にだけ掛ける（影の向きまで反転させないため）', () => {
+    expect(imageFrameStyle(layer()).transform).toBeUndefined()
+    expect(imageFrameStyle({ ...layer(), flipX: true }).transform).toBe('scaleX(-1)')
   })
 })
 

@@ -1,16 +1,19 @@
 import { describe, expect, it } from 'vitest'
 import {
+  assetFolderDirName,
   assetPath,
   collectUsedFonts,
   extensionFor,
   findMissingFonts,
   normalizeThumbnails,
+  sanitizePathName,
 } from '@/domain/project'
-import type { AssetMeta } from '@/domain/asset'
+import type { AssetFolder, AssetMeta } from '@/domain/asset'
 import { DEFAULT_BACKGROUND } from '@/domain/background'
+import { DEFAULT_CROP } from '@/domain/crop'
 import { DEFAULT_EFFECTS } from '@/domain/effects'
 import type { FontEntry } from '@/domain/font'
-import type { TextLayer } from '@/domain/layer'
+import type { ImageLayer, TextLayer } from '@/domain/layer'
 import type { Thumbnail } from '@/domain/thumbnail'
 
 const meta = (over: Partial<AssetMeta>): AssetMeta => ({
@@ -20,6 +23,7 @@ const meta = (over: Partial<AssetMeta>): AssetMeta => ({
   width: 10,
   height: 10,
   createdAt: 0,
+  folderId: null,
   ...over,
 })
 
@@ -57,6 +61,8 @@ const thumbnail = (layers: Thumbnail['layers']): Thumbnail => ({
   layers,
 })
 
+const folder = (id: string, name: string): AssetFolder => ({ id, name, collapsed: false })
+
 const fonts: FontEntry[] = [
   { id: 'noto', family: '"Noto Sans JP", sans-serif', label: 'Noto Sans JP', source: 'builtin' },
   { id: 'file:Mine', family: '"Mine"', label: 'Mine', source: 'file' },
@@ -78,9 +84,44 @@ describe('extensionFor', () => {
   })
 })
 
+describe('sanitizePathName', () => {
+  it('OS が受け付けない文字を落とす', () => {
+    expect(sanitizePathName('a/b:c*d?e"f<g>h|i\j')).toBe('abcdefghij')
+  })
+
+  it('前後の空白とドットを落とす（Windows で作れない名前になるため）', () => {
+    expect(sanitizePathName('  ..風景.  ')).toBe('風景')
+  })
+
+  it('使える文字が残らなければ空になる（代替名は呼び出し側の責任）', () => {
+    expect(sanitizePathName('///')).toBe('')
+  })
+})
+
+describe('assetFolderDirName', () => {
+  it('名前をそのままフォルダ名に使う', () => {
+    expect(assetFolderDirName(folder('f1', '背景 素材'))).toBe('背景 素材')
+  })
+
+  it('名前が使えない文字だけなら id で代替する', () => {
+    expect(assetFolderDirName(folder('f1', '??'))).toBe('f1')
+  })
+})
+
 describe('assetPath', () => {
-  it('assets/ 直下に id + 拡張子で置く', () => {
+  it('未分類は assets/ 直下に id + 拡張子で置く', () => {
     expect(assetPath(meta({ id: 'abc' }))).toBe('assets/abc.png')
+  })
+
+  it('フォルダに入っているものはフォルダ名で分ける', () => {
+    const folders = [folder('f1', '風景')]
+    expect(assetPath(meta({ id: 'abc', folderId: 'f1' }), folders)).toBe('assets/風景/abc.png')
+  })
+
+  it('無くなったフォルダを指していたら assets/ 直下に戻す', () => {
+    expect(assetPath(meta({ id: 'abc', folderId: 'gone' }), [folder('f1', '風景')])).toBe(
+      'assets/abc.png',
+    )
   })
 })
 
@@ -147,5 +188,28 @@ describe('normalizeThumbnails', () => {
     const layer = { ...textLayer('"Mine"'), effects: { ...DEFAULT_EFFECTS, blur: 8 } }
     const [normalized] = normalizeThumbnails([thumbnail([layer])])
     expect(normalized.layers[0].effects.blur).toBe(8)
+  })
+
+  it('クロップと左右反転を持たない画像レイヤーを既定値で補う', () => {
+    const legacy = {
+      id: 'im1',
+      name: 'image',
+      type: 'image',
+      assetId: 'a1',
+      x: 0,
+      y: 0,
+      width: 100,
+      height: 100,
+      rotation: 0,
+      opacity: 1,
+      visible: true,
+      locked: false,
+      effects: DEFAULT_EFFECTS,
+    } as ImageLayer
+    const [normalized] = normalizeThumbnails([thumbnail([legacy])])
+    expect(normalized.layers[0] as ImageLayer).toMatchObject({
+      crop: DEFAULT_CROP,
+      flipX: false,
+    })
   })
 })

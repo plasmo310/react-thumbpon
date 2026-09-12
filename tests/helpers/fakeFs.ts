@@ -82,12 +82,21 @@ export const readFile = async (dir: unknown, name: string) => {
 
 export const writeFile = async (dir: unknown, name: string, data: Blob | string) => {
   const target = asDir(dir)
-  fake.writeLog.push(target.name === 'assets' ? `assets/${name}` : name)
+  // 接続中のフォルダ直下は名前だけ、子フォルダの中は 'フォルダ名/ファイル名' で残す
+  fake.writeLog.push(target === fake.current ? name : `${target.name}/${name}`)
   target.files.set(name, typeof data === 'string' ? new Blob([data]) : data)
 }
 
-export const listNames = async (dir: unknown) => new Set(asDir(dir).files.keys())
+export const listEntries = async (dir: unknown) => {
+  const target = asDir(dir)
+  return [
+    ...[...target.files.keys()].map((name) => ({ name, kind: 'file' as const })),
+    ...[...target.dirs.keys()].map((name) => ({ name, kind: 'directory' as const })),
+  ]
+}
 
-export const removeFile = async (dir: unknown, name: string) => {
-  asDir(dir).files.delete(name)
+export const removeEntry = async (dir: unknown, name: string) => {
+  const target = asDir(dir)
+  target.files.delete(name)
+  target.dirs.delete(name)
 }

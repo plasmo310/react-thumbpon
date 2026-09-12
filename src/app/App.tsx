@@ -6,6 +6,7 @@ import { WorkspaceNotice } from '@/features/project'
 import { LayerPanel } from '@/features/layer'
 import { ThumbnailPanel } from '@/features/thumbnail'
 import { Splitter } from '@/shared/ui'
+import { LayerMenu } from '@/app/LayerMenu'
 import styles from './styles.module.css'
 import { clamp } from '@/domain/geometry'
 import { loadPanelLayout, savePanelLayout } from '@/app/panelLayout'
@@ -96,6 +97,9 @@ export function App() {
 
         <CanvasStage />
       </div>
+
+      {/* レイヤー一覧とキャンバスの両方から出すので、ここで1つだけ描く */}
+      <LayerMenu />
     </div>
   )
 }

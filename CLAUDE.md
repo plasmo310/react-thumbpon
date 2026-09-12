@@ -34,10 +34,11 @@ domain  →  shared  →  app/store  →  features  →  app
 ```
 src/
   styles.css       トークンとリセット（唯一のグローバルCSS）
-  app/             main / App / shortcuts / panelLayout / store（Zustand と8つの slice）
+  app/             main / App / shortcuts / LayerMenu / panelLayout /
+                   store（Zustand と8つの slice）
   domain/          UIに依存しない型と純粋な計算。entity ごとに分ける
-                   id / asset / font / effects / background / layer / thumbnail /
-                   preset / project / geometry
+                   id / asset / font / effects / crop / background / layer /
+                   thumbnail / preset / project / geometry
   features/        thumbnail / layer / canvas / asset / project
                    中は components / hooks / lib の3分類まで（無い種類は作らない）
                    types.ts / styles.module.css / index.ts は feature 直下
@@ -66,6 +67,10 @@ import、使われていない export はテストで落ちるので、散文の
   `LayerPanel` が `BackgroundProperties` を直接埋めている
 - **フォントの UI も layer**。テキストのプロパティ欄にしか出ない
 - **`shortcuts.ts` は app**。Ctrl+S（project）と Delete/矢印（layer）の両方を扱う
+- **右クリックメニュー（`app/LayerMenu.tsx`）も app**。レイヤー一覧（layer）とキャンバス
+  （canvas）の両方から同じメニューを出すため、どちらの feature にも置けない。
+  各 feature は `openLayerMenu(id, clientX, clientY)` でストアに伝えるだけで、
+  App が `<LayerMenu />` を1つだけ描く
 
 ### ストアは feature に分けない（意図的）
 
@@ -85,6 +90,14 @@ slice を feature 側に置くと `app/store` が `features/*` を import して
   PNG 書き出しは `transform: none` を渡すだけで実寸になる。
 - **レイヤーの重なり順は配列順**（index 0 が最背面）。`zIndex` フィールドは無い。
   レイヤーパネルも配列順に上から並べるので、**一覧の下にあるものが前面**。
+- **画像のクロップは各辺から切り落とす割合**（0..1）で持つ（`domain/crop.ts`）。素材の実寸に
+  依存しないのでレイヤーを拡大縮小しても崩れない。描画は画像側を `%` で広げてずらし、
+  レイヤーの枠を `overflow: hidden` で切るだけ（CSS だけなので書き出しでも劣化しない）。
+  端を掴んだクロップ（`cropByHandle`）は**枠とクロップを同時に動かす**。枠だけ縮めると
+  中身が伸びてしまい、トリミングにならないため。
+- **画像の左右反転は「中身の層」に掛ける**（`imageFrameStyle`）。レイヤー自体に
+  `scaleX(-1)` を掛けるとエフェクト（影・光彩）の向きまで反転してしまうため、
+  枠いっぱいの層を1つ挟んでそこで反転させる。クロップ後の見た目がそのまま鏡像になる。
 - **テキストレイヤーは `height` を持たない**（内容に応じて伸びる）。高さが要る箇所
   （選択枠・スナップ）は `[data-layer-id]` の `offsetHeight` から実測する。実測の入口は
   `features/canvas/layerRect.ts` に集約してあるので、DOMを直接引かずこれを使う。
@@ -103,7 +116,8 @@ slice を feature 側に置くと `app/store` が `features/*` を import して
 - **繰り返し出てくる定型は `shared/` に共通化済み**。書き直さずにこれらを使う。
   `useDropTarget`（ドロップ受け）/ `useAsyncAction`（busy + try/catch + 通知）/
   `dnd.ts`（`DND_TYPE` / `hasDragType`）/ `notify.ts` / `download.ts` / `cx.ts`、
-  UI 側は `Panel` / `Button` / `SliderRow` / `PercentRow` / `InlineName` / `useFilePicker`。
+  UI 側は `Panel` / `Button` / `SliderRow` / `PercentRow` / `InlineName` /
+  `useFilePicker` / `ContextMenu`（項目と画面座標を渡すだけの右クリックメニュー）。
 
 ## 注意点
 
@@ -152,8 +166,24 @@ slice を feature 側に置くと `app/store` が `features/*` を import して
   書き出しでも劣化せず、素材の管理も要らないため。**素材を使う敷き詰め（タイル）は
   パターンではなく背景「画像」の敷き方**（`fit: 'tile'`）に置く。タイルは模様の形ではなく
   1枚の画像の敷き方で、cover / contain と同じ軸のため。素材の参照は `assetId` ひとつ。
-- **`effects` は入れ子フィールドなので浅いマージでは潰れる。** 更新には専用の口
-  （レイヤーは `updateLayerEffects`、背景は `setBackgroundEffects`）を使うこと。
+- **`effects` と `crop` は入れ子フィールドなので浅いマージでは潰れる。** 更新には専用の口
+  （レイヤーは `updateLayerEffects` / `updateLayerCrop`、背景は `setBackgroundEffects`）を
+  使うこと。`updateLayerCrop` は枠（x/y/width/height）も一緒に渡せるようにしてある。
+- **素材のフォルダは「書き出し先のパス」に出る。** `assetPath(meta, folders)` が
+  `assets/<フォルダ名>/<id>.<ext>` を返し、ZIP とワークスペースフォルダの両方で同じ形になる。
+  フォルダ名はそのままディレクトリ名になるので `sanitizePathName()` を必ず通すこと
+  （PNG のファイル名も同じ関数を使う）。
+- **保存と復元は「確かめられないもの」を消さない。** 素材ファイルは必ず `<id>.<拡張子>`
+  なので、`assetIdFromPath()` で id を引ける。読み込みは書かれていたパス →
+  同じ id のファイル → IndexedDB の実体、の順に拾い直す（フォルダ名を OS 側で
+  変えられても失わないため）。保存側も、実体を取り出せなかった素材のファイルは
+  消さず参照も残す。`applyProjectFile` は素材をまるごと入れ替えるので、
+  ここで拾い落とすと実体まで消える。どちらにも無かったものは
+  `missingAssetNames` に入れて通知帯で名前を出す（`missingFontLabels` と同じ形）。
+- **素材フォルダの保存先はプロジェクトではなく素材と同じ場所**（IndexedDB の `meta:folders`）。
+  素材の実体がプロジェクトと独立して溜まるのと同じ扱いにしてある。project.json には
+  `assetFolders` として書き出し、読み込み時は `normalizeAssets()` で
+  無くなったフォルダを指す素材を未分類に落とす。
 - **後から増えたフィールドは `domain/project.ts` の `normalizeThumbnails` で補う。**
   `loadProject` が必ず通すので、読み込み後は「必ず在る」前提で書いてよい。
 

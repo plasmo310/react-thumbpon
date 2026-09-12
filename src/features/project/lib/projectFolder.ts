@@ -3,16 +3,17 @@ import {
   clearHandle,
   getCurrentDirectory,
   getSubDirectory,
-  listNames,
+  listEntries,
   loadHandle,
   pickDirectory,
   readFile,
-  removeFile,
+  removeEntry,
   saveHandle,
   setCurrentDirectory,
   verifyPermission,
   writeFile,
 } from '@/shared/lib/storage/fsAccess'
+import { assetIdFromPath } from '@/domain/project'
 import { useEditorStore } from '@/app/store'
 import {
   applyProjectFile,
@@ -26,8 +27,105 @@ const ASSETS_DIR = 'assets'
 
 type Directory = NonNullable<ReturnType<typeof getCurrentDirectory>>
 
-/** assets/<id>.png のうち、assets/ を除いた部分。フォルダ内ではこれがファイル名になる */
-const fileNameOf = (path: string) => path.slice(ASSETS_DIR.length + 1)
+/**
+ * パスの途中のフォルダをたどる。素材は素材フォルダごとに分かれるので、
+ * 'assets/風景/x.png' のように階層を持つパスをそのまま扱えるようにする。
+ *
+ * @param root   起点のフォルダ
+ * @param path   root からの相対パス。最後の要素はファイル名として扱い、たどらない
+ * @param create 途中のフォルダが無いときに作るか
+ * @returns ファイルを置くフォルダとファイル名。create が false で辿れなければ null
+ */
+async function resolvePath(
+  root: Directory,
+  path: string,
+  create: boolean,
+): Promise<{ dir: Directory; name: string } | null> {
+  const segments = path.split('/')
+  const name = segments.pop() as string
+  let dir = root
+  for (const segment of segments) {
+    const child = await getSubDirectory(dir, segment, create)
+    if (!child) return null
+    dir = child
+  }
+  return { dir, name }
+}
+
+/**
+ * 相対パスを指定してファイルを読む。
+ *
+ * @param root 起点のフォルダ
+ * @param path root からの相対パス
+ * @returns 無ければ null
+ */
+async function readAt(root: Directory, path: string): Promise<File | null> {
+  const found = await resolvePath(root, path, false)
+  return found ? readFile(found.dir, found.name) : null
+}
+
+/**
+ * 相対パスを指定してファイルを書く。途中のフォルダは作る。
+ *
+ * @param root 起点のフォルダ
+ * @param path root からの相対パス
+ * @param data 書き込む中身
+ */
+async function writeAt(root: Directory, path: string, data: Blob | string): Promise<void> {
+  const target = await resolvePath(root, path, true)
+  if (!target) throw new Error(`${path} を作成できませんでした`)
+  await writeFile(target.dir, target.name, data)
+}
+
+/**
+ * フォルダ配下のファイルを再帰的に列挙する。
+ *
+ * @param dir    対象のフォルダ
+ * @param prefix 返すパスに付ける接頭辞。呼び出し側からは省略する
+ * @returns dir からの相対パス
+ */
+async function listFilePaths(dir: Directory, prefix = ''): Promise<string[]> {
+  const paths: string[] = []
+  for (const entry of await listEntries(dir)) {
+    if (entry.kind === 'file') {
+      paths.push(prefix + entry.name)
+      continue
+    }
+    const child = await getSubDirectory(dir, entry.name, false)
+    if (child) paths.push(...(await listFilePaths(child, `${prefix}${entry.name}/`)))
+  }
+  return paths
+}
+
+/**
+ * ファイルが残っていない子フォルダを消す。
+ * フォルダ名を変えると前の名前のフォルダが空のまま残るため、保存のたびに掃除する。
+ *
+ * @param dir 対象のフォルダ
+ */
+async function pruneEmptyDirectories(dir: Directory): Promise<void> {
+  for (const entry of await listEntries(dir)) {
+    if (entry.kind !== 'directory') continue
+    const child = await getSubDirectory(dir, entry.name, false)
+    if (!child) continue
+    await pruneEmptyDirectories(child)
+    if ((await listEntries(child)).length === 0) await removeEntry(dir, entry.name)
+  }
+}
+
+/**
+ * assets/ に実際にあるファイルを、素材 id から引ける形にする。
+ * project.json に書かれたパスで読めなかったときの拾い直しに使う
+ * （フォルダの名前が変わっていても、ファイル名の id で元の素材に結び付く）。
+ *
+ * @param assetsDir assets/ のフォルダ。無ければ空の Map を返す
+ */
+async function indexAssetFiles(assetsDir: Directory | null): Promise<Map<string, string>> {
+  const byId = new Map<string, string>()
+  if (!assetsDir) return byId
+  for (const path of await listFilePaths(assetsDir)) byId.set(assetIdFromPath(path), path)
+  return byId
+}
 
 /**
  * フォルダの内容を読み込んで現在の状態を置き換える。
@@ -43,13 +141,16 @@ async function loadFrom(dir: Directory): Promise<boolean> {
   if (!isProjectFile(parsed)) throw new Error(`${PROJECT_JSON} がサムネぽんの形式ではありません`)
 
   const assetsDir = await getSubDirectory(dir, ASSETS_DIR, false)
+  const byId = await indexAssetFiles(assetsDir)
+
   const blobs = new Map<string, Blob>()
-  if (assetsDir) {
-    for (const asset of parsed.assets ?? []) {
-      if (!asset.file) continue
-      const entry = await readFile(assetsDir, fileNameOf(asset.file))
-      if (entry) blobs.set(asset.meta.id, entry)
-    }
+  for (const asset of parsed.assets ?? []) {
+    const recorded = asset.file ? await readAt(dir, asset.file) : null
+    // 書かれていたパスで読めなければ、同じ id のファイルを assets/ の中から拾い直す
+    const fallbackPath = byId.get(asset.meta.id)
+    const entry =
+      recorded ?? (assetsDir && fallbackPath ? await readAt(assetsDir, fallbackPath) : null)
+    if (entry) blobs.set(asset.meta.id, entry)
   }
 
   await applyProjectFile(parsed, blobs)
@@ -67,20 +168,40 @@ async function saveTo(dir: Directory) {
   const assetsDir = await getSubDirectory(dir, ASSETS_DIR, true)
   if (!assetsDir) throw new Error(`${ASSETS_DIR}/ を作成できませんでした`)
 
-  const existing = await listNames(assetsDir)
-  const wanted = new Set(payloads.map(({ path }) => fileNameOf(path)))
+  /** assets/<...> から assets/ を除いた、assets/ の中での相対パス */
+  const relative = (path: string) => path.slice(ASSETS_DIR.length + 1)
+
+  // 素材フォルダぶんの階層があるので、assets/ 配下を丸ごと見て増減を出す
+  const byId = await indexAssetFiles(assetsDir)
+  const existing = new Set(byId.values())
+  const wanted = new Set(payloads.map(({ path }) => relative(path)))
 
   for (const { blob, path } of payloads) {
-    const name = fileNameOf(path)
-    // 画像の中身は id に紐づいて変わらないので、既にあるなら書き直さない
-    if (existing.has(name)) continue
-    await writeFile(assetsDir, name, blob)
-  }
-  for (const name of existing) {
-    if (!wanted.has(name)) await removeFile(assetsDir, name)
+    // 画像の中身は id に紐づいて変わらないので、同じ場所に既にあるなら書き直さない
+    if (existing.has(relative(path))) continue
+    await writeAt(dir, path, blob)
   }
 
-  const project = buildProjectFile(payloads)
+  /*
+   * 実体を取り出せなかった素材は、フォルダ側のファイルが最後の1つかもしれない。
+   * 消さず、参照も残して次回の読み込みで拾えるようにする
+   * （消してしまうと、確かめられないものを失わせることになる）。
+   */
+  const written = new Set(payloads.map(({ meta }) => meta.id))
+  const surviving = useEditorStore
+    .getState()
+    .assets.filter((meta) => !written.has(meta.id) && byId.has(meta.id))
+    .map((meta) => ({ meta, path: `${ASSETS_DIR}/${byId.get(meta.id) as string}` }))
+  const kept = new Set(surviving.map(({ path }) => relative(path)))
+
+  for (const path of existing) {
+    if (wanted.has(path) || kept.has(path)) continue
+    const found = await resolvePath(assetsDir, path, false)
+    if (found) await removeEntry(found.dir, found.name)
+  }
+  await pruneEmptyDirectories(assetsDir)
+
+  const project = buildProjectFile([...payloads, ...surviving])
   await writeFile(dir, PROJECT_JSON, JSON.stringify(project, null, 2))
   useEditorStore.getState().markWorkspaceSaved()
 }

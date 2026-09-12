@@ -292,3 +292,44 @@
   padding: 6px var(--space-3);
   font-size: var(--font-body);
 }
+
+/* --- 右クリックメニュー。画面座標に置くので fixed --- */
+
+.menu {
+  position: fixed;
+  z-index: 100;
+  padding: var(--space-1);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius);
+  background: var(--color-panel);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 0.12);
+}
+
+.menuItem {
+  display: block;
+  width: 100%;
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius);
+  text-align: left;
+  font-size: var(--font-body);
+  color: var(--color-ink);
+}
+
+.menuItem:hover:not(:disabled) {
+  background: var(--color-accent-soft);
+  color: var(--color-accent);
+}
+
+.menuItem:disabled {
+  color: var(--color-ink-sub);
+  opacity: 0.5;
+  cursor: default;
+}
+
+/* 戻せない操作を離すための区切り */
+.menuItemSeparated {
+  margin-top: var(--space-1);
+  border-top: 1px solid var(--color-line);
+  padding-top: var(--space-2);
+  border-radius: 0;
+}

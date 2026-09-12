@@ -18,6 +18,7 @@ src/
     App.tsx            画面のレイアウト
     styles.module.css
     shortcuts.ts       画面全体のキーボード操作
+    LayerMenu.tsx      レイヤーの右クリックメニュー（layer と canvas の両方から出す）
     panelLayout.ts     パネル分割サイズの保存（App だけが使う）
     store/             Zustand。8つの slice もここ
 
@@ -99,6 +100,9 @@ domain  →  shared  →  app/store  →  features  →  app
   `LayerPanel` が `BackgroundProperties` を直接埋めている
 - **フォントの UI も layer**。テキストのプロパティ欄にしか出ない（実体は `shared/lib/storage/fontRepo.ts`）
 - **`shortcuts.ts` は app**。Ctrl+S（project）と Delete/矢印（layer）の両方を扱う
+- **`LayerMenu.tsx` も app**。レイヤー一覧（layer）とキャンバス（canvas）の両方から
+  同じ右クリックメニューを出すので、どちらの feature にも置けない。
+  feature 側は「どのレイヤーをどこで右クリックしたか」をストアに伝えるだけにする
 
 `features/project` は project / workspace / export を抱えているが、
 今のファイル数なら分けない。肥大化したら `project` / `workspace` / `export` への分割を検討する。
@@ -121,7 +125,7 @@ domain  →  shared  →  app/store  →  features  →  app
 `layer` には `hooks/` も `lib/` も無く、`project` には `hooks/` が無い。
 
 **ファイル数が少ない feature は無理にサブフォルダ化しない。**
-`asset`（1コンポーネント）と `thumbnail`（4コンポーネント）はフラットのまま。
+`asset`（3コンポーネント + フック1つ）と `thumbnail`（4コンポーネント）はフラットのまま。
 
 ```
 features/canvas/
@@ -133,6 +137,9 @@ features/canvas/
 
 features/asset/
   AssetPanel.tsx
+  AssetFolderZone.tsx
+  AssetTile.tsx
+  useAssetImport.ts
   styles.module.css
   index.ts
 ```
@@ -175,6 +182,8 @@ features/asset/
 domain/layer.ts      Layer / TextLayer / TextStyle + createTextLayer + layerStyle
 domain/background.ts Background + DEFAULT_BACKGROUND + backgroundArtStyle
 domain/effects.ts    Effects + DEFAULT_EFFECTS + effectsFilter
+domain/crop.ts       Crop + DEFAULT_CROP + cropImageStyle + cropByHandle
+domain/asset.ts      AssetMeta / AssetFolder + createAssetFolder + normalizeAssets
 ```
 
 ### feature ローカル
@@ -265,6 +274,7 @@ CSS に出せないため。色もトークンの外なので、ファイル先�
 | スライダー + 数値 | `shared/ui/SliderRow` / `PercentRow`（0..1 を % で見せる） |
 | 一覧の中で名前を打ち替える | `shared/ui/InlineName` |
 | 隠した file input | `shared/ui/useFilePicker` |
+| 右クリックメニュー | `shared/ui/ContextMenu`（項目と画面座標を渡す） |
 | id を振る | `domain/id`（`createId`） |
 
 ---
@@ -288,6 +298,10 @@ npm run test
 - ブラウザAPIに触るモジュール（`fsAccess` など）は `tests/helpers/` のメモリ実装を
   `vi.mock` で差し込む。**モックのパスがずれると Vitest は黙って無視する**ので、
   モジュールを移動したら必ずテストを走らせて確認する。
+- **モジュールごと差し替えると、そのモジュール自身は検証できない。** 保存まわりは
+  1段下（ブラウザが渡してくる側）を偽物にする helper も用意してある。
+  `fakeKv`（idb-keyval）と `fakeHandle`（File System Access の handle）を差し込めば、
+  `assetRepo` / `fsAccess` / 復元処理を本物のまま通せる（`tests/workspace-fs.test.ts`）。
 - 純粋関数（`domain/`）はそのまま呼べる。**ロジックは `domain/` に置くほどテストしやすい。**
 - `tests/architecture.test.ts` が層と feature の境界、未使用の export を検証している。
   新しい層やディレクトリを足したらここも更新する。

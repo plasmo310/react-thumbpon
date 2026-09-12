@@ -1,6 +1,7 @@
-import type { PointerEvent as ReactPointerEvent } from 'react'
+import type { MouseEvent as ReactMouseEvent, PointerEvent as ReactPointerEvent } from 'react'
 import { snapPosition } from '../lib/snap'
-import { layerStyle, textStyle } from '@/domain/layer'
+import { cropImageStyle } from '@/domain/crop'
+import { imageFrameStyle, layerStyle, textStyle } from '@/domain/layer'
 import type { Layer } from '@/domain/layer'
 import { getAssetUrl } from '@/shared/lib/storage/assetRepo'
 import { useCurrentThumbnail, useEditorStore } from '@/app/store'
@@ -19,12 +20,14 @@ const MISSING_FILL = '#FFF1EB'
 
 /**
  * キャンバス上に置かれたレイヤー1つ。座標もサイズも実寸で書き、表示の縮小は親が行う。
+ * 右クリックではレイヤー一覧と同じメニューを出す（中身は `app/LayerMenu` が持つ）。
  *
  * @param props.layer 描画するレイヤー
  * @param props.scale 表示倍率。ポインタの移動量を実寸に直すのと、スナップ距離の換算に使う
  */
 export function LayerView({ layer, scale }: { layer: Layer; scale: number }) {
   const select = useEditorStore((s) => s.select)
+  const openLayerMenu = useEditorStore((s) => s.openLayerMenu)
   const updateLayer = useEditorStore((s) => s.updateLayer)
   const snapEnabled = useEditorStore((s) => s.snapEnabled)
   const setGuides = useEditorStore((s) => s.setGuides)
@@ -74,19 +77,42 @@ export function LayerView({ layer, scale }: { layer: Layer; scale: number }) {
     )
   }
 
+  /*
+   * メニューの位置は画面座標で決まるので、キャンバスの実寸座標には直さず clientX/Y をそのまま渡す。
+   * ロック中のレイヤーは pointer-events を切ってあるので、ここには来ない。
+   */
+  const handleContextMenu = (event: ReactMouseEvent) => {
+    event.preventDefault()
+    event.stopPropagation()
+    openLayerMenu(layer.id, event.clientX, event.clientY)
+  }
+
   const base = layerStyle(layer)
 
   if (layer.type === 'image') {
     const url = getAssetUrl(layer.assetId)
     return (
-      <div data-layer-id={layer.id} style={base} onPointerDown={handlePointerDown}>
+      // クロップすると画像が枠より大きくなるので、枠の外に出た分はここで切る
+      <div
+        data-layer-id={layer.id}
+        style={{ ...base, overflow: 'hidden' }}
+        onPointerDown={handlePointerDown}
+        onContextMenu={handleContextMenu}
+      >
         {url ? (
-          <img
-            src={url}
-            alt=""
-            draggable={false}
-            style={{ width: '100%', height: '100%', objectFit: 'fill', display: 'block' }}
-          />
+          // 反転は枠いっぱいの層に掛ける。クロップ後の見た目がそのまま鏡像になる
+          <div style={imageFrameStyle(layer)}>
+            <img
+              src={url}
+              alt=""
+              draggable={false}
+              style={{
+                ...cropImageStyle(layer.crop),
+                objectFit: 'fill',
+                display: 'block',
+              }}
+            />
+          </div>
         ) : (
           <div
             style={{
@@ -106,6 +132,7 @@ export function LayerView({ layer, scale }: { layer: Layer; scale: number }) {
       data-layer-id={layer.id}
       style={{ ...base, ...textStyle(layer) }}
       onPointerDown={handlePointerDown}
+      onContextMenu={handleContextMenu}
     >
       {layer.text}
     </div>

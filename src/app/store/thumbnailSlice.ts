@@ -54,7 +54,7 @@ export const createThumbnailSlice: SliceCreator<ThumbnailSlice> = (set, get) => 
      *
      * @param id 切り替え先のサムネイルの id
      */
-    selectThumbnail: (id) => set({ currentThumbnailId: id, selectedId: null }),
+    selectThumbnail: (id) => set({ currentThumbnailId: id, selectedId: null, cropping: false }),
 
     /**
      * サムネイルを追加して、そのまま編集対象にする。
@@ -210,6 +210,7 @@ export const createThumbnailSlice: SliceCreator<ThumbnailSlice> = (set, get) => 
         thumbnails: list,
         currentThumbnailId: (wanted ?? list[0]).id,
         selectedId: null,
+        cropping: false,
         textPresets: textPresets ?? s.textPresets,
         backgroundPresets: backgroundPresets ?? s.backgroundPresets,
       }))

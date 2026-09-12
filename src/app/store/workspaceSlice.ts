@@ -16,11 +16,14 @@ export type WorkspaceSlice = {
   workspaceSavedAt: number | null
   /** 読み込んだプロジェクトが要求するのに、この環境で解決できなかったフォントの表示名 */
   missingFontLabels: string[]
+  /** 読み込んだプロジェクトに載っているのに、実体が見つからなかった素材のファイル名 */
+  missingAssetNames: string[]
 
   setWorkspace: (status: WorkspaceStatus, folderName: string | null) => void
   setWorkspaceDirty: (dirty: boolean) => void
   markWorkspaceSaved: () => void
   setMissingFontLabels: (labels: string[]) => void
+  setMissingAssetNames: (names: string[]) => void
 }
 
 /**
@@ -34,6 +37,7 @@ export const createWorkspaceSlice: SliceCreator<WorkspaceSlice> = (set) => ({
   workspaceDirty: false,
   workspaceSavedAt: null,
   missingFontLabels: [],
+  missingAssetNames: [],
 
   /**
    * 接続状態を差し替える。
@@ -60,4 +64,12 @@ export const createWorkspaceSlice: SliceCreator<WorkspaceSlice> = (set) => ({
    * @param labels 足りないフォントの表示名。空配列で告知を消す
    */
   setMissingFontLabels: (missingFontLabels) => set({ missingFontLabels }),
+
+  /**
+   * 実体が見つからなかった素材の告知を差し替える。
+   * 黙って落とすと画像が消えた理由が分からないので、名前で知らせる。
+   *
+   * @param names 見つからなかった素材のファイル名。空配列で告知を消す
+   */
+  setMissingAssetNames: (missingAssetNames) => set({ missingAssetNames }),
 })

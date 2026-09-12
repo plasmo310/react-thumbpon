@@ -19,7 +19,7 @@ function EffectToggle({
   onToggle: (enabled: boolean) => void
 }) {
   return (
-    <label className={styles.effectToggle}>
+    <label className={styles.toggle}>
       <input
         type="checkbox"
         className={styles.checkbox}
@@ -49,8 +49,8 @@ export function EffectsSection({
 
   return (
     <>
-      <div className={styles.effectsDivider} />
-      <span className={styles.effectsTitle}>エフェクト</span>
+      <div className={styles.divider} />
+      <span className={styles.sectionTitle}>エフェクト</span>
 
       <SliderRow
         label="ブラー"

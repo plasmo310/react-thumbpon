@@ -1,4 +1,5 @@
 import { strFromU8, strToU8, unzipSync, zipSync } from 'fflate'
+import { assetIdFromPath } from '@/domain/project'
 import { downloadBlob } from './download'
 import {
   applyProjectFile,
@@ -8,6 +9,7 @@ import {
 } from './projectData'
 
 const PROJECT_JSON = 'project.json'
+const ASSETS_DIR = 'assets'
 
 const stamp = () => new Date().toISOString().slice(0, 10)
 
@@ -77,11 +79,21 @@ export async function importProjectFile(file: File) {
 
   if (!isProjectFile(parsed)) throw new Error('サムネぽんのプロジェクトファイルではありません')
 
+  /*
+   * 書かれていたパスで引けなかったときの拾い直し用に、入っている素材を id で引けるようにする。
+   * フォルダ名を解凍時に変えられても、ファイル名の id で元の素材に結び付く。
+   */
+  const byId = new Map<string, Uint8Array>()
+  for (const name of Object.keys(unzipped ?? {})) {
+    if (!name.startsWith(`${prefix}${ASSETS_DIR}/`)) continue
+    byId.set(assetIdFromPath(name), (unzipped as Record<string, Uint8Array>)[name])
+  }
+
   const blobs = new Map<string, Blob>()
   for (const asset of parsed.assets ?? []) {
-    if (asset.file && unzipped) {
-      const bytes = unzipped[prefix + asset.file]
-      if (!bytes) continue
+    const recorded = asset.file ? unzipped?.[prefix + asset.file] : undefined
+    const bytes = recorded ?? byId.get(asset.meta.id)
+    if (bytes) {
       blobs.set(asset.meta.id, new Blob([bytes as BlobPart], { type: asset.meta.mime }))
     } else if (asset.dataUrl) {
       // 旧 .thumbpon.json は画像を dataURL で埋め込んでいる

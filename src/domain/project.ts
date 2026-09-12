@@ -1,5 +1,6 @@
-import type { AssetMeta } from './asset'
+import type { AssetFolder, AssetMeta } from './asset'
 import { DEFAULT_BACKGROUND } from './background'
+import { DEFAULT_CROP } from './crop'
 import { DEFAULT_EFFECTS } from './effects'
 import type { FontEntry } from './font'
 import type { BackgroundPreset, TextPreset } from './preset'
@@ -28,16 +29,19 @@ export type ProjectFontRef = {
 
 /**
  * プロジェクトファイル(.thumbpon.zip)とワークスペースフォルダの project.json の中身。
- * version 1 は fonts を、version 2 までは背景の模様設定とレイヤーのエフェクトを持たない。
+ * version 1 は fonts を、version 2 までは背景の模様設定とレイヤーのエフェクトを、
+ * version 3 までは素材フォルダと画像のクロップ・左右反転を持たない。
  * 読み込み側は無い前提で扱うこと（欠けは normalizeThumbnails が既定値で補う）。
  */
 export type ProjectFile = {
   format: 'thumbpon-project'
-  version: 1 | 2 | 3
+  version: 1 | 2 | 3 | 4
   folders: Folder[]
   thumbnails: Thumbnail[]
   currentThumbnailId: string | null
   assets: ProjectAssetEntry[]
+  /** 素材フォルダ。素材の格納先パスもこの名前で分かれる */
+  assetFolders?: AssetFolder[]
   textPresets?: TextPreset[]
   backgroundPresets?: BackgroundPreset[]
   fonts?: ProjectFontRef[]
@@ -62,12 +66,52 @@ export function extensionFor(meta: AssetMeta): string {
 }
 
 /**
- * 素材の格納先パス。ZIP のエントリ名とワークスペースフォルダ内のパスで共通に使う。
+ * OS のファイル名・フォルダ名として使えない文字を落とす。
+ * 前後の空白とドットまで落とすのは、Windows がその名前を作れないため。
  *
- * @param meta 素材のメタ情報
+ * @param name 元の名前。全部落ちて空になることがあるので、代替名は呼び出し側で用意する
  */
-export function assetPath(meta: AssetMeta): string {
-  return `assets/${meta.id}${extensionFor(meta)}`
+export function sanitizePathName(name: string): string {
+  return name
+    .replace(/[\\/:*?"<>|]/g, '')
+    .replace(/\s+/g, ' ')
+    .replace(/^[.\s]+|[.\s]+$/g, '')
+}
+
+/**
+ * 素材フォルダのディレクトリ名。
+ *
+ * @param folder 対象の素材フォルダ。名前が使えない文字だけなら id で代替する
+ */
+export function assetFolderDirName(folder: AssetFolder): string {
+  return sanitizePathName(folder.name) || folder.id
+}
+
+/**
+ * 素材の格納先パス。ZIP のエントリ名とワークスペースフォルダ内のパスで共通に使う。
+ * 素材フォルダに入っているものは、書き出しでも同じ名前のフォルダに分ける。
+ *
+ * @param meta    素材のメタ情報
+ * @param folders 素材フォルダの一覧。meta.folderId をディレクトリ名に直すのに使う
+ */
+export function assetPath(meta: AssetMeta, folders: AssetFolder[] = []): string {
+  const folder = folders.find((f) => f.id === meta.folderId)
+  const dir = folder ? `${assetFolderDirName(folder)}/` : ''
+  return `assets/${dir}${meta.id}${extensionFor(meta)}`
+}
+
+/**
+ * 素材ファイルのパスから素材 id を取り出す。
+ * 保存したファイルは必ず `<id>.<拡張子>` なので、置かれているフォルダの名前が変わっていても
+ * id で元の素材に結び付けられる（コンテナは OS や外部エディタからも触れるため）。
+ *
+ * @param path コンテナ内のパス。フォルダを含んでいてもよい
+ */
+export function assetIdFromPath(path: string): string {
+  const name = path.slice(path.lastIndexOf('/') + 1)
+  const dot = name.lastIndexOf('.')
+  // id は UUID でドットを含まないので、最後のドットから後ろが拡張子
+  return dot > 0 ? name.slice(0, dot) : name
 }
 
 /**
@@ -127,8 +171,14 @@ export function normalizeThumbnails(thumbnails: Thumbnail[]): Thumbnail[] {
       ...thumbnail.background,
       effects: { ...DEFAULT_EFFECTS, ...thumbnail.background?.effects },
     },
-    layers: thumbnail.layers.map(
-      (layer) => ({ ...layer, effects: { ...DEFAULT_EFFECTS, ...layer.effects } }) as Layer,
-    ),
+    layers: thumbnail.layers.map((layer) => {
+      const normalized = { ...layer, effects: { ...DEFAULT_EFFECTS, ...layer.effects } } as Layer
+      if (normalized.type !== 'image') return normalized
+      return {
+        ...normalized,
+        crop: { ...DEFAULT_CROP, ...normalized.crop },
+        flipX: normalized.flipX ?? false,
+      }
+    }),
   }))
 }

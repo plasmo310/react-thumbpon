@@ -11,6 +11,7 @@ import styles from '../styles.module.css'
 /**
  * レイヤー一覧の1行。選択中は操作ボタンとプロパティ欄をその場に開く。
  * 選択中の行をもう一度押すと畳める（選択は保ったまま一覧を見渡せるように）。
+ * 右クリックでは重なり順の変更を含むメニューを出す（中身は `app/LayerMenu` が持つ）。
  *
  * ドラッグは名前の行にだけ付ける。行全体に付けると、開いたプロパティ欄の
  * スライダーを掴んだだけで HTML5 のドラッグが始まり、値を変えられなくなるため。
@@ -49,10 +50,13 @@ export function LayerRow({
   const removeLayer = useEditorStore((s) => s.removeLayer)
   const duplicateLayer = useEditorStore((s) => s.duplicateLayer)
   const moveLayer = useEditorStore((s) => s.moveLayer)
+  const openLayerMenu = useEditorStore((s) => s.openLayerMenu)
 
   const selected = selectedId === layer.id
   const open = selected && propertiesOpen
   const isText = layer.type === 'text'
+  const isFront = index === total - 1
+  const isBack = index === 0
 
   /** 未選択なら選ぶ、選択中ならプロパティ欄を開閉する */
   const handleActivate = () => {
@@ -74,6 +78,10 @@ export function LayerRow({
       onDrop={(event) => {
         event.preventDefault()
         onDrop()
+      }}
+      onContextMenu={(event) => {
+        event.preventDefault()
+        openLayerMenu(layer.id, event.clientX, event.clientY)
       }}
     >
       {/* 行内にボタンを含むため button ではなく div にする */}
@@ -114,13 +122,17 @@ export function LayerRow({
       {open && (
         <>
           <div className={styles.actions}>
-            <IconButton title="背面へ" onClick={() => moveLayer(layer.id, -1)} active={index > 0}>
+            <IconButton
+              title="背面へ（右クリックで最背面まで送れる）"
+              onClick={() => moveLayer(layer.id, 'backward')}
+              active={!isBack}
+            >
               ↑
             </IconButton>
             <IconButton
-              title="前面へ"
-              onClick={() => moveLayer(layer.id, 1)}
-              active={index < total - 1}
+              title="前面へ（右クリックで最前面まで送れる）"
+              onClick={() => moveLayer(layer.id, 'forward')}
+              active={!isFront}
             >
               ↓
             </IconButton>

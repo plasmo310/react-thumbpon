@@ -28,7 +28,7 @@ export function rotateVector(dx: number, dy: number, deg: number): [number, numb
  *
  * @param handle 掴んでいるハンドル
  */
-function signX(handle: Handle): number {
+export function handleSignX(handle: Handle): number {
   if (handle.includes('e')) return 1
   if (handle.includes('w')) return -1
   return 0
@@ -39,7 +39,7 @@ function signX(handle: Handle): number {
  *
  * @param handle 掴んでいるハンドル
  */
-function signY(handle: Handle): number {
+export function handleSignY(handle: Handle): number {
   if (handle.includes('s')) return 1
   if (handle.includes('n')) return -1
   return 0
@@ -75,8 +75,8 @@ export function resizeRect(
 ): Rect {
   // 画面座標の移動量をレイヤーのローカル空間へ（＝逆回転）
   const [lx, ly] = rotateVector(dx, dy, -rotation)
-  const sx = signX(handle)
-  const sy = signY(handle)
+  const sx = handleSignX(handle)
+  const sy = handleSignY(handle)
 
   let dw = sx * lx
   let dh = sy * ly

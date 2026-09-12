@@ -1,8 +1,9 @@
 import { del, get, set } from 'idb-keyval'
 import { kv } from './db'
-import type { AssetMeta } from '@/domain/asset'
+import type { AssetFolder, AssetMeta } from '@/domain/asset'
 
 const META_KEY = 'meta:list'
+const FOLDERS_KEY = 'meta:folders'
 const blobKey = (id: string) => `blob:${id}`
 
 /** objectURL はメモリ上だけで保持し、store の state には入れない（状態を JSON 化可能に保つため） */
@@ -32,11 +33,17 @@ function cacheUrl(id: string, blob: Blob) {
 }
 
 /**
- * 保存済みの素材をすべて読み込み、objectURL を張り直す。
+ * 保存済みの素材とフォルダをすべて読み込み、objectURL を張り直す。
  * 実体を失っているメタは取り除いた上で保存し直す。
+ *
+ * @returns 保存されていたままの内容。古い保存内容の欠けを埋めるのは呼び出し側（store）の仕事
  */
-export async function loadAssets(): Promise<AssetMeta[]> {
+export async function loadAssetLibrary(): Promise<{
+  assets: AssetMeta[]
+  folders: AssetFolder[]
+}> {
   const metas = (await get<AssetMeta[]>(META_KEY, kv)) ?? []
+  const folders = (await get<AssetFolder[]>(FOLDERS_KEY, kv)) ?? []
   const available: AssetMeta[] = []
   for (const meta of metas) {
     const blob = await get<Blob>(blobKey(meta.id), kv)
@@ -45,7 +52,7 @@ export async function loadAssets(): Promise<AssetMeta[]> {
     available.push(meta)
   }
   if (available.length !== metas.length) await set(META_KEY, available, kv)
-  return available
+  return { assets: available, folders }
 }
 
 /**
@@ -59,6 +66,25 @@ export async function saveAsset(meta: AssetMeta, blob: Blob, allMetas: AssetMeta
   await set(blobKey(meta.id), blob, kv)
   await set(META_KEY, allMetas, kv)
   cacheUrl(meta.id, blob)
+}
+
+/**
+ * メタ一覧だけを保存し直す。フォルダの移動のように実体が変わらない更新で使う。
+ *
+ * @param metas 保存後のメタ一覧。一覧はまるごと置き換える
+ */
+export async function saveAssetMetas(metas: AssetMeta[]) {
+  await set(META_KEY, metas, kv)
+}
+
+/**
+ * 素材フォルダの一覧を保存する。
+ * 素材そのものと同じくプロジェクトより先に読み込むので、メタと同じ場所に持たせる。
+ *
+ * @param folders 保存後のフォルダ一覧
+ */
+export async function saveAssetFolders(folders: AssetFolder[]) {
+  await set(FOLDERS_KEY, folders, kv)
 }
 
 /**
@@ -88,9 +114,13 @@ export async function getAssetBlob(id: string): Promise<Blob | undefined> {
  * プロジェクト読み込み時に素材をまるごと入れ替える。既存の素材と objectURL は破棄する。
  *
  * @param entries 読み込んだプロジェクトが持つ素材の一覧
+ * @param folders 読み込んだプロジェクトが持つ素材フォルダ。省略で未分類だけになる
  * @returns 入れ替え後のメタ一覧。そのまま store に載せる
  */
-export async function replaceAssets(entries: { meta: AssetMeta; blob: Blob }[]) {
+export async function replaceAssets(
+  entries: { meta: AssetMeta; blob: Blob }[],
+  folders: AssetFolder[] = [],
+) {
   const previous = (await get<AssetMeta[]>(META_KEY, kv)) ?? []
   for (const meta of previous) await del(blobKey(meta.id), kv)
   for (const url of urlCache.values()) URL.revokeObjectURL(url)
@@ -102,6 +132,7 @@ export async function replaceAssets(entries: { meta: AssetMeta; blob: Blob }[]) 
     cacheUrl(entry.meta.id, entry.blob)
   }
   await set(META_KEY, metas, kv)
+  await set(FOLDERS_KEY, folders, kv)
   return metas
 }
 

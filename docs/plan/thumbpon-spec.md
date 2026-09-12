@@ -206,12 +206,16 @@ Canvas APIを直接使うのではなく、以下を中心に構築する。
 - Z Index
 - Visibility
 - Lock
+- Crop（表示する範囲。各辺から切り落とす割合で持つ）
+- Flip X（左右反転）
 
 操作：
 
 - Drag
 - Resize
 - Rotate
+- Flip
+- Crop
 - Layer reorder
 
 ---

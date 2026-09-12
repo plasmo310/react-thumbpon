@@ -1,9 +1,13 @@
 import { cloneLayer, createImageLayer, createTextLayer } from '@/domain/layer'
-import { fitInto } from '@/domain/geometry'
+import { fitInto, type Rect } from '@/domain/geometry'
 import { createPatchers } from './patch'
+import { mergeCrop, type Crop } from '@/domain/crop'
 import { DEFAULT_EFFECTS, type Effects } from '@/domain/effects'
 import type { Layer } from '@/domain/layer'
 import type { SliceCreator } from './index'
+
+/** 重なり順の動かし方。配列順がそのまま重なり順なので、端の1つ隣か端そのものになる */
+export type LayerOrder = 'front' | 'forward' | 'backward' | 'back'
 
 export type LayerSlice = {
   /** 選択中のレイヤー。背景を選んでいるときは BACKGROUND_ID が入る */
@@ -14,9 +18,10 @@ export type LayerSlice = {
   addTextLayer: () => void
   updateLayer: (id: string, patch: Partial<Layer>) => void
   updateLayerEffects: (id: string, patch: Partial<Effects>) => void
+  updateLayerCrop: (id: string, patch: Partial<Crop>, rect?: Partial<Rect>) => void
   removeLayer: (id: string) => void
   duplicateLayer: (id: string) => void
-  moveLayer: (id: string, direction: 1 | -1) => void
+  moveLayer: (id: string, order: LayerOrder) => void
   reorderLayer: (fromIndex: number, insertIndex: number) => void
   nudgeLayer: (id: string, dx: number, dy: number) => void
 }
@@ -42,6 +47,8 @@ export const createLayerSlice: SliceCreator<LayerSlice> = (set, get) => {
       set((s) => ({
         selectedId: id,
         propertiesOpen: s.selectedId === id ? s.propertiesOpen : true,
+        // 別のレイヤーに移ったらクロップ編集は畳む。掴んだ枠の意味が変わってしまうため
+        cropping: s.selectedId === id ? s.cropping : false,
       })),
 
     /**
@@ -66,7 +73,7 @@ export const createLayerSlice: SliceCreator<LayerSlice> = (set, get) => {
         y: Math.round(cy - size.height / 2),
       })
       patchLayers((layers) => [...layers, layer])
-      set({ selectedId: layer.id, propertiesOpen: true })
+      set({ selectedId: layer.id, propertiesOpen: true, cropping: false })
     },
 
     /** テキストレイヤーをキャンバス中央に追加し、選択する */
@@ -75,7 +82,7 @@ export const createLayerSlice: SliceCreator<LayerSlice> = (set, get) => {
       if (!thumbnail) return
       const layer = createTextLayer(thumbnail.canvas)
       patchLayers((layers) => [...layers, layer])
-      set({ selectedId: layer.id, propertiesOpen: true })
+      set({ selectedId: layer.id, propertiesOpen: true, cropping: false })
     },
 
     /**
@@ -103,13 +110,29 @@ export const createLayerSlice: SliceCreator<LayerSlice> = (set, get) => {
       ),
 
     /**
+     * 画像レイヤーの表示範囲(クロップ)を更新する。
+     * crop は入れ子なので updateLayer の浅いマージでは潰れてしまうため、専用の口を用意する。
+     *
+     * @param id    更新するレイヤーの id
+     * @param patch 変更したい辺だけ。反対側の辺と合わせて画像が消えない範囲に収められる
+     * @param rect  同時に変える配置とサイズ。端を掴んだクロップでは枠も一緒に詰まるため
+     */
+    updateLayerCrop: (id, patch, rect) =>
+      patchLayers((layers) =>
+        layers.map((l) => {
+          if (l.id !== id || l.type !== 'image') return l
+          return { ...l, ...rect, crop: mergeCrop(l.crop, patch) }
+        }),
+      ),
+
+    /**
      * レイヤーを削除する。選択中だったら選択も解除する。
      *
      * @param id 削除するレイヤーの id
      */
     removeLayer: (id) => {
       patchLayers((layers) => layers.filter((l) => l.id !== id))
-      if (get().selectedId === id) set({ selectedId: null })
+      if (get().selectedId === id) set({ selectedId: null, cropping: false })
     },
 
     /**
@@ -127,22 +150,27 @@ export const createLayerSlice: SliceCreator<LayerSlice> = (set, get) => {
         next.splice(index + 1, 0, copy)
         return next
       })
-      set({ selectedId: copy.id, propertiesOpen: true })
+      set({ selectedId: copy.id, propertiesOpen: true, cropping: false })
     },
 
     /**
-     * レイヤーを1つ隣と入れ替える。
+     * レイヤーの重なり順を変える。
+     * 一覧の並び（＝配列順）そのものを動かすので、ドラッグでの並べ替えと同じ結果になる。
      *
-     * @param id        動かすレイヤーの id
-     * @param direction 1 = 前面へ / -1 = 背面へ。端なら何もしない
+     * @param id    動かすレイヤーの id
+     * @param order forward / backward は1つ隣と入れ替え、front / back は端へ送る。
+     *              既にその位置なら何もしない
      */
-    moveLayer: (id, direction) =>
+    moveLayer: (id, order) =>
       patchLayers((layers) => {
         const index = layers.findIndex((l) => l.id === id)
-        const target = index + direction
-        if (index < 0 || target < 0 || target >= layers.length) return layers
+        if (index < 0) return layers
+        const last = layers.length - 1
+        const target = { front: last, forward: index + 1, backward: index - 1, back: 0 }[order]
+        if (target === index || target < 0 || target > last) return layers
         const next = [...layers]
-        ;[next[index], next[target]] = [next[target], next[index]]
+        const [moved] = next.splice(index, 1)
+        next.splice(target, 0, moved)
         return next
       }),
 

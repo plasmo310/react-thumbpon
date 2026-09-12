@@ -85,3 +85,61 @@
   font-size: var(--font-label);
   color: var(--color-ink-sub);
 }
+
+/* --- フォルダ。サムネイル一覧と同じ見た目に揃える --- */
+
+.folderGroup {
+  margin-top: var(--space-2);
+}
+
+.folderHeader {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-1) var(--space-1) var(--space-1) 0;
+  border-radius: var(--radius);
+}
+
+.folderHeader:hover {
+  background: var(--color-app);
+}
+
+.folderToggle {
+  flex-shrink: 0;
+  font-size: var(--font-mini);
+  color: var(--color-ink-sub);
+}
+
+.folderName {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--font-body);
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.folderCount {
+  flex-shrink: 0;
+  font-size: var(--font-mini);
+  color: var(--color-ink-sub);
+}
+
+/* フォルダの操作は、その行にカーソルが乗っている間だけ出す */
+.folderActions {
+  display: none;
+  flex-shrink: 0;
+  align-items: center;
+}
+
+.folderHeader:hover .folderActions {
+  display: flex;
+}
+
+.folderEmpty {
+  padding: var(--space-1) 0 var(--space-2);
+  font-size: var(--font-mini);
+  color: var(--color-ink-sub);
+}

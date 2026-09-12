@@ -12,9 +12,11 @@ export function WorkspaceNotice() {
   const folderName = useEditorStore((s) => s.workspaceFolderName)
   const missingFonts = useEditorStore((s) => s.missingFontLabels)
   const setMissingFontLabels = useEditorStore((s) => s.setMissingFontLabels)
+  const missingAssets = useEditorStore((s) => s.missingAssetNames)
+  const setMissingAssetNames = useEditorStore((s) => s.setMissingAssetNames)
 
   const needsPermission = status === 'needs-permission'
-  if (!needsPermission && missingFonts.length === 0) return null
+  if (!needsPermission && missingFonts.length === 0 && missingAssets.length === 0) return null
 
   return (
     <div className={styles.notice}>
@@ -42,6 +44,19 @@ export function WorkspaceNotice() {
             type="button"
             className={styles.noticeButton}
             onClick={() => setMissingFontLabels([])}
+          >
+            閉じる
+          </button>
+        </span>
+      )}
+      {missingAssets.length > 0 && (
+        <span className={styles.noticeItem}>
+          素材「{missingAssets.join('」「')}」の画像が見つかりません。
+          それを使っていたレイヤーは枠だけで表示されます。
+          <button
+            type="button"
+            className={styles.noticeButton}
+            onClick={() => setMissingAssetNames([])}
           >
             閉じる
           </button>
