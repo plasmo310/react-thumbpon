@@ -27,6 +27,12 @@ src/
 
   features/            画面に出る機能。1機能＝1ディレクトリ
     thumbnail / layer / canvas / asset / project
+      components/      React コンポーネント
+      hooks/           React フック
+      lib/             React に依存しない、その feature 固有のロジック
+      types.ts         feature 内で共有する型
+      styles.module.css
+      index.ts         公開API
 
   shared/              本当に複数の feature から使うものだけ
     ui/                汎用UI部品 + styles.module.css
@@ -83,7 +89,7 @@ domain  →  shared  →  app/store  →  features  →  app
 一方 `SliderRow` / `PercentRow` はラベルも値も props で受けるだけなので shared に置く。
 
 **道具**（`shared/lib/`）は使用箇所で決める。**1つの feature からしか使わないなら、その feature に置く。**
-`snap.ts` と `layerRect.ts` が canvas に、`download.ts` が project にあるのはこのため。
+`snap.ts` と `layerRect.ts` が `canvas/lib/` に、`download.ts` が `project/lib/` にあるのはこのため。
 
 ### feature を分けるか
 
@@ -97,10 +103,42 @@ domain  →  shared  →  app/store  →  features  →  app
 `features/project` は project / workspace / export を抱えているが、
 今のファイル数なら分けない。肥大化したら `project` / `workspace` / `export` への分割を検討する。
 
-### feature の中はフラットに保つ
+### feature の中の並べ方
 
-`components/` や `hooks/` のような種類別フォルダを**新設しない**。
-ファイル数が大幅に増えたときに初めてサブフォルダ化を考える。
+役割ごとに **`components` / `hooks` / `lib` の3分類まで**。
+`utils/` `helpers/` `services/` のようにこれ以上細分化しない。
+
+| 置くもの | 場所 |
+|---|---|
+| React コンポーネント | `components/` |
+| React フック | `hooks/` |
+| React に依存しない feature 固有のロジック | `lib/` |
+| feature 内で共有する型 | `types.ts`（feature 直下） |
+| feature 全体の CSS | `styles.module.css`（feature 直下） |
+| 公開API | `index.ts`（feature 直下） |
+
+**存在しない種類のフォルダは作らない。**
+`layer` には `hooks/` も `lib/` も無く、`project` には `hooks/` が無い。
+
+**ファイル数が少ない feature は無理にサブフォルダ化しない。**
+`asset`（1コンポーネント）と `thumbnail`（4コンポーネント）はフラットのまま。
+
+```
+features/canvas/
+  components/   CanvasStage / CanvasSurface / LayerView / SelectionOverlay
+  hooks/        useCanvasView / useLayerHeight
+  lib/          layerRect / snap
+  styles.module.css
+  index.ts
+
+features/asset/
+  AssetPanel.tsx
+  styles.module.css
+  index.ts
+```
+
+`styles.module.css` と `types.ts` は feature 直下に置くので、
+サブフォルダからは `../styles.module.css` / `../types` で参照する。
 
 ---
 
@@ -109,6 +147,7 @@ domain  →  shared  →  app/store  →  features  →  app
 | 対象 | 規則 | 例 |
 |---|---|---|
 | ディレクトリ | すべて小文字 / kebab-case | `features/canvas/` |
+| feature 内の分類 | `components` / `hooks` / `lib` のみ | `features/canvas/hooks/` |
 | React コンポーネント | `PascalCase.tsx` | `CanvasStage.tsx` |
 | フック | `useSomething.ts` | `useCanvasView.ts` |
 | ユーティリティ・ロジック | `camelCase.ts` | `projectFolder.ts` |
@@ -140,7 +179,8 @@ domain/effects.ts    Effects + DEFAULT_EFFECTS + effectsFilter
 
 ### feature ローカル
 
-その feature の中だけで使う型は `features/<機能>/types.ts` に置く。
+その feature の中だけで使う型は **feature 直下の** `types.ts` に置く
+（`components/` や `lib/` の中には作らない）。
 **中身が無いなら作らない**（`features/canvas` には types.ts が無い）。
 
 ---
@@ -152,6 +192,7 @@ domain/effects.ts    Effects + DEFAULT_EFFECTS + effectsFilter
 - **1 feature につき1枚**、`styles.module.css` にまとめる。
   コンポーネントごとにファイルを作らない。`shared/ui` も1枚。
 - 読み込みは必ず `import styles from './styles.module.css'`。
+  サブフォルダに分かれている feature では `'../styles.module.css'`。
 - クラス名は camelCase（`styles.panelBody`）。
 - **値は必ず `src/styles.css` のトークンから取る。** 16進数や px を直接書かない。
 

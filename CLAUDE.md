@@ -39,6 +39,8 @@ src/
                    id / asset / font / effects / background / layer / thumbnail /
                    preset / project / geometry
   features/        thumbnail / layer / canvas / asset / project
+                   中は components / hooks / lib の3分類まで（無い種類は作らない）
+                   types.ts / styles.module.css / index.ts は feature 直下
   shared/
     ui/            汎用UI部品 + styles.module.css
     lib/           DOMの小物とフック（storage/ に IndexedDB と File System Access）

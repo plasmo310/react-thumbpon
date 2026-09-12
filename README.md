@@ -244,7 +244,7 @@ src/
   app/             アプリの組み立て。main / App / shortcuts / store（Zustand）
   domain/          UIに依存しない型と純粋な計算。entity ごとに分かれる
                    layer / background / effects / thumbnail / project / geometry ...
-  features/        画面に出る機能
+  features/        画面に出る機能。中は components / hooks / lib の3分類まで
     thumbnail/     サムネイル一覧・フォルダ・キャンバスサイズ
     layer/         レイヤー一覧 + レイヤー/背景のプロパティ + フォント読み込み
     canvas/        編集キャンバス
