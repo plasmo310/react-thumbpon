@@ -1,5 +1,12 @@
 import type { CSSProperties } from 'react'
-import { DEFAULT_BACKGROUND, DEFAULT_EFFECTS, type Background, type Effects } from './types'
+import {
+  DEFAULT_BACKGROUND,
+  DEFAULT_EFFECTS,
+  type Background,
+  type Effects,
+  type Layer,
+  type TextLayer,
+} from './types'
 
 /*
  * ドキュメントの値を CSS へ変換する。描画する側（キャンバス）はこれを呼ぶだけにする。
@@ -169,4 +176,54 @@ export function backgroundArtStyle(background: Background, imageUrl: string | nu
   if (bg.type === 'image' && imageUrl) return imageStyle(bg, imageUrl)
 
   return {}
+}
+
+// ---------------------------------------------------------------------------
+// レイヤー
+// ---------------------------------------------------------------------------
+
+/**
+ * レイヤーの配置とエフェクト。座標もサイズも実寸で書き、表示の縮小は親が行う。
+ *
+ * @param layer 対象のレイヤー
+ */
+export function layerStyle(layer: Layer): CSSProperties {
+  return {
+    position: 'absolute',
+    left: layer.x,
+    top: layer.y,
+    width: layer.width,
+    height: layer.type === 'image' ? layer.height : undefined,
+    opacity: layer.opacity,
+    transform: `rotate(${layer.rotation}deg)`,
+    transformOrigin: 'center',
+    // ブラー・影・光彩。影は矩形ではなく中身の形に沿わせたいので drop-shadow を使う
+    filter: effectsFilter(layer.effects),
+    pointerEvents: layer.locked ? 'none' : 'auto',
+    cursor: layer.locked ? 'default' : 'move',
+  }
+}
+
+/**
+ * テキストレイヤーの文字まわり。高さは持たず内容に応じて伸びる。
+ *
+ * @param layer 対象のテキストレイヤー
+ */
+export function textStyle(layer: TextLayer): CSSProperties {
+  return {
+    color: layer.color,
+    fontFamily: layer.fontFamily,
+    fontSize: layer.fontSize,
+    fontWeight: layer.fontWeight,
+    fontStyle: layer.fontStyle,
+    textAlign: layer.textAlign,
+    letterSpacing: `${layer.letterSpacing}px`,
+    lineHeight: layer.lineHeight,
+    whiteSpace: 'pre-wrap',
+    wordBreak: 'break-word',
+    // 縁取り。paint-order で文字の外側に描かせる
+    WebkitTextStrokeWidth: layer.strokeWidth > 0 ? `${layer.strokeWidth}px` : undefined,
+    WebkitTextStrokeColor: layer.strokeColor,
+    paintOrder: 'stroke fill',
+  }
 }

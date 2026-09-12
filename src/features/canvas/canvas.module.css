@@ -1,0 +1,72 @@
+/*
+ * キャンバスの「外側」だけをここで持つ。
+ * キャンバスの中（レイヤー・選択枠・ガイド線）は実寸座標と表示倍率に依存する
+ * 動的な値しかないので、CSS には出さず style オブジェクトのまま書いている。
+ */
+
+.stage {
+  position: relative;
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: var(--color-stage);
+}
+
+.panning {
+  cursor: grabbing;
+}
+
+/* 実寸のキャンバスを載せる枠。影で白いサムネイルでも縁が分かるようにする */
+.surfaceWrap {
+  position: relative;
+  box-shadow: 0 4px 24px rgb(0 0 0 / 0.12);
+}
+
+/* 画像を受けている間の枠 */
+.dropping {
+  position: absolute;
+  inset: var(--space-3);
+  border: 2px dashed var(--color-accent);
+  border-radius: var(--radius-lg);
+  background: rgb(255 241 235 / 0.4);
+  pointer-events: none;
+}
+
+/* 右下に重ねる操作。スナップの切替と、表示倍率の表示兼リセット */
+.controls {
+  position: absolute;
+  right: var(--space-3);
+  bottom: var(--space-3);
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  font-size: var(--font-label);
+  color: var(--color-ink-sub);
+}
+
+.control {
+  padding: var(--space-1) var(--space-2);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius);
+  background: var(--color-panel);
+  transition: border-color 150ms;
+}
+
+.control:hover {
+  border-color: var(--color-accent);
+}
+
+.controlOn {
+  border-color: var(--color-accent);
+  background: var(--color-accent-soft);
+  color: var(--color-accent-hover);
+}
+
+/* 表示を合わせ直せる状態のときだけ、枠と文字で気づかせる */
+.controlAdjusted {
+  border-color: var(--color-accent);
+  color: var(--color-accent-hover);
+}

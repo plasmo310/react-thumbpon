@@ -1,14 +1,21 @@
-import type { CSSProperties, PointerEvent as ReactPointerEvent } from 'react'
-import { getAssetUrl } from '@/core/storage/assetRepo'
-import { startPointerDrag } from '@/shared/lib/pointerDrag'
-import { effectsFilter } from '@/core/model/style'
+import type { PointerEvent as ReactPointerEvent } from 'react'
 import { snapPosition } from '@/core/model/snap'
-import { collectLayerRects, measureLayerHeight } from '@/shared/lib/layerRect'
-import { useCurrentThumbnail, useEditorStore } from '@/core/store'
+import { layerStyle, textStyle } from '@/core/model/style'
 import type { Layer } from '@/core/model/types'
+import { getAssetUrl } from '@/core/storage/assetRepo'
+import { useCurrentThumbnail, useEditorStore } from '@/core/store'
+import { collectLayerRects, measureLayerHeight } from '@/shared/lib/layerRect'
+import { startPointerDrag } from '@/shared/lib/pointerDrag'
 
 /** 画面上でのスナップ距離(px) */
 const SNAP_THRESHOLD = 8
+
+/*
+ * 素材が見つからないときの代わり。キャンバスの中に直接描く色は Tailwind の外なので、
+ * トークンではなくここに定数として置く（書き出しにもそのまま乗る）。
+ */
+const MISSING_BORDER = '#FF8A5B'
+const MISSING_FILL = '#FFF1EB'
 
 /**
  * キャンバス上に置かれたレイヤー1つ。座標もサイズも実寸で書き、表示の縮小は親が行う。
@@ -67,28 +74,12 @@ export function LayerView({ layer, scale }: { layer: Layer; scale: number }) {
     )
   }
 
-  const base: CSSProperties = {
-    position: 'absolute',
-    left: layer.x,
-    top: layer.y,
-    width: layer.width,
-    opacity: layer.opacity,
-    transform: `rotate(${layer.rotation}deg)`,
-    // ブラー・影・光彩。影は矩形ではなく中身の形に沿わせたいので drop-shadow を使う
-    filter: effectsFilter(layer.effects),
-    transformOrigin: 'center',
-    pointerEvents: layer.locked ? 'none' : 'auto',
-    cursor: layer.locked ? 'default' : 'move',
-  }
+  const base = layerStyle(layer)
 
   if (layer.type === 'image') {
     const url = getAssetUrl(layer.assetId)
     return (
-      <div
-        data-layer-id={layer.id}
-        style={{ ...base, height: layer.height }}
-        onPointerDown={handlePointerDown}
-      >
+      <div data-layer-id={layer.id} style={base} onPointerDown={handlePointerDown}>
         {url ? (
           <img
             src={url}
@@ -101,8 +92,8 @@ export function LayerView({ layer, scale }: { layer: Layer; scale: number }) {
             style={{
               width: '100%',
               height: '100%',
-              border: '2px dashed #FF8A5B',
-              background: '#FFF1EB',
+              border: `2px dashed ${MISSING_BORDER}`,
+              background: MISSING_FILL,
             }}
           />
         )}
@@ -113,23 +104,7 @@ export function LayerView({ layer, scale }: { layer: Layer; scale: number }) {
   return (
     <div
       data-layer-id={layer.id}
-      style={{
-        ...base,
-        color: layer.color,
-        fontFamily: layer.fontFamily,
-        fontSize: layer.fontSize,
-        fontWeight: layer.fontWeight,
-        fontStyle: layer.fontStyle,
-        textAlign: layer.textAlign,
-        letterSpacing: `${layer.letterSpacing}px`,
-        lineHeight: layer.lineHeight,
-        whiteSpace: 'pre-wrap',
-        wordBreak: 'break-word',
-        // 縁取り。paint-order で文字の外側に描かせる
-        WebkitTextStrokeWidth: layer.strokeWidth > 0 ? `${layer.strokeWidth}px` : undefined,
-        WebkitTextStrokeColor: layer.strokeColor,
-        paintOrder: 'stroke fill',
-      }}
+      style={{ ...base, ...textStyle(layer) }}
       onPointerDown={handlePointerDown}
     >
       {layer.text}
