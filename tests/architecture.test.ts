@@ -134,6 +134,22 @@ describe('feature の境界', () => {
     const missing = [...features].filter((name) => !sources[`/src/features/${name}/index.ts`])
     expect(missing).toEqual([])
   })
+
+  /*
+   * feature の中は components / hooks / lib の3分類まで。
+   * ファイル数が少ないうちにフラットに置くと、増えたときに誰も直さないので機械で止める。
+   */
+  it('feature の中は components / hooks / lib と index.ts / types.ts だけ', () => {
+    const violations: string[] = []
+    for (const [path] of entries) {
+      if (!featureOf(path)) continue
+      const rest = path.replace(/^\/src\/features\/[^/]+\//, '')
+      const ok =
+        rest === 'index.ts' || rest === 'types.ts' || /^(components|hooks|lib)\/[^/]+$/.test(rest)
+      if (!ok) violations.push(path)
+    }
+    expect(violations).toEqual([])
+  })
 })
 
 describe('使われていない export', () => {

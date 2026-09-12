@@ -3,7 +3,7 @@ import { useEditorStore } from '@/app/store'
 import { IconButton, InlineName, Panel } from '@/shared/ui'
 import { FolderDropZone } from './FolderDropZone'
 import { ThumbnailRow } from './ThumbnailRow'
-import styles from './styles.module.css'
+import styles from '../styles.module.css'
 
 /** サムネイルとフォルダの一覧。未分類を先に、そのあとフォルダごとに並べる */
 export function ThumbnailPanel() {

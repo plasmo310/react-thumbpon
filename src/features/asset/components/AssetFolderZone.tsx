@@ -3,8 +3,8 @@ import { useEditorStore } from '@/app/store'
 import { cx } from '@/shared/lib/cx'
 import { DND_TYPE } from '@/shared/lib/dnd'
 import { useDropTarget } from '@/shared/lib/useDropTarget'
-import { useAssetImport } from './useAssetImport'
-import styles from './styles.module.css'
+import { useAssetImport } from '../hooks/useAssetImport'
+import styles from '../styles.module.css'
 
 /**
  * フォルダ、または未分類グループに素材を落とせる領域。

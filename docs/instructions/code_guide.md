@@ -62,7 +62,8 @@ domain  →  shared  →  app/store  →  features  →  app
 `features/<x>/index.ts` が各 feature の公開面。App はここだけを見る。
 
 > **この境界は `tests/architecture.test.ts` が検証している。**
-> 層の逆流、feature 同士の import、使われていない export は `npm run test` で落ちる。
+> 層の逆流、feature 同士の import、feature 直下への置きっぱなし、使われていない export は
+> `npm run test` で落ちる。
 > 散文の約束に頼らないので、迷ったらテストを走らせればよい。
 
 ---
@@ -124,8 +125,9 @@ domain  →  shared  →  app/store  →  features  →  app
 **存在しない種類のフォルダは作らない。**
 `layer` には `hooks/` も `lib/` も無く、`project` には `hooks/` が無い。
 
-**ファイル数が少ない feature は無理にサブフォルダ化しない。**
-`asset`（3コンポーネント + フック1つ）と `thumbnail`（4コンポーネント）はフラットのまま。
+**逆に、ファイル数が少なくてもフラットにはしない。** どの feature を開いても
+`components/` を見れば画面、`lib/` を見ればロジックという並びを崩さないため。
+`asset` も `thumbnail` もコンポーネントは `components/` に入れる。
 
 ```
 features/canvas/
@@ -136,10 +138,13 @@ features/canvas/
   index.ts
 
 features/asset/
-  AssetPanel.tsx
-  AssetFolderZone.tsx
-  AssetTile.tsx
-  useAssetImport.ts
+  components/   AssetPanel / AssetFolderZone / AssetTile
+  hooks/        useAssetImport
+  styles.module.css
+  index.ts
+
+features/thumbnail/
+  components/   ThumbnailPanel / ThumbnailRow / ThumbnailSizeRow / FolderDropZone
   styles.module.css
   index.ts
 ```

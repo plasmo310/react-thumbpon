@@ -6,8 +6,8 @@ import { useDropTarget } from '@/shared/lib/useDropTarget'
 import { IconButton, InlineName, Panel, useFilePicker } from '@/shared/ui'
 import { AssetFolderZone } from './AssetFolderZone'
 import { AssetTile } from './AssetTile'
-import { useAssetImport } from './useAssetImport'
-import styles from './styles.module.css'
+import { useAssetImport } from '../hooks/useAssetImport'
+import styles from '../styles.module.css'
 
 const ACCEPT = 'image/png,image/jpeg,image/webp,image/svg+xml'
 

@@ -40,7 +40,8 @@ src/
                    id / asset / font / effects / crop / background / layer /
                    thumbnail / preset / project / geometry
   features/        thumbnail / layer / canvas / asset / project
-                   中は components / hooks / lib の3分類まで（無い種類は作らない）
+                   中は components / hooks / lib の3分類まで（無い種類は作らない。
+                   逆にファイル数が少なくてもフラットには置かない）
                    types.ts / styles.module.css / index.ts は feature 直下
   shared/
     ui/            汎用UI部品 + styles.module.css
@@ -51,7 +52,8 @@ tests/             Vitest。src/ の外に置く
 `features/<x>/index.ts` が各 feature の公開面。App はここだけを見る。
 
 **この境界は `tests/architecture.test.ts` が検証している。** 層の逆流、feature 同士の
-import、使われていない export はテストで落ちるので、散文の約束に頼らなくてよい。
+import、feature 直下への置きっぱなし、使われていない export はテストで落ちるので、
+散文の約束に頼らなくてよい。
 
 ### 判断に迷ったとき
 

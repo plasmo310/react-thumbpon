@@ -2,7 +2,7 @@ import type { AssetMeta } from '@/domain/asset'
 import { useEditorStore } from '@/app/store'
 import { DND_TYPE } from '@/shared/lib/dnd'
 import { getAssetUrl } from '@/shared/lib/storage/assetRepo'
-import styles from './styles.module.css'
+import styles from '../styles.module.css'
 
 /**
  * 素材1つ分のタイル。クリックで中央に配置、キャンバスへドラッグでその位置に配置できる。
