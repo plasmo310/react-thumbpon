@@ -1,9 +1,11 @@
 import type { DragEvent } from 'react'
-import { DND_TYPE } from '@/shared/lib/dnd'
-import { useEditorStore } from '@/core/store'
 import type { Layer } from '@/core/model/types'
-import { LayerProperties } from './LayerProperties'
+import { useEditorStore } from '@/core/store'
+import { cx } from '@/shared/lib/cx'
+import { DND_TYPE } from '@/shared/lib/dnd'
 import { EyeIcon, EyeOffIcon, IconButton } from '@/shared/ui'
+import { LayerProperties } from './LayerProperties'
+import styles from './layer.module.css'
 
 /** ドラッグ中に挿入位置を示す線を、どの行のどちら側に出すか */
 export type DropMark = { index: number; position: 'before' | 'after' } | null
@@ -52,6 +54,7 @@ export function LayerRow({
 
   const selected = selectedId === layer.id
   const open = selected && propertiesOpen
+  const isText = layer.type === 'text'
 
   /** 未選択なら選ぶ、選択中ならプロパティ欄を開閉する */
   const handleActivate = () => {
@@ -59,16 +62,16 @@ export function LayerRow({
     else select(layer.id)
   }
 
-  const markBefore = dropMark?.index === index && dropMark.position === 'before'
-  const markAfter = dropMark?.index === index && dropMark.position === 'after'
+  const mark = dropMark?.index === index ? dropMark.position : null
 
   return (
     <li
-      className={`overflow-hidden rounded-md border transition ${
-        selected ? 'border-accent bg-accent-soft' : 'border-transparent bg-white hover:bg-app'
-      } ${markBefore ? 'border-t-2 border-t-accent' : ''} ${
-        markAfter ? 'border-b-2 border-b-accent' : ''
-      }`}
+      className={cx(
+        styles.row,
+        selected && styles.rowSelected,
+        mark === 'before' && styles.markBefore,
+        mark === 'after' && styles.markAfter,
+      )}
       onDragOver={(event) => onDragOver(index, event)}
       onDrop={(event) => {
         event.preventDefault()
@@ -90,22 +93,10 @@ export function LayerRow({
         onKeyDown={(e) => {
           if (e.key === 'Enter' || e.key === ' ') handleActivate()
         }}
-        className="flex w-full cursor-grab items-center gap-2 px-2 py-1.5 text-left"
+        className={styles.handle}
       >
-        <span
-          className={`flex h-5 w-5 shrink-0 items-center justify-center rounded text-[10px] font-bold ${
-            layer.type === 'text' ? 'bg-accent text-white' : 'bg-line text-ink-sub'
-          }`}
-        >
-          {layer.type === 'text' ? 'T' : 'I'}
-        </span>
-        <span
-          className={`min-w-0 flex-1 truncate text-xs ${
-            layer.visible ? 'text-ink' : 'text-ink-sub line-through'
-          }`}
-        >
-          {layer.name}
-        </span>
+        <span className={cx(styles.badge, isText && styles.badgeText)}>{isText ? 'T' : 'I'}</span>
+        <span className={cx(styles.name, !layer.visible && styles.nameHidden)}>{layer.name}</span>
         <IconButton
           title={layer.visible ? '非表示にする' : '表示する'}
           onClick={() => updateLayer(layer.id, { visible: !layer.visible })}
@@ -124,7 +115,7 @@ export function LayerRow({
 
       {open && (
         <>
-          <div className="flex items-center gap-1 border-t border-line bg-app px-2 py-1">
+          <div className={styles.actions}>
             <IconButton title="背面へ" onClick={() => moveLayer(layer.id, -1)} active={index > 0}>
               ↑
             </IconButton>
@@ -138,7 +129,7 @@ export function LayerRow({
             <IconButton title="複製" onClick={() => duplicateLayer(layer.id)}>
               ⧉
             </IconButton>
-            <div className="flex-1" />
+            <div className={styles.spacer} />
             <IconButton title="削除" onClick={() => removeLayer(layer.id)}>
               🗑
             </IconButton>

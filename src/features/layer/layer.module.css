@@ -1,0 +1,150 @@
+/* --- 一覧 --- */
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.row {
+  overflow: hidden;
+  border: 1px solid transparent;
+  border-radius: var(--radius);
+  background: var(--color-panel);
+  transition:
+    background-color 150ms,
+    border-color 150ms;
+}
+
+.row:hover {
+  background: var(--color-app);
+}
+
+.rowSelected {
+  border-color: var(--color-accent);
+  background: var(--color-accent-soft);
+}
+
+.rowSelected:hover {
+  background: var(--color-accent-soft);
+}
+
+/* 並べ替え中に、挿入される位置を示す線 */
+.markBefore {
+  border-top: 2px solid var(--color-accent);
+}
+
+.markAfter {
+  border-bottom: 2px solid var(--color-accent);
+}
+
+/* 掴む行。行全体ではなくここにだけ draggable を付ける */
+.handle {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 6px var(--space-2);
+  text-align: left;
+  cursor: grab;
+}
+
+.badge {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  background: var(--color-line);
+  font-size: var(--font-mini);
+  font-weight: bold;
+  color: var(--color-ink-sub);
+}
+
+.badgeText {
+  background: var(--color-accent);
+  color: var(--color-panel);
+}
+
+.name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--font-body);
+}
+
+.nameHidden {
+  color: var(--color-ink-sub);
+  text-decoration: line-through;
+}
+
+/* 選択中の行に開く操作列 */
+.actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-1) var(--space-2);
+  border-top: 1px solid var(--color-line);
+  background: var(--color-app);
+}
+
+.spacer {
+  flex: 1;
+}
+
+/* --- 背景の行。レイヤーではないので一覧の外に固定で置く --- */
+
+.background {
+  margin-bottom: var(--space-1);
+}
+
+.backgroundButton {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 6px var(--space-2);
+  text-align: left;
+}
+
+.backgroundButton:hover {
+  background: var(--color-app);
+}
+
+.backgroundBadge {
+  font-size: 9px;
+}
+
+/* --- プロパティ欄。レイヤー行や背景行の内側に差し込まれるので上境界を持つ --- */
+
+.properties {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border-top: 1px solid var(--color-line);
+  background: var(--color-app);
+}
+
+/* 幅と高さのように、横に2つ並べる入力 */
+.pair {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.divider {
+  margin-top: var(--space-1);
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--color-line);
+}
+
+/* --- フォントの読み込みボタン --- */
+
+.fontButtons {
+  display: flex;
+  gap: var(--space-1);
+}

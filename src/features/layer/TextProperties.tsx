@@ -1,10 +1,18 @@
 import { extractTextStyle } from '@/core/model/factory'
 import { useEditorStore } from '@/core/store'
 import { FONT_WEIGHTS, type TextAlign, type TextLayer } from '@/core/model/types'
-import { ColorInput, NumberInput, Row, SegmentedControl, Select, TextArea } from '@/shared/ui'
+import {
+  ColorInput,
+  NumberInput,
+  PercentRow,
+  PresetRow,
+  Row,
+  SegmentedControl,
+  Select,
+  TextArea,
+} from '@/shared/ui'
 import { FontLoader } from './FontLoader'
-import { OpacityRow } from './OpacityRow'
-import { PresetRow } from '@/shared/ui'
+import styles from './layer.module.css'
 
 /**
  * テキストレイヤー固有のプロパティ。
@@ -23,7 +31,7 @@ export function TextProperties({ layer }: { layer: TextLayer }) {
 
   return (
     <>
-      <div className="flex gap-2">
+      <div className={styles.pair}>
         <Row label="幅">
           <NumberInput value={layer.width} min={1} onChange={(width) => patch({ width })} />
         </Row>
@@ -31,9 +39,13 @@ export function TextProperties({ layer }: { layer: TextLayer }) {
           <NumberInput value={layer.rotation} onChange={(rotation) => patch({ rotation })} />
         </Row>
       </div>
-      <OpacityRow opacity={layer.opacity} onChange={(opacity) => patch({ opacity })} />
+      <PercentRow
+        label="不透明度"
+        value={layer.opacity}
+        onChange={(opacity) => patch({ opacity })}
+      />
 
-      <div className="mt-1 border-t border-line pt-2" />
+      <div className={styles.divider} />
       <PresetRow
         presets={textPresets}
         onApply={(id) => applyTextPreset(id, layer.id)}
@@ -51,7 +63,7 @@ export function TextProperties({ layer }: { layer: TextLayer }) {
         />
       </Row>
       <FontLoader />
-      <div className="flex gap-2">
+      <div className={styles.pair}>
         <Row label="サイズ">
           <NumberInput
             value={layer.fontSize}
@@ -78,7 +90,7 @@ export function TextProperties({ layer }: { layer: TextLayer }) {
           onChange={(textAlign) => patch({ textAlign })}
         />
       </Row>
-      <div className="flex gap-2">
+      <div className={styles.pair}>
         <Row label="字間">
           <NumberInput
             value={layer.letterSpacing}

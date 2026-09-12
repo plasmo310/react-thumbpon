@@ -142,9 +142,18 @@ describe('使われていない export', () => {
   const withoutReExports = (source: string) =>
     source.replace(/^export\s*\{[^}]*\}\s*from .*$/gm, '')
 
-  /** name がその定義ファイル以外で出てくるか */
-  function usedElsewhere(name: string, ownPath: string): boolean {
-    const word = new RegExp(String.raw`\b${name}\b`)
+  /**
+   * name がその定義ファイル以外で出てくるか。
+   *
+   * @param asMember ドット付きの参照を「使っている」に数えるか。
+   *                 ストアのアクションは常に s.xxx の形で呼ばれるので数える。
+   *                 モジュールの export は逆に、styles.panelBody のような同名の
+   *                 プロパティ参照を数えてしまうと死んでいても気づけないので数えない。
+   */
+  function usedElsewhere(name: string, ownPath: string, asMember: boolean): boolean {
+    const word = asMember
+      ? new RegExp(String.raw`\b${name}\b`)
+      : new RegExp(String.raw`(?<![.$\w])${name}\b`)
     return consumers.some(
       ([path, source]) => path !== ownPath && word.test(withoutReExports(source)),
     )
@@ -157,7 +166,7 @@ describe('使われていない export', () => {
       for (const m of source.matchAll(
         /^export\s+(?:async\s+)?(?:function|const|class)\s+(\w+)/gm,
       )) {
-        if (!usedElsewhere(m[1], path)) dead.push(`${path} の ${m[1]}`)
+        if (!usedElsewhere(m[1], path, false)) dead.push(`${path} の ${m[1]}`)
       }
     }
     expect(dead).toEqual([])
@@ -170,7 +179,7 @@ describe('使われていない export', () => {
       const block = /export type \w+Slice = \{([\s\S]*?)\n\}/.exec(source)
       if (!block) continue
       for (const m of block[1].matchAll(/^ {2}(\w+): \(/gm)) {
-        if (!usedElsewhere(m[1], path)) dead.push(`${path} の ${m[1]}`)
+        if (!usedElsewhere(m[1], path, true)) dead.push(`${path} の ${m[1]}`)
       }
     }
     expect(dead).toEqual([])

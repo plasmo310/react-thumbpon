@@ -1,7 +1,7 @@
 import { useEditorStore } from '@/core/store'
 import type { ImageLayer } from '@/core/model/types'
-import { NumberInput, Row } from '@/shared/ui'
-import { OpacityRow } from './OpacityRow'
+import { NumberInput, PercentRow, Row } from '@/shared/ui'
+import styles from './layer.module.css'
 
 /**
  * 画像レイヤー固有のプロパティ。画像は height を持つので幅と高さを並べて出す。
@@ -13,7 +13,7 @@ export function ImageProperties({ layer }: { layer: ImageLayer }) {
 
   return (
     <>
-      <div className="flex gap-2">
+      <div className={styles.pair}>
         <Row label="幅">
           <NumberInput
             value={layer.width}
@@ -35,8 +35,9 @@ export function ImageProperties({ layer }: { layer: ImageLayer }) {
           onChange={(rotation) => updateLayer(layer.id, { rotation })}
         />
       </Row>
-      <OpacityRow
-        opacity={layer.opacity}
+      <PercentRow
+        label="不透明度"
+        value={layer.opacity}
         onChange={(opacity) => updateLayer(layer.id, { opacity })}
       />
     </>

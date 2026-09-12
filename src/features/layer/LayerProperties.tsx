@@ -1,10 +1,10 @@
 import { useEditorStore } from '@/core/store'
-import { panelBody } from '@/styles'
 import type { Layer } from '@/core/model/types'
 import { EffectsSection } from '@/shared/ui'
 import { NumberInput, Row, TextInput } from '@/shared/ui'
 import { ImageProperties } from './ImageProperties'
 import { TextProperties } from './TextProperties'
+import styles from './layer.module.css'
 
 /**
  * レイヤーのプロパティ欄。共通の項目を出したあと、種別ごとの欄に振り分け、
@@ -17,11 +17,11 @@ export function LayerProperties({ layer }: { layer: Layer }) {
   const updateLayerEffects = useEditorStore((s) => s.updateLayerEffects)
 
   return (
-    <div className={panelBody}>
+    <div className={styles.properties}>
       <Row label="名前">
         <TextInput value={layer.name} onChange={(name) => updateLayer(layer.id, { name })} />
       </Row>
-      <div className="flex gap-2">
+      <div className={styles.pair}>
         <Row label="X">
           <NumberInput value={layer.x} onChange={(x) => updateLayer(layer.id, { x })} />
         </Row>

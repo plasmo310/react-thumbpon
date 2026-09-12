@@ -1,9 +1,16 @@
 import { useCurrentThumbnail, useEditorStore } from '@/core/store'
-import { panelBody } from '@/styles'
 import type { BackgroundFit, BackgroundType, PatternType } from '@/core/model/types'
-import { EffectsSection } from '@/shared/ui'
-import { ColorInput, NumberInput, Row, Select, Slider } from '@/shared/ui'
-import { PresetRow } from '@/shared/ui'
+import {
+  ColorInput,
+  EffectsSection,
+  NumberInput,
+  PercentRow,
+  PresetRow,
+  Row,
+  Select,
+  SliderRow,
+} from '@/shared/ui'
+import styles from './layer.module.css'
 
 /** 背景の種別。4つあり「グラデーション」も入るため、横並びではなくドロップダウンで出す */
 const TYPE_OPTIONS: { label: string; value: BackgroundType }[] = [
@@ -43,7 +50,7 @@ export function BackgroundProperties() {
   const removeBackgroundPreset = useEditorStore((s) => s.removeBackgroundPreset)
 
   return (
-    <div className={panelBody}>
+    <div className={styles.properties}>
       <PresetRow
         presets={backgroundPresets}
         onApply={applyBackgroundPreset}
@@ -78,17 +85,14 @@ export function BackgroundProperties() {
               onChange={(gradientTo) => setBackground({ gradientTo })}
             />
           </Row>
-          <Row label="角度">
-            <Slider
-              value={background.gradientAngle}
-              min={0}
-              max={360}
-              onChange={(gradientAngle) => setBackground({ gradientAngle })}
-            />
-            <span className="w-8 shrink-0 text-right text-[11px] text-ink-sub">
-              {background.gradientAngle}°
-            </span>
-          </Row>
+          <SliderRow
+            label="角度"
+            value={background.gradientAngle}
+            min={0}
+            max={360}
+            unit="°"
+            onChange={(gradientAngle) => setBackground({ gradientAngle })}
+          />
         </>
       )}
 
@@ -166,32 +170,25 @@ export function BackgroundProperties() {
           </Row>
 
           {background.pattern !== 'checker' && (
-            <Row label="太さ">
-              <Slider
-                value={background.patternWeight}
-                min={0.05}
-                max={0.95}
-                step={0.05}
-                onChange={(patternWeight) => setBackground({ patternWeight })}
-              />
-              <span className="w-8 shrink-0 text-right text-[11px] text-ink-sub">
-                {Math.round(background.patternWeight * 100)}%
-              </span>
-            </Row>
+            <PercentRow
+              label="太さ"
+              value={background.patternWeight}
+              min={0.05}
+              max={0.95}
+              step={0.05}
+              onChange={(patternWeight) => setBackground({ patternWeight })}
+            />
           )}
 
           {background.pattern === 'lines' && (
-            <Row label="角度">
-              <Slider
-                value={background.patternAngle}
-                min={0}
-                max={180}
-                onChange={(patternAngle) => setBackground({ patternAngle })}
-              />
-              <span className="w-8 shrink-0 text-right text-[11px] text-ink-sub">
-                {background.patternAngle}°
-              </span>
-            </Row>
+            <SliderRow
+              label="角度"
+              value={background.patternAngle}
+              min={0}
+              max={180}
+              unit="°"
+              onChange={(patternAngle) => setBackground({ patternAngle })}
+            />
           )}
 
           <Row label="下地色">

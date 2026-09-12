@@ -1,7 +1,10 @@
-import { useRef, useState } from 'react'
-import { notifyError } from '@/shared/lib/notify'
 import { addFontFiles, canQueryLocalFonts, queryLocalFonts } from '@/core/storage/fontRepo'
 import { useEditorStore } from '@/core/store'
+import { useAsyncAction } from '@/shared/lib/useAsyncAction'
+import { Button, useFilePicker } from '@/shared/ui'
+import styles from './layer.module.css'
+
+const ACCEPT = '.ttf,.otf,.woff,.woff2,font/*'
 
 /**
  * ローカルフォントの読み込み（PCのフォント一覧の取得 / フォントファイルの追加）。
@@ -9,68 +12,38 @@ import { useEditorStore } from '@/core/store'
  */
 export function FontLoader() {
   const addFonts = useEditorStore((s) => s.addFonts)
-  const inputRef = useRef<HTMLInputElement>(null)
-  const [busy, setBusy] = useState(false)
+  const { busy, run } = useAsyncAction()
 
-  const loadLocalFonts = async () => {
-    setBusy(true)
-    try {
-      addFonts(await queryLocalFonts())
-    } catch (error) {
-      notifyError('ローカルフォントを読み込めませんでした', error)
-    } finally {
-      setBusy(false)
-    }
-  }
-
-  const loadFontFiles = async (files: FileList | null) => {
-    if (!files || files.length === 0) return
-    setBusy(true)
-    try {
-      const added = await addFontFiles(Array.from(files))
-      if (added.length === 0) window.alert('追加できるフォントがありませんでした')
-      else addFonts(added)
-    } catch (error) {
-      notifyError('フォントを読み込めませんでした', error)
-    } finally {
-      setBusy(false)
-    }
-  }
-
-  const buttonClass =
-    'flex-1 rounded-md border border-line px-2 py-1 text-[11px] text-ink-sub transition hover:border-accent hover:text-accent disabled:opacity-50'
+  const picker = useFilePicker(
+    ACCEPT,
+    (files) =>
+      void run('フォントを読み込めませんでした', async () => {
+        const added = await addFontFiles(Array.from(files))
+        if (added.length === 0) window.alert('追加できるフォントがありませんでした')
+        else addFonts(added)
+      }),
+    true,
+  )
 
   return (
-    <div className="flex gap-1">
+    <div className={styles.fontButtons}>
       {canQueryLocalFonts() && (
-        <button
-          type="button"
+        <Button
+          grow
           disabled={busy}
-          onClick={() => void loadLocalFonts()}
-          className={buttonClass}
+          onClick={() =>
+            void run('ローカルフォントを読み込めませんでした', async () =>
+              addFonts(await queryLocalFonts()),
+            )
+          }
         >
           PCのフォントを読み込む
-        </button>
+        </Button>
       )}
-      <button
-        type="button"
-        disabled={busy}
-        onClick={() => inputRef.current?.click()}
-        className={buttonClass}
-      >
+      <Button grow disabled={busy} onClick={picker.open}>
         フォントファイル追加
-      </button>
-      <input
-        ref={inputRef}
-        type="file"
-        accept=".ttf,.otf,.woff,.woff2,font/*"
-        multiple
-        hidden
-        onChange={(event) => {
-          void loadFontFiles(event.target.files)
-          event.target.value = ''
-        }}
-      />
+      </Button>
+      {picker.element}
     </div>
   )
 }

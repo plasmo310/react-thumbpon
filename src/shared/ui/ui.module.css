@@ -262,3 +262,33 @@
   display: flex;
   gap: var(--space-2);
 }
+
+/* --- 枠線ボタン。ヘッダーやプロパティ欄に置く「押せる」操作 --- */
+
+.button {
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius);
+  color: var(--color-ink-sub);
+  transition:
+    border-color 150ms,
+    color 150ms;
+}
+
+.button:hover:not(:disabled) {
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+}
+
+.button:disabled {
+  opacity: 0.5;
+}
+
+.buttonSm {
+  padding: var(--space-1) var(--space-2);
+  font-size: var(--font-label);
+}
+
+.buttonMd {
+  padding: 6px var(--space-3);
+  font-size: var(--font-body);
+}

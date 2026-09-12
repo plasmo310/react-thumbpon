@@ -1,3 +1,4 @@
+export { Button } from './Button'
 export { ColorInput } from './ColorInput'
 export { EffectsSection } from './EffectsSection'
 export { EyeIcon, EyeOffIcon } from './Icons'
