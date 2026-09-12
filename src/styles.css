@@ -36,10 +36,55 @@
   --label-col: 64px;
 }
 
+/*
+ * リセット。Tailwind の preflight が担っていた分をここに持つ。
+ * 移行が終わって Tailwind を外したときに見た目がずれないよう、先に入れておく。
+ */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
 html,
 body,
 #root {
   height: 100%;
+}
+
+h1,
+h2,
+h3,
+p {
+  margin: 0;
+}
+
+ul,
+ol {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* 入力部品は既定のフォントを引き継がないので、明示的に本文へ揃える */
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+button {
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+}
+
+svg {
+  display: block;
 }
 
 body {

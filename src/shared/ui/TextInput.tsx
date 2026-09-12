@@ -1,4 +1,4 @@
-import { inputBase } from '@/styles'
+import styles from './ui.module.css'
 
 /**
  * 1行のテキスト入力。
@@ -19,7 +19,7 @@ export function TextInput({
   return (
     <input
       type="text"
-      className={inputBase}
+      className={styles.input}
       value={value}
       placeholder={placeholder}
       onChange={(e) => onChange(e.target.value)}

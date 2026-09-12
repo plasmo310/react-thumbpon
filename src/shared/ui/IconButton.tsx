@@ -1,4 +1,6 @@
 import type { ReactNode } from 'react'
+import { cx } from '@/shared/lib/cx'
+import styles from './ui.module.css'
 
 /**
  * アイコン1文字ぶんの小さなボタン。
@@ -28,9 +30,7 @@ export function IconButton({
         e.stopPropagation()
         onClick()
       }}
-      className={`flex h-6 w-6 shrink-0 items-center justify-center rounded text-[13px] leading-none transition hover:bg-app ${
-        active ? 'text-accent' : 'text-ink-sub'
-      }`}
+      className={cx(styles.iconButton, active && styles.iconButtonOn)}
     >
       {children}
     </button>

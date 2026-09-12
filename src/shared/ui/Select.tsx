@@ -1,4 +1,4 @@
-import { inputBase } from '@/styles'
+import styles from './ui.module.css'
 
 /**
  * ドロップダウン選択。
@@ -19,7 +19,7 @@ export function Select<T extends string | number>({
 }) {
   return (
     <select
-      className={`${inputBase} cursor-pointer`}
+      className={styles.select}
       value={value}
       onChange={(e) => {
         const raw = e.target.value

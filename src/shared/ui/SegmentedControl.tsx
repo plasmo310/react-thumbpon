@@ -1,3 +1,6 @@
+import { cx } from '@/shared/lib/cx'
+import styles from './ui.module.css'
+
 /**
  * 横並びの排他選択。選択肢が2〜3個で、選択中が一目で分かるべき項目に使う。
  *
@@ -15,17 +18,13 @@ export function SegmentedControl<T extends string>({
   options: { label: string; value: T }[]
 }) {
   return (
-    <div className="flex flex-1 overflow-hidden rounded-md border border-line">
+    <div className={styles.segmented}>
       {options.map((o) => (
         <button
           key={o.value}
           type="button"
           onClick={() => onChange(o.value)}
-          className={`flex-1 px-2 py-1 text-[11px] transition ${
-            value === o.value
-              ? 'bg-accent-soft font-bold text-accent-hover'
-              : 'bg-white text-ink-sub hover:bg-app'
-          }`}
+          className={cx(styles.segment, value === o.value && styles.segmentOn)}
         >
           {o.label}
         </button>

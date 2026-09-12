@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { inputBase } from '@/styles'
+import styles from './ui.module.css'
 
 /**
  * 数値入力。
@@ -31,7 +31,7 @@ export function NumberInput({
   return (
     <input
       type="number"
-      className={inputBase}
+      className={styles.input}
       value={draft ?? String(safeValue)}
       step={step}
       min={min}

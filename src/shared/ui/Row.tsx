@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import styles from './ui.module.css'
 
 /**
  * プロパティ1行分のレイアウト。ラベル幅を揃えて縦に並べるためのもの。
@@ -8,9 +9,9 @@ import type { ReactNode } from 'react'
  */
 export function Row({ label, children }: { label: string; children: ReactNode }) {
   return (
-    <div className="flex items-center gap-2">
-      <span className="w-16 shrink-0 text-[11px] text-ink-sub">{label}</span>
-      <div className="flex min-w-0 flex-1 items-center gap-2">{children}</div>
+    <div className={styles.row}>
+      <span className={styles.rowLabel}>{label}</span>
+      <div className={styles.rowBody}>{children}</div>
     </div>
   )
 }

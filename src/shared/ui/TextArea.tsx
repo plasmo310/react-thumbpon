@@ -1,4 +1,4 @@
-import { inputBase } from '@/styles'
+import styles from './ui.module.css'
 
 /**
  * 複数行のテキスト入力。
@@ -15,7 +15,7 @@ export function TextArea({
 }) {
   return (
     <textarea
-      className={`${inputBase} h-16 resize-y leading-snug`}
+      className={styles.textarea}
       value={value}
       onChange={(e) => onChange(e.target.value)}
     />

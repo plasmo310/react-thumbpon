@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { IconButton } from './IconButton'
 import { Row } from './Row'
+import styles from './ui.module.css'
 
 /**
  * プリセットの適用・保存・削除をまとめた行。
@@ -27,7 +28,7 @@ export function PresetRow({
   return (
     <Row label="プリセット">
       <select
-        className="min-w-0 flex-1 cursor-pointer rounded-md border border-line bg-white px-2 py-1 text-xs outline-none focus:border-accent"
+        className={styles.select}
         value={selected}
         onChange={(e) => {
           setSelected(e.target.value)

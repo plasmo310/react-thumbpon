@@ -1,3 +1,5 @@
+import styles from './ui.module.css'
+
 /**
  * スライダー入力。
  *
@@ -23,7 +25,7 @@ export function Slider({
   return (
     <input
       type="range"
-      className="flex-1 accent-accent"
+      className={styles.slider}
       value={value}
       min={min}
       max={max}

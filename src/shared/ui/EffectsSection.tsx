@@ -1,8 +1,10 @@
 import { DEFAULT_EFFECTS, type Effects } from '@/core/model/types'
 import { ColorInput } from './ColorInput'
 import { NumberInput } from './NumberInput'
+import { PercentRow } from './PercentRow'
 import { Row } from './Row'
-import { Slider } from './Slider'
+import { SliderRow } from './SliderRow'
+import styles from './ui.module.css'
 
 /**
  * エフェクト1つ分の見出し兼 ON/OFF。切っている間は中身を畳んで欄を短く保つ。
@@ -21,10 +23,10 @@ function EffectToggle({
   onToggle: (enabled: boolean) => void
 }) {
   return (
-    <label className="flex cursor-pointer items-center gap-2 text-[11px] text-ink-sub">
+    <label className={styles.effectToggle}>
       <input
         type="checkbox"
-        className="accent-accent"
+        className={styles.checkbox}
         checked={enabled}
         onChange={(e) => onToggle(e.target.checked)}
       />
@@ -51,19 +53,18 @@ export function EffectsSection({
 
   return (
     <>
-      <div className="mt-1 border-t border-line pt-2" />
-      <span className="text-[11px] font-bold text-ink-sub">エフェクト</span>
+      <div className={styles.effectsDivider} />
+      <span className={styles.effectsTitle}>エフェクト</span>
 
-      <Row label="ブラー">
-        <Slider
-          value={value.blur}
-          min={0}
-          max={40}
-          step={0.5}
-          onChange={(blur) => onChange({ blur })}
-        />
-        <span className="w-10 shrink-0 text-right text-[11px] text-ink-sub">{value.blur}px</span>
-      </Row>
+      <SliderRow
+        label="ブラー"
+        value={value.blur}
+        min={0}
+        max={40}
+        step={0.5}
+        unit="px"
+        onChange={(blur) => onChange({ blur })}
+      />
 
       <EffectToggle
         label="シャドウ"
@@ -72,7 +73,7 @@ export function EffectsSection({
       />
       {value.shadowEnabled && (
         <>
-          <div className="flex gap-2">
+          <div className={styles.pair}>
             <Row label="ずらしX">
               <NumberInput value={value.shadowX} onChange={(shadowX) => onChange({ shadowX })} />
             </Row>
@@ -80,34 +81,25 @@ export function EffectsSection({
               <NumberInput value={value.shadowY} onChange={(shadowY) => onChange({ shadowY })} />
             </Row>
           </div>
-          <Row label="ぼかし">
-            <Slider
-              value={value.shadowBlur}
-              min={0}
-              max={60}
-              onChange={(shadowBlur) => onChange({ shadowBlur })}
-            />
-            <span className="w-10 shrink-0 text-right text-[11px] text-ink-sub">
-              {value.shadowBlur}px
-            </span>
-          </Row>
+          <SliderRow
+            label="ぼかし"
+            value={value.shadowBlur}
+            min={0}
+            max={60}
+            unit="px"
+            onChange={(shadowBlur) => onChange({ shadowBlur })}
+          />
           <Row label="影の色">
             <ColorInput
               value={value.shadowColor}
               onChange={(shadowColor) => onChange({ shadowColor })}
             />
           </Row>
-          <Row label="濃さ">
-            <Slider
-              value={Math.round(value.shadowOpacity * 100)}
-              min={0}
-              max={100}
-              onChange={(percent) => onChange({ shadowOpacity: percent / 100 })}
-            />
-            <span className="w-10 shrink-0 text-right text-[11px] text-ink-sub">
-              {Math.round(value.shadowOpacity * 100)}%
-            </span>
-          </Row>
+          <PercentRow
+            label="濃さ"
+            value={value.shadowOpacity}
+            onChange={(shadowOpacity) => onChange({ shadowOpacity })}
+          />
         </>
       )}
 
@@ -118,31 +110,22 @@ export function EffectsSection({
       />
       {value.glowEnabled && (
         <>
-          <Row label="広がり">
-            <Slider
-              value={value.glowBlur}
-              min={1}
-              max={60}
-              onChange={(glowBlur) => onChange({ glowBlur })}
-            />
-            <span className="w-10 shrink-0 text-right text-[11px] text-ink-sub">
-              {value.glowBlur}px
-            </span>
-          </Row>
+          <SliderRow
+            label="広がり"
+            value={value.glowBlur}
+            min={1}
+            max={60}
+            unit="px"
+            onChange={(glowBlur) => onChange({ glowBlur })}
+          />
           <Row label="光の色">
             <ColorInput value={value.glowColor} onChange={(glowColor) => onChange({ glowColor })} />
           </Row>
-          <Row label="濃さ">
-            <Slider
-              value={Math.round(value.glowOpacity * 100)}
-              min={0}
-              max={100}
-              onChange={(percent) => onChange({ glowOpacity: percent / 100 })}
-            />
-            <span className="w-10 shrink-0 text-right text-[11px] text-ink-sub">
-              {Math.round(value.glowOpacity * 100)}%
-            </span>
-          </Row>
+          <PercentRow
+            label="濃さ"
+            value={value.glowOpacity}
+            onChange={(glowOpacity) => onChange({ glowOpacity })}
+          />
         </>
       )}
     </>

@@ -1,4 +1,4 @@
-import { inputBase } from '@/styles'
+import styles from './ui.module.css'
 
 /**
  * 色の入力。カラーピッカーと16進数の直接入力を並べる。
@@ -14,16 +14,16 @@ export function ColorInput({
   onChange: (value: string) => void
 }) {
   return (
-    <div className="flex flex-1 items-center gap-2">
+    <div className={styles.color}>
       <input
         type="color"
-        className="h-7 w-9 shrink-0 cursor-pointer"
+        className={styles.colorSwatch}
         value={value}
         onChange={(e) => onChange(e.target.value)}
       />
       <input
         type="text"
-        className={inputBase}
+        className={styles.input}
         value={value}
         onChange={(e) => onChange(e.target.value)}
       />
