@@ -6,7 +6,7 @@ vi.mock('@/shared/lib/storage/fsAccess', () => import('./helpers/fakeFs'))
 import { resetKv } from './helpers/fakeKv'
 import { fake, makeDir, resetFake } from './helpers/fakeFs'
 import { restoreWorkspace } from '@/features/project/lib/workspace'
-import { openProjectFolder, saveProjectFolder } from '@/features/project/lib/projectFolder'
+import { saveProjectFolder } from '@/features/project/lib/projectFolder'
 import { getAssetBlob } from '@/shared/lib/storage/assetRepo'
 import { useEditorStore } from '@/app/store'
 import { createThumbnail } from '@/domain/thumbnail'
@@ -82,7 +82,7 @@ describe('フォルダに入れた素材の復元', () => {
     state().addImageLayer(added.id)
 
     fake.picked = makeDir('work')
-    expect(await openProjectFolder(agree)).toBe(true)
+    await saveProjectFolder(agree)
     await saveProjectFolder(agree)
 
     reload()

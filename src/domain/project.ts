@@ -7,11 +7,17 @@ import type { BackgroundPreset, TextPreset } from './preset'
 import type { Layer } from './layer'
 import type { Folder, Thumbnail } from './thumbnail'
 
-/**
- * 素材の格納場所。file はコンテナ内の相対パス（ZIP エントリ名 / フォルダ内のパス）。
- * dataUrl は旧形式(.thumbpon.json)を読むためだけに残しており、書き出しでは使わない。
- */
-export type ProjectAssetEntry = { meta: AssetMeta; dataUrl?: string; file?: string }
+/** ワークスペースのマニフェストの拡張子。中身は JSON だが、OS から見てサムネぽんのものだと分かる名前にする */
+const PROJECT_EXTENSION = '.thumbpon'
+
+/** 1ファイル形式の拡張子。OS からただの ZIP として解凍できるよう .zip で終わらせる */
+export const PROJECT_ZIP_EXTENSION = `${PROJECT_EXTENSION}.zip`
+
+/** 素材の置き場。マニフェストと同じ階層に置く。ZIP とワークスペースフォルダで共通 */
+export const ASSETS_DIR = 'assets'
+
+/** 素材の格納場所。file はコンテナ内の相対パス（ZIP エントリ名 / フォルダ内のパス） */
+export type ProjectAssetEntry = { meta: AssetMeta; file?: string }
 
 /**
  * プロジェクトが必要とするフォント。
@@ -28,7 +34,7 @@ export type ProjectFontRef = {
 }
 
 /**
- * プロジェクトファイル(.thumbpon.zip)とワークスペースフォルダの project.json の中身。
+ * プロジェクトファイル(.thumbpon.zip)とワークスペースフォルダのマニフェスト(*.thumbpon)の中身。
  * version 1 は fonts を、version 2 までは背景の模様設定とレイヤーのエフェクトを、
  * version 3 までは素材フォルダと画像のクロップ・左右反転を持たない。
  * 読み込み側は無い前提で扱うこと（欠けは normalizeThumbnails が既定値で補う）。
@@ -97,7 +103,55 @@ export function assetFolderDirName(folder: AssetFolder): string {
 export function assetPath(meta: AssetMeta, folders: AssetFolder[] = []): string {
   const folder = folders.find((f) => f.id === meta.folderId)
   const dir = folder ? `${assetFolderDirName(folder)}/` : ''
-  return `assets/${dir}${meta.id}${extensionFor(meta)}`
+  return `${ASSETS_DIR}/${dir}${meta.id}${extensionFor(meta)}`
+}
+
+/*
+ * マニフェストのファイル名か。
+ * 語幹が空のもの（`.thumbpon` 単体）を弾くのは、Unix で隠しファイルになる名前を
+ * プロジェクトとして拾わないため。`.thumbpon.zip` は末尾が違うので自然に外れる。
+ */
+const isManifestName = (name: string) =>
+  name.length > PROJECT_EXTENSION.length && name.endsWith(PROJECT_EXTENSION)
+
+/** 同じ場所にマニフェストが複数あっても毎回同じものを選べるよう、順序を決めきる */
+const byName = (a: string, b: string) => a.length - b.length || (a < b ? -1 : a > b ? 1 : 0)
+
+/**
+ * 名前の一覧からマニフェストを1つ選ぶ。
+ * フォルダは OS や外部エディタからも触れるので、複数置かれていても選び先がぶれないようにする。
+ *
+ * @param names フォルダ直下の項目名。フォルダ名が混ざっていても構わない
+ * @returns 選ばれたファイル名。1つも無ければ null
+ */
+export function findManifestName(names: string[]): string | null {
+  return [...names].filter(isManifestName).sort(byName)[0] ?? null
+}
+
+/**
+ * ZIP のエントリ名からマニフェストの位置を求める。
+ * フォルダごとOSの機能で圧縮すると中身が「フォルダ名/」の下に入るため、直下とは限らない。
+ *
+ * @param paths ZIP のエントリ名
+ * @returns マニフェストのエントリ名と、素材のパスを解決するための接頭辞。無ければ null。
+ *          浅いものを優先するのは、入れ子になった別プロジェクトより手前のものを選ぶため
+ */
+export function findManifestEntry(paths: string[]): { path: string; prefix: string } | null {
+  const depth = (path: string) => path.split('/').length
+  const found = [...paths]
+    .filter((path) => isManifestName(path.slice(path.lastIndexOf('/') + 1)))
+    .sort((a, b) => depth(a) - depth(b) || byName(a, b))[0]
+  return found ? { path: found, prefix: found.slice(0, found.lastIndexOf('/') + 1) } : null
+}
+
+/**
+ * 新しく作るマニフェストのファイル名。フォルダ名をそのまま使うことで、
+ * エクスプローラー上でどのプロジェクトなのかが名前で分かるようにする。
+ *
+ * @param folderName ワークスペースフォルダの名前。使える文字が残らなければ project にする
+ */
+export function defaultManifestName(folderName: string): string {
+  return `${sanitizePathName(folderName) || 'project'}${PROJECT_EXTENSION}`
 }
 
 /**

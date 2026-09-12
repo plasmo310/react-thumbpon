@@ -603,7 +603,7 @@ project.zip
 
 ```text
 project/
-├ project.json
+├ project.thumbpon
 ├ assets/
 │   ├ background.png
 │   ├ character.png
@@ -611,7 +611,7 @@ project/
 └ fonts/
 ```
 
-`project.json` の例：
+マニフェスト(`*.thumbpon`)の例：
 
 ```json
 {
@@ -657,7 +657,7 @@ File System Access APIなどの利用を検討する。
 
 ```text
 MyThumbnailProject/
-├ project.json
+├ project.thumbpon
 ├ templates/
 ├ assets/
 │   ├ characters/

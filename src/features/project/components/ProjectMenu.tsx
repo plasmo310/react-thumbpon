@@ -1,12 +1,16 @@
 import { useEffect, useRef, useState } from 'react'
 import { notifyError } from '@/shared/lib/notify'
 import { canUseFileSystemAccess } from '@/shared/lib/storage/fsAccess'
+import { PROJECT_ZIP_EXTENSION } from '@/domain/project'
+import { Button, useFilePicker } from '@/shared/ui'
 import { exportProjectFile, importProjectFile } from '../lib/projectFile'
 import { confirmFolderOverwrite } from '../lib/confirmOverwrite'
 import { openProjectFolder, saveProjectFolder } from '../lib/projectFolder'
 import { newProject } from '../lib/workspace'
-import { Button } from '@/shared/ui'
 import styles from '../styles.module.css'
+
+/** インポートで受け付ける形式。素の .zip も許すのは、受け渡しで .thumbpon を落とされた場合のため */
+const IMPORT_ACCEPT = `${PROJECT_ZIP_EXTENSION},.zip,application/zip`
 
 /**
  * 新規作成からファイル書き出しまで、プロジェクト単位の操作をまとめたメニュー。
@@ -17,7 +21,6 @@ export function ProjectMenu() {
   const [open, setOpen] = useState(false)
   const [busy, setBusy] = useState(false)
   const rootRef = useRef<HTMLDivElement>(null)
-  const inputRef = useRef<HTMLInputElement>(null)
   const canUseFolder = canUseFileSystemAccess()
 
   // メニューの外を触ったときと Escape で閉じる。開いている間だけ購読する
@@ -55,23 +58,32 @@ export function ProjectMenu() {
     }
   }
 
-  /** 取り消せない操作なので必ず確認を挟む */
+  /** 現在の内容を捨てる操作の確認。取り消せないので必ず挟む */
+  const confirmDiscard = (what: string) =>
+    window.confirm(`現在の内容を破棄して${what}。よろしいですか？`)
+
   const handleNew = async () => {
-    if (!window.confirm('現在の内容を破棄して新しいプロジェクトを作成します。よろしいですか？')) {
-      return
-    }
+    if (!confirmDiscard('新しいプロジェクトを作成します')) return
     await newProject()
   }
 
   /**
    * 選ばれたファイルを読み込む。
    *
-   * @param file 選択されたファイル。キャンセル時は undefined
+   * @param file 選択されたファイル
    */
-  const handleImport = async (file: File | undefined) => {
-    if (!file) return
-    if (!window.confirm('現在の内容を破棄してプロジェクトを読み込みます。よろしいですか？')) return
+  const handleImport = async (file: File) => {
+    if (!confirmDiscard('プロジェクトを読み込みます')) return
     await importProjectFile(file)
+  }
+
+  const picker = useFilePicker(IMPORT_ACCEPT, (files) => {
+    void run('読み込みに失敗しました', () => handleImport(files[0]))
+  })
+
+  const handleOpen = async () => {
+    if (!confirmDiscard('プロジェクトを開きます')) return
+    await openProjectFolder()
   }
 
   return (
@@ -103,14 +115,10 @@ export function ProjectMenu() {
                 type="button"
                 role="menuitem"
                 className={styles.menuItem}
-                title="ローカルのフォルダをワークスペースとして開く"
-                onClick={() =>
-                  void run('フォルダを開けませんでした', () =>
-                    openProjectFolder(confirmFolderOverwrite),
-                  )
-                }
+                title="プロジェクトのフォルダを開いて作業を再開する"
+                onClick={() => void run('プロジェクトを開けませんでした', handleOpen)}
               >
-                フォルダを開く
+                プロジェクトを開く
               </button>
               <button
                 type="button"
@@ -121,7 +129,7 @@ export function ProjectMenu() {
                   void run('保存に失敗しました', () => saveProjectFolder(confirmFolderOverwrite))
                 }
               >
-                フォルダに保存
+                プロジェクトを保存
                 <span className={styles.shortcut}>Ctrl+S</span>
               </button>
             </>
@@ -135,7 +143,7 @@ export function ProjectMenu() {
             title=".thumbpon.zip ファイルを読み込む"
             onClick={() => {
               setOpen(false)
-              inputRef.current?.click()
+              picker.open()
             }}
           >
             インポート
@@ -152,17 +160,7 @@ export function ProjectMenu() {
         </div>
       )}
 
-      <input
-        ref={inputRef}
-        type="file"
-        accept=".zip,.json,application/zip,application/json"
-        hidden
-        onChange={(event) => {
-          const file = event.target.files?.[0]
-          event.target.value = ''
-          void run('読み込みに失敗しました', () => handleImport(file))
-        }}
-      />
+      {picker.element}
     </div>
   )
 }

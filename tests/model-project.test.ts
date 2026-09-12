@@ -3,7 +3,10 @@ import {
   assetFolderDirName,
   assetPath,
   collectUsedFonts,
+  defaultManifestName,
   extensionFor,
+  findManifestEntry,
+  findManifestName,
   findMissingFonts,
   normalizeThumbnails,
   sanitizePathName,
@@ -211,5 +214,69 @@ describe('normalizeThumbnails', () => {
       crop: DEFAULT_CROP,
       flipX: false,
     })
+  })
+})
+
+describe('findManifestName', () => {
+  it('*.thumbpon を拾う', () => {
+    expect(findManifestName(['readme.txt', 'work.thumbpon', 'assets'])).toBe('work.thumbpon')
+  })
+
+  it('1つも無ければ null', () => {
+    expect(findManifestName(['readme.txt', 'project.json'])).toBeNull()
+  })
+
+  it('1ファイル形式(.thumbpon.zip)は拾わない', () => {
+    expect(findManifestName(['work.thumbpon.zip'])).toBeNull()
+  })
+
+  it('語幹の無い .thumbpon は拾わない', () => {
+    // Unix では隠しファイルになる名前なので、プロジェクトとして扱わない
+    expect(findManifestName(['.thumbpon'])).toBeNull()
+  })
+
+  it('複数あっても選び先がぶれない', () => {
+    const names = ['bbb.thumbpon', 'aaa.thumbpon', 'a.thumbpon']
+    expect(findManifestName(names)).toBe('a.thumbpon')
+    expect(findManifestName([...names].reverse())).toBe('a.thumbpon')
+  })
+})
+
+describe('findManifestEntry', () => {
+  it('直下のマニフェストは接頭辞が空', () => {
+    expect(findManifestEntry(['work.thumbpon', 'assets/a1.png'])).toEqual({
+      path: 'work.thumbpon',
+      prefix: '',
+    })
+  })
+
+  it('フォルダごと圧縮された ZIP では、そのフォルダが接頭辞になる', () => {
+    expect(findManifestEntry(['work/夜景.thumbpon', 'work/assets/a1.png'])).toEqual({
+      path: 'work/夜景.thumbpon',
+      prefix: 'work/',
+    })
+  })
+
+  it('浅いほうを優先する', () => {
+    const paths = ['work/a.thumbpon', 'outer.thumbpon']
+    expect(findManifestEntry(paths)?.path).toBe('outer.thumbpon')
+  })
+
+  it('無ければ null', () => {
+    expect(findManifestEntry(['readme.txt'])).toBeNull()
+  })
+})
+
+describe('defaultManifestName', () => {
+  it('フォルダ名から作る', () => {
+    expect(defaultManifestName('夜景シリーズ')).toBe('夜景シリーズ.thumbpon')
+  })
+
+  it('使えない文字は落とす', () => {
+    expect(defaultManifestName('a/b:c')).toBe('abc.thumbpon')
+  })
+
+  it('使える文字が残らなければ project にする', () => {
+    expect(defaultManifestName('///')).toBe('project.thumbpon')
   })
 })

@@ -20,8 +20,7 @@ let picked: ReturnType<typeof makeHandle> | null = null
 installPicker(() => picked)
 
 const { restoreWorkspace } = await import('@/features/project/lib/workspace')
-const { openProjectFolder, saveProjectFolder } =
-  await import('@/features/project/lib/projectFolder')
+const { saveProjectFolder } = await import('@/features/project/lib/projectFolder')
 const { getAssetBlob } = await import('@/shared/lib/storage/assetRepo')
 const { setCurrentDirectory } = await import('@/shared/lib/storage/fsAccess')
 const { useEditorStore } = await import('@/app/store')
@@ -86,11 +85,11 @@ describe('ワークスペースフォルダ（本物の fsAccess を通す）', 
     const { assetId, folderId } = await withFolderedAsset('風景')
 
     picked = makeHandle('work')
-    expect(await openProjectFolder(agree)).toBe(true)
+    await saveProjectFolder(agree)
 
     expect(Object.keys(await dumpFiles(picked)).sort()).toEqual([
       'assets/風景/' + assetId + '.png',
-      'project.json',
+      'work.thumbpon',
     ])
 
     reload()
@@ -106,14 +105,14 @@ describe('ワークスペースフォルダ（本物の fsAccess を通す）', 
   it('フォルダ名を変えて保存し直しても素材が残り、空のフォルダは消える', async () => {
     const { assetId } = await withFolderedAsset('風景')
     picked = makeHandle('work')
-    await openProjectFolder(agree)
+    await saveProjectFolder(agree)
 
     await state().renameAssetFolder(state().assetFolders[0].id, '人物')
     await saveProjectFolder(agree)
 
     expect(Object.keys(await dumpFiles(picked)).sort()).toEqual([
       'assets/人物/' + assetId + '.png',
-      'project.json',
+      'work.thumbpon',
     ])
 
     reload()
@@ -121,12 +120,29 @@ describe('ワークスペースフォルダ（本物の fsAccess を通す）', 
     expect(await (await getAssetBlob(assetId))?.text()).toBe('bytes-of-a.png')
   })
 
+  it('マニフェストをアプリの外からリネームされても、2つ目を作らない', async () => {
+    await withFolderedAsset('風景')
+    picked = makeHandle('work')
+    await saveProjectFolder(agree)
+
+    // エクスプローラーでプロジェクトに名前を付け直した状況
+    renameEntry(picked, 'work.thumbpon', '夜景シリーズ.thumbpon')
+
+    reload()
+    await restoreWorkspace()
+    await saveProjectFolder(agree)
+
+    const names = Object.keys(await dumpFiles(picked)).filter((n) => n.endsWith('.thumbpon'))
+    expect(names).toEqual(['夜景シリーズ.thumbpon'])
+    expect(state().workspaceFileName).toBe('夜景シリーズ.thumbpon')
+  })
+
   it('フォルダ名をアプリの外から変えられても、id でファイルを拾い直す', async () => {
     const { assetId, folderId } = await withFolderedAsset('風景')
     picked = makeHandle('work')
-    await openProjectFolder(agree)
+    await saveProjectFolder(agree)
 
-    // OS や手作業でフォルダ名だけ変わった状況。project.json のパスとは合わなくなる
+    // OS や手作業でフォルダ名だけ変わった状況。マニフェストのパスとは合わなくなる
     renameEntry(picked, 'assets/風景', 'landscape')
 
     reload()
@@ -139,7 +155,7 @@ describe('ワークスペースフォルダ（本物の fsAccess を通す）', 
   it('フォルダ側のファイルが消えていても、ブラウザ内に残っていれば素材を落とさない', async () => {
     const { assetId } = await withFolderedAsset('風景')
     picked = makeHandle('work')
-    await openProjectFolder(agree)
+    await saveProjectFolder(agree)
 
     deleteEntry(picked, `assets/風景/${assetId}.png`)
 
@@ -158,14 +174,14 @@ describe('ワークスペースフォルダ（本物の fsAccess を通す）', 
   it('実体を取り出せない素材でも、フォルダ側のファイルは消さず参照も残す', async () => {
     const { assetId } = await withFolderedAsset('風景')
     picked = makeHandle('work')
-    await openProjectFolder(agree)
+    await saveProjectFolder(agree)
 
     // ブラウザ内の実体だけを失った状況（フォルダ側のファイルが最後の1つ）
     kvStore.delete(`blob:${assetId}`)
     await saveProjectFolder(agree)
 
     expect(Object.keys(await dumpFiles(picked))).toContain(`assets/風景/${assetId}.png`)
-    const project = JSON.parse((await dumpFiles(picked))['project.json'])
+    const project = JSON.parse((await dumpFiles(picked))['work.thumbpon'])
     expect(project.assets.map((a: { file: string }) => a.file)).toEqual([
       `assets/風景/${assetId}.png`,
     ])
@@ -179,7 +195,7 @@ describe('ワークスペースフォルダ（本物の fsAccess を通す）', 
   it('どこにも実体が無い素材は、名前で告知する（黙って消さない）', async () => {
     const { assetId } = await withFolderedAsset('風景')
     picked = makeHandle('work')
-    await openProjectFolder(agree)
+    await saveProjectFolder(agree)
 
     // フォルダ側もブラウザ内も失った状況。復元できないので、理由が分かるようにする
     deleteEntry(picked, `assets/風景/${assetId}.png`)
@@ -197,12 +213,12 @@ describe('ワークスペースフォルダ（本物の fsAccess を通す）', 
     const [root] = await state().addAssetFiles([image('b.png')])
 
     picked = makeHandle('work')
-    await openProjectFolder(agree)
+    await saveProjectFolder(agree)
 
     expect(Object.keys(await dumpFiles(picked)).sort()).toEqual([
       `assets/${root.id}.png`,
       `assets/風景/${assetId}.png`,
-      'project.json',
+      'work.thumbpon',
     ])
 
     reload()

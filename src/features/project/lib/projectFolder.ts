@@ -13,7 +13,12 @@ import {
   verifyPermission,
   writeFile,
 } from '@/shared/lib/storage/fsAccess'
-import { assetIdFromPath } from '@/domain/project'
+import {
+  ASSETS_DIR,
+  assetIdFromPath,
+  defaultManifestName,
+  findManifestName,
+} from '@/domain/project'
 import { useEditorStore } from '@/app/store'
 import {
   applyProjectFile,
@@ -21,9 +26,6 @@ import {
   collectAssetPayloads,
   isProjectFile,
 } from './projectData'
-
-const PROJECT_JSON = 'project.json'
-const ASSETS_DIR = 'assets'
 
 type Directory = NonNullable<ReturnType<typeof getCurrentDirectory>>
 
@@ -78,6 +80,15 @@ async function writeAt(root: Directory, path: string, data: Blob | string): Prom
 }
 
 /**
+ * フォルダ直下のファイル名。マニフェストを探すのに使う。
+ *
+ * @param dir 対象のフォルダ
+ */
+async function listFileNames(dir: Directory): Promise<string[]> {
+  return (await listEntries(dir)).filter((entry) => entry.kind === 'file').map(({ name }) => name)
+}
+
+/**
  * フォルダ配下のファイルを再帰的に列挙する。
  *
  * @param dir    対象のフォルダ
@@ -115,7 +126,7 @@ async function pruneEmptyDirectories(dir: Directory): Promise<void> {
 
 /**
  * assets/ に実際にあるファイルを、素材 id から引ける形にする。
- * project.json に書かれたパスで読めなかったときの拾い直しに使う
+ * マニフェストに書かれたパスで読めなかったときの拾い直しに使う
  * （フォルダの名前が変わっていても、ファイル名の id で元の素材に結び付く）。
  *
  * @param assetsDir assets/ のフォルダ。無ければ空の Map を返す
@@ -128,17 +139,37 @@ async function indexAssetFiles(assetsDir: Directory | null): Promise<Map<string,
 }
 
 /**
+ * 書き込み先のマニフェスト名を決める。
+ * 覚えている名前を最優先にするのは、同じフォルダに複数あるときに
+ * 開いたのとは別のプロジェクトを上書きしないため。
+ *
+ * @param dir        対象のフォルダ
+ * @param remembered 正本として覚えている名前。無ければ null
+ * @returns 既にあるものを優先し、1つも無ければフォルダ名から作る
+ */
+async function resolveManifestName(dir: Directory, remembered: string | null): Promise<string> {
+  const names = await listFileNames(dir)
+  if (remembered && names.includes(remembered)) return remembered
+  return findManifestName(names) ?? defaultManifestName(dir.name)
+}
+
+/**
  * フォルダの内容を読み込んで現在の状態を置き換える。
  *
- * @param dir 読み込み元のワークスペースフォルダ
- * @returns project.json が無ければ false（空のフォルダを選んだ場合）
+ * @param dir       読み込み元のワークスペースフォルダ
+ * @param preferred 開くと決まっているマニフェスト名。探索より優先する
+ * @returns 読み込んだマニフェストの名前。1つも無ければ null（空のフォルダを選んだ場合）
  */
-async function loadFrom(dir: Directory): Promise<boolean> {
-  const file = await readFile(dir, PROJECT_JSON)
-  if (!file) return false
+async function loadFrom(dir: Directory, preferred?: string): Promise<string | null> {
+  const names = await listFileNames(dir)
+  const manifest = preferred && names.includes(preferred) ? preferred : findManifestName(names)
+  if (!manifest) return null
+
+  const file = await readFile(dir, manifest)
+  if (!file) return null
 
   const parsed: unknown = JSON.parse(await file.text())
-  if (!isProjectFile(parsed)) throw new Error(`${PROJECT_JSON} がサムネぽんの形式ではありません`)
+  if (!isProjectFile(parsed)) throw new Error(`${manifest} がサムネぽんの形式ではありません`)
 
   const assetsDir = await getSubDirectory(dir, ASSETS_DIR, false)
   const byId = await indexAssetFiles(assetsDir)
@@ -154,16 +185,17 @@ async function loadFrom(dir: Directory): Promise<boolean> {
   }
 
   await applyProjectFile(parsed, blobs)
-  return true
+  return manifest
 }
 
 /**
  * 現在の状態をフォルダに書き出す。
  * 素材は既にあるファイルを書き直さず、増減分だけを反映する。
  *
- * @param dir 書き込み先のワークスペースフォルダ
+ * @param dir      書き込み先のワークスペースフォルダ
+ * @param manifest 書き込むマニフェストのファイル名
  */
-async function saveTo(dir: Directory) {
+async function saveTo(dir: Directory, manifest: string) {
   const payloads = await collectAssetPayloads()
   const assetsDir = await getSubDirectory(dir, ASSETS_DIR, true)
   if (!assetsDir) throw new Error(`${ASSETS_DIR}/ を作成できませんでした`)
@@ -202,41 +234,70 @@ async function saveTo(dir: Directory) {
   await pruneEmptyDirectories(assetsDir)
 
   const project = buildProjectFile([...payloads, ...surviving])
-  await writeFile(dir, PROJECT_JSON, JSON.stringify(project, null, 2))
-  useEditorStore.getState().markWorkspaceSaved()
+  await writeFile(dir, manifest, JSON.stringify(project, null, 2))
+  const store = useEditorStore.getState()
+  store.setWorkspace('connected', dir.name, manifest)
+  store.markWorkspaceSaved()
 }
 
-/** 中身のあるフォルダを開くときの確認。読み込んでよければ true を返す */
+/** 保存先に別のプロジェクトがあったときの確認。今の内容で上書きしてよければ true を返す */
 export type ConfirmOverwrite = (folderName: string) => boolean
 
 /**
- * フォルダを接続する。中身があれば読み込み、空なら現在の内容をそこに書き出す。
- * 「保存」を未接続の状態で押したときもここに来る（保存先を聞かれる形になる）。
+ * 保存先のフォルダを選んで接続し、現在の内容をそこに書き出す。
+ * 「保存」を未接続の状態で押したときの経路。
  *
- * @param confirmOverwrite 中身のあるフォルダだったときに呼ぶ確認。
+ * **選んだフォルダは読み込まない。** 保存を押したのに今の作業が捨てられるのを防ぐため、
+ * 既に別のプロジェクトがあっても、確認のうえ現在の内容で置き換える
+ * （読み込みたいときは「プロジェクトを開く」を使う）。
+ *
+ * @param confirmOverwrite 別のプロジェクトが入っていたときに呼ぶ確認。
  *                         ブラウザのダイアログを層の奥に埋めないよう、呼び出し側から渡す
- * @returns 接続できたか。ダイアログのキャンセルや確認の取り消しでは false
+ * @returns 保存できたか。ダイアログのキャンセルや確認の取り消しでは false
  */
-export async function openProjectFolder(confirmOverwrite: ConfirmOverwrite): Promise<boolean> {
+async function chooseWorkspaceFolder(confirmOverwrite: ConfirmOverwrite): Promise<boolean> {
   const dir = await pickDirectory()
   if (!dir) return false
   if (!(await verifyPermission(dir, true)))
     throw new Error('フォルダへの書き込みが許可されませんでした')
 
-  const hasProject = (await readFile(dir, PROJECT_JSON)) !== null
-  if (hasProject) {
-    if (!confirmOverwrite(dir.name)) return false
-    await loadFrom(dir)
-  }
+  const existing = findManifestName(await listFileNames(dir))
+  if (existing && !confirmOverwrite(dir.name)) return false
 
   setCurrentDirectory(dir)
   await saveHandle(dir)
-  useEditorStore.getState().setWorkspace('connected', dir.name)
+  // 既にある名前を引き継ぐ。付け直すと同じフォルダにマニフェストが2つ並んでしまう
+  await saveTo(dir, existing ?? defaultManifestName(dir.name))
+  return true
+}
 
-  // 空のフォルダなら、今の内容をそのまま置いて作業場所にする
-  if (!hasProject) await saveTo(dir)
-  else useEditorStore.getState().markWorkspaceSaved()
+/**
+ * プロジェクトのフォルダを開いて、現在の内容を置き換える。
+ *
+ * 素材はマニフェストの隣の `assets/` に別ファイルで置かれているので、
+ * ファイルではなくフォルダごと選んでもらう（ファイルのハンドルからは親フォルダを辿れないため、
+ * ファイル選択にすると素材の許可をもらう2つ目のダイアログが必要になってしまう）。
+ *
+ * サムネぽんのプロジェクトが無いフォルダは受け付けない。「開く」で新しい作業場所まで
+ * 作れてしまうと「保存」との役割が混ざるため（新しい保存先は「保存」から選ぶ）。
+ *
+ * @returns 開いたか。ダイアログのキャンセルでは false
+ */
+export async function openProjectFolder(): Promise<boolean> {
+  const dir = await pickDirectory()
+  if (!dir) return false
+  if (!(await verifyPermission(dir, true)))
+    throw new Error('フォルダへの書き込みが許可されませんでした')
 
+  const manifest = findManifestName(await listFileNames(dir))
+  if (!manifest) throw new Error(`「${dir.name}」にサムネぽんのプロジェクトがありません`)
+
+  setCurrentDirectory(dir)
+  await saveHandle(dir)
+  await loadFrom(dir, manifest)
+  const store = useEditorStore.getState()
+  store.setWorkspace('connected', dir.name, manifest)
+  store.markWorkspaceSaved()
   return true
 }
 
@@ -260,9 +321,11 @@ export async function restoreProjectFolder(): Promise<boolean> {
 
   setCurrentDirectory(dir)
   store.setWorkspace('connected', dir.name)
-  const loaded = await loadFrom(dir)
-  useEditorStore.getState().markWorkspaceSaved()
-  return loaded
+  const manifest = await loadFrom(dir)
+  const loaded = useEditorStore.getState()
+  loaded.setWorkspace('connected', dir.name, manifest)
+  loaded.markWorkspaceSaved()
+  return manifest !== null
 }
 
 /**
@@ -279,27 +342,30 @@ export async function reconnectProjectFolder() {
 
   setCurrentDirectory(dir)
   useEditorStore.getState().setWorkspace('connected', dir.name)
-  await loadFrom(dir)
-  useEditorStore.getState().markWorkspaceSaved()
+  const manifest = await loadFrom(dir)
+  const store = useEditorStore.getState()
+  store.setWorkspace('connected', dir.name, manifest)
+  store.markWorkspaceSaved()
 }
 
 /**
  * 現在の内容をフォルダに保存する。
- * 未接続なら先にフォルダを選んでもらう（＝保存先を聞く）。
+ * 未接続なら先に保存先のフォルダを選んでもらう。
  *
- * @param confirmOverwrite 未接続で、選んだフォルダに中身があったときの確認
+ * @param confirmOverwrite 未接続で、選んだフォルダに別のプロジェクトがあったときの確認
  */
 export async function saveProjectFolder(confirmOverwrite: ConfirmOverwrite) {
   const dir = getCurrentDirectory()
   if (!dir) {
-    await openProjectFolder(confirmOverwrite)
+    await chooseWorkspaceFolder(confirmOverwrite)
     return
   }
+  const { workspaceFileName } = useEditorStore.getState()
   if (!(await verifyPermission(dir, true))) {
-    useEditorStore.getState().setWorkspace('needs-permission', dir.name)
+    useEditorStore.getState().setWorkspace('needs-permission', dir.name, workspaceFileName)
     throw new Error('フォルダへの書き込みが許可されませんでした')
   }
-  await saveTo(dir)
+  await saveTo(dir, await resolveManifestName(dir, workspaceFileName))
 }
 
 /** フォルダを切り離して、ブラウザ内(IndexedDB)だけの作業に戻す */

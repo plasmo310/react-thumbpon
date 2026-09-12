@@ -1,6 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 vi.mock('@/shared/lib/storage/assetRepo', () => import('./helpers/fakeAssetRepo'))
+// 読み込み後にワークスペースを切り離すので、フォルダ側もメモリ実装に差し替える
+vi.mock('@/shared/lib/storage/fsAccess', () => import('./helpers/fakeFs'))
 vi.mock('@/features/project/lib/download', () => ({
   downloadBlob: (blob: Blob, filename: string) => {
     downloaded = { blob, filename }
@@ -10,6 +12,7 @@ vi.mock('@/features/project/lib/download', () => ({
 
 import { zipSync, strToU8, unzipSync } from 'fflate'
 import { blobs, resetAssets, seedAsset } from './helpers/fakeAssetRepo'
+import { fake, makeDir, resetFake } from './helpers/fakeFs'
 import { exportProjectFile, importProjectFile } from '@/features/project/lib/projectFile'
 import { useEditorStore } from '@/app/store'
 import type { AssetMeta } from '@/domain/asset'
@@ -65,6 +68,12 @@ const thumbnail = (layers: Thumbnail['layers']): Thumbnail => ({
   layers,
 })
 
+/** ZIP のバイト列を、読み込み側に渡せる File にする */
+const zipped2 = (bytes: Uint8Array) => new File([bytes as BlobPart], 'x.thumbpon.zip')
+
+/** エントリの組から、読み込み側に渡せる ZIP の File を作る */
+const zipped = (entries: Record<string, Uint8Array>) => zipped2(zipSync(entries))
+
 /** 書き出したものを、そのまま読み込み側に渡せる File にする */
 async function exported(): Promise<File> {
   await exportProjectFile()
@@ -74,6 +83,7 @@ async function exported(): Promise<File> {
 
 beforeEach(() => {
   resetAssets()
+  resetFake()
   downloaded = null
   useEditorStore.setState({
     folders: [],
@@ -83,6 +93,8 @@ beforeEach(() => {
     assetFolders: [],
     fonts: BUILTIN_FONTS,
     missingFontLabels: [],
+    workspaceFileName: null,
+    workspaceFolderName: null,
   })
 })
 
@@ -92,6 +104,16 @@ describe('exportProjectFile', () => {
     expect(downloaded?.filename).toMatch(/^thumbpon-\d{4}-\d{2}-\d{2}\.thumbpon\.zip$/)
     const head = new Uint8Array(await (downloaded as { blob: Blob }).blob.arrayBuffer())
     expect([head[0], head[1]]).toEqual([0x50, 0x4b])
+  })
+
+  it('フォルダに接続していれば、その名前で書き出す', async () => {
+    // フォルダとZIPで別の名前になると、同じプロジェクトだと分からなくなる
+    useEditorStore.setState({ workspaceFileName: '夜景シリーズ.thumbpon' })
+    await exportProjectFile()
+    expect(downloaded?.filename).toBe('夜景シリーズ.thumbpon.zip')
+    expect(
+      Object.keys(unzipSync(new Uint8Array(await (await exported()).arrayBuffer()))),
+    ).toContain('夜景シリーズ.thumbpon')
   })
 
   it('実体を失った素材は書き出さない', async () => {
@@ -147,18 +169,18 @@ describe('往復', () => {
     expect(await (blobs.get('a1') as Blob).text()).toBe('image-bytes')
   })
 
-  it('素材フォルダを持たない旧形式は、素材を未分類として読む', async () => {
-    const legacy = {
+  it('素材フォルダを持たない古いバージョンは、素材を未分類として読む', async () => {
+    // 素材の実体はブラウザ内に残っているものが使われる
+    seedAsset('a1', new Blob(['image-bytes']))
+    const older = {
       format: 'thumbpon-project',
       version: 3,
       folders: [],
       thumbnails: [thumbnail([])],
       currentThumbnailId: 'th1',
-      assets: [
-        { meta: { ...meta('a1'), folderId: 'gone' }, dataUrl: 'data:image/png;base64,aGVsbG8=' },
-      ],
+      assets: [{ meta: { ...meta('a1'), folderId: 'gone' } }],
     }
-    await importProjectFile(new File([JSON.stringify(legacy)], 'old.thumbpon.zip'))
+    await importProjectFile(zipped({ 'old.thumbpon': strToU8(JSON.stringify(older)) }))
 
     const state = useEditorStore.getState()
     expect(state.assetFolders).toEqual([])
@@ -197,6 +219,25 @@ describe('往復', () => {
 })
 
 describe('importProjectFile', () => {
+  it('読み込んだらワークスペースフォルダを切り離す', async () => {
+    // 繋いだままだと、次の保存が前のフォルダを別プロジェクトの内容で上書きしてしまう
+    const dir = makeDir('work')
+    fake.current = dir
+    fake.stored = dir
+    useEditorStore.setState({ workspaceStatus: 'connected', workspaceFolderName: 'work' })
+
+    await importProjectFile(await exported())
+
+    expect(useEditorStore.getState().workspaceStatus).toBe('none')
+    expect(fake.current).toBeNull()
+    expect(fake.stored).toBeNull()
+  })
+
+  it('ZIP でないファイルは受け付けない', async () => {
+    const file = new File([JSON.stringify({ hello: 'world' })], 'x.json')
+    await expect(importProjectFile(file)).rejects.toThrow('サムネぽんのプロジェクトファイル')
+  })
+
   it('フォルダごと圧縮して中が一段深くなった ZIP も読める', async () => {
     // OS の「フォルダを圧縮」は中身を「フォルダ名/」の下に入れる
     useEditorStore.setState({ assets: [meta('a1')] })
@@ -208,41 +249,41 @@ describe('importProjectFile', () => {
 
     useEditorStore.setState({ assets: [] })
     resetAssets()
-    await importProjectFile(new File([nested as BlobPart], 'work.zip'))
+    await importProjectFile(zipped2(nested))
 
     expect(useEditorStore.getState().assets.map((a) => a.id)).toEqual(['a1'])
     expect(await (blobs.get('a1') as Blob).text()).toBe('image-bytes')
   })
 
-  it('project.json が無い ZIP は受け付けない', async () => {
+  it('マニフェストの名前は何でもよい', async () => {
+    const project = {
+      format: 'thumbpon-project',
+      version: 4,
+      folders: [],
+      thumbnails: [{ ...thumbnail([]), id: 'renamed' }],
+      currentThumbnailId: 'renamed',
+      assets: [],
+    }
+    await importProjectFile(zipped({ '夜景シリーズ.thumbpon': strToU8(JSON.stringify(project)) }))
+    expect(useEditorStore.getState().thumbnails.map((t) => t.id)).toEqual(['renamed'])
+  })
+
+  it('マニフェストが無い ZIP は受け付けない', async () => {
     const zip = zipSync({ 'readme.txt': strToU8('hello') })
-    await expect(importProjectFile(new File([zip as BlobPart], 'x.zip'))).rejects.toThrow(
-      'project.json が見つかりません',
+    await expect(importProjectFile(zipped2(zip))).rejects.toThrow(
+      'サムネぽんのプロジェクトファイル',
     )
   })
 
-  it('サムネぽん以外の JSON は受け付けない', async () => {
-    const file = new File([JSON.stringify({ hello: 'world' })], 'x.json')
-    await expect(importProjectFile(file)).rejects.toThrow('サムネぽんのプロジェクトファイル')
+  it('サムネぽん以外の JSON が入った ZIP は受け付けない', async () => {
+    const zip = zipSync({ 'x.thumbpon': strToU8(JSON.stringify({ hello: 'world' })) })
+    await expect(importProjectFile(zipped2(zip))).rejects.toThrow(
+      'サムネぽんのプロジェクトファイル',
+    )
   })
 
-  it('旧 .thumbpon.json（画像を dataURL で埋め込んだ形式）も読める', async () => {
-    const legacy = {
-      format: 'thumbpon-project',
-      version: 1,
-      folders: [],
-      thumbnails: [thumbnail([])],
-      currentThumbnailId: 'th1',
-      assets: [{ meta: meta('a1'), dataUrl: 'data:image/png;base64,aGVsbG8=' }],
-    }
-    await importProjectFile(new File([JSON.stringify(legacy)], 'old.thumbpon.json'))
-
-    expect(useEditorStore.getState().assets.map((a) => a.id)).toEqual(['a1'])
-    expect(await (blobs.get('a1') as Blob).text()).toBe('hello')
-  })
-
-  it('fonts を持たない旧形式ではフォントを告知しない', async () => {
-    const legacy = {
+  it('fonts を持たない古いバージョンではフォントを告知しない', async () => {
+    const older = {
       format: 'thumbpon-project',
       version: 1,
       folders: [],
@@ -250,7 +291,7 @@ describe('importProjectFile', () => {
       currentThumbnailId: 'th1',
       assets: [],
     }
-    await importProjectFile(new File([JSON.stringify(legacy)], 'old.thumbpon.json'))
+    await importProjectFile(zipped({ 'old.thumbpon': strToU8(JSON.stringify(older)) }))
     expect(useEditorStore.getState().missingFontLabels).toEqual([])
   })
 })

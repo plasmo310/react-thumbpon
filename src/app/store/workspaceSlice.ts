@@ -10,6 +10,8 @@ export type WorkspaceStatus = 'none' | 'connected' | 'needs-permission'
 export type WorkspaceSlice = {
   /** 接続中(または再接続待ち)のフォルダ名。ハンドル自体は fsAccess が持つ */
   workspaceFolderName: string | null
+  /** 正本にしているマニフェストのファイル名。次の保存で同じ名前に書き戻すために覚える */
+  workspaceFileName: string | null
   workspaceStatus: WorkspaceStatus
   /** フォルダへまだ書いていない変更があるか */
   workspaceDirty: boolean
@@ -19,7 +21,11 @@ export type WorkspaceSlice = {
   /** 読み込んだプロジェクトに載っているのに、実体が見つからなかった素材のファイル名 */
   missingAssetNames: string[]
 
-  setWorkspace: (status: WorkspaceStatus, folderName: string | null) => void
+  setWorkspace: (
+    status: WorkspaceStatus,
+    folderName: string | null,
+    fileName?: string | null,
+  ) => void
   setWorkspaceDirty: (dirty: boolean) => void
   markWorkspaceSaved: () => void
   setMissingFontLabels: (labels: string[]) => void
@@ -33,6 +39,7 @@ export type WorkspaceSlice = {
  */
 export const createWorkspaceSlice: SliceCreator<WorkspaceSlice> = (set) => ({
   workspaceFolderName: null,
+  workspaceFileName: null,
   workspaceStatus: 'none',
   workspaceDirty: false,
   workspaceSavedAt: null,
@@ -44,9 +51,10 @@ export const createWorkspaceSlice: SliceCreator<WorkspaceSlice> = (set) => ({
    *
    * @param status     新しい接続状態
    * @param folderName 画面に出すフォルダ名。切断時は null
+   * @param fileName   正本のマニフェスト名。省略すると忘れる（切断と同じ扱い）
    */
-  setWorkspace: (workspaceStatus, workspaceFolderName) =>
-    set({ workspaceStatus, workspaceFolderName }),
+  setWorkspace: (workspaceStatus, workspaceFolderName, workspaceFileName = null) =>
+    set({ workspaceStatus, workspaceFolderName, workspaceFileName }),
 
   /**
    * 未保存の変更があるかを設定する。

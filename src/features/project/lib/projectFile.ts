@@ -1,6 +1,14 @@
 import { strFromU8, strToU8, unzipSync, zipSync } from 'fflate'
-import { assetIdFromPath } from '@/domain/project'
+import {
+  ASSETS_DIR,
+  PROJECT_ZIP_EXTENSION,
+  assetIdFromPath,
+  defaultManifestName,
+  findManifestEntry,
+} from '@/domain/project'
+import { useEditorStore } from '@/app/store'
 import { downloadBlob } from './download'
+import { disconnectProjectFolder } from './projectFolder'
 import {
   applyProjectFile,
   buildProjectFile,
@@ -8,14 +16,23 @@ import {
   isProjectFile,
 } from './projectData'
 
-const PROJECT_JSON = 'project.json'
-const ASSETS_DIR = 'assets'
-
 const stamp = () => new Date().toISOString().slice(0, 10)
 
 /**
+ * 書き出す名前の元になる語幹。
+ * 接続中のフォルダで使っている名前をそのまま使い、未接続なら日付にする
+ * （フォルダとZIPで別の名前になると、同じプロジェクトだと分からなくなるため）。
+ */
+function projectBaseName(): string {
+  const { workspaceFileName, workspaceFolderName } = useEditorStore.getState()
+  const manifest =
+    workspaceFileName ?? (workspaceFolderName && defaultManifestName(workspaceFolderName))
+  return manifest ? manifest.slice(0, manifest.lastIndexOf('.')) : `thumbpon-${stamp()}`
+}
+
+/**
  * 現在のプロジェクトを1つのファイルとして書き出す。
- * 中身はワークスペースフォルダと同じ構成（project.json + assets/）をそのまま固めた ZIP。
+ * 中身はワークスペースフォルダと同じ構成（マニフェスト + assets/）をそのまま固めた ZIP。
  * 拡張子を .zip で終わらせているのは、OS からただの ZIP として解凍・閲覧できるようにするため。
  * 手前の .thumbpon はサムネぽんのプロジェクトだと一目で分かるようにしているだけ。
  */
@@ -28,55 +45,36 @@ export async function exportProjectFile() {
     files[path] = [new Uint8Array(await blob.arrayBuffer()), { level: 0 }]
   }
 
+  const base = projectBaseName()
   const project = buildProjectFile(payloads)
-  files[PROJECT_JSON] = [strToU8(JSON.stringify(project, null, 2)), { level: 6 }]
+  files[defaultManifestName(base)] = [strToU8(JSON.stringify(project, null, 2)), { level: 6 }]
 
   const zipped = zipSync(files)
   downloadBlob(
     new Blob([zipped as BlobPart], { type: 'application/zip' }),
-    `thumbpon-${stamp()}.thumbpon.zip`,
+    `${base}${PROJECT_ZIP_EXTENSION}`,
   )
 }
 
 /**
- * ZIP の中で project.json がある位置を探す。
- * フォルダごとOSの機能で圧縮すると中身が「フォルダ名/」の下に入るため、直下とは限らない。
- *
- * @param entries unzipSync の結果
- * @returns project.json のエントリ名。無ければ undefined。
- *          浅いものを優先し、素材のパスもここからの相対として解決する
- */
-function findProjectRoot(entries: Record<string, Uint8Array>): string | undefined {
-  return Object.keys(entries)
-    .filter((name) => name === PROJECT_JSON || name.endsWith(`/${PROJECT_JSON}`))
-    .sort((a, b) => a.length - b.length)[0]
-}
-
-/**
- * プロジェクトファイルを読み込んで、現在の内容を置き換える。
+ * 1ファイル形式のプロジェクトを読み込んで、現在の内容を置き換える。
  * フォントファイルは含まれないため、足りないものは読み込み後に告知される。
  *
- * @param file .thumbpon.zip か 旧 .thumbpon.json。ZIP かどうかは先頭バイトで判別する
+ * 読み込めたらワークスペースフォルダは切り離す。繋いだままだと、次の保存が
+ * 前のフォルダを別プロジェクトの内容で上書きしてしまうため。
+ *
+ * @param file .thumbpon.zip。ZIP かどうかは拡張子ではなく先頭バイトで見分ける
  */
 export async function importProjectFile(file: File) {
   const buffer = new Uint8Array(await file.arrayBuffer())
-  const isZip = buffer[0] === 0x50 && buffer[1] === 0x4b
+  if (buffer[0] !== 0x50 || buffer[1] !== 0x4b)
+    throw new Error('サムネぽんのプロジェクトファイルではありません')
 
-  let parsed: unknown
-  let unzipped: Record<string, Uint8Array> | null = null
+  const unzipped = unzipSync(buffer)
+  const found = findManifestEntry(Object.keys(unzipped))
+  if (!found) throw new Error('サムネぽんのプロジェクトファイルではありません')
 
-  let prefix = ''
-
-  if (isZip) {
-    unzipped = unzipSync(buffer)
-    const root = findProjectRoot(unzipped)
-    if (!root) throw new Error(`${PROJECT_JSON} が見つかりません`)
-    prefix = root.slice(0, root.length - PROJECT_JSON.length)
-    parsed = JSON.parse(strFromU8(unzipped[root]))
-  } else {
-    parsed = JSON.parse(strFromU8(buffer))
-  }
-
+  const parsed: unknown = JSON.parse(strFromU8(unzipped[found.path]))
   if (!isProjectFile(parsed)) throw new Error('サムネぽんのプロジェクトファイルではありません')
 
   /*
@@ -84,22 +82,18 @@ export async function importProjectFile(file: File) {
    * フォルダ名を解凍時に変えられても、ファイル名の id で元の素材に結び付く。
    */
   const byId = new Map<string, Uint8Array>()
-  for (const name of Object.keys(unzipped ?? {})) {
-    if (!name.startsWith(`${prefix}${ASSETS_DIR}/`)) continue
-    byId.set(assetIdFromPath(name), (unzipped as Record<string, Uint8Array>)[name])
+  for (const name of Object.keys(unzipped)) {
+    if (!name.startsWith(`${found.prefix}${ASSETS_DIR}/`)) continue
+    byId.set(assetIdFromPath(name), unzipped[name])
   }
 
   const blobs = new Map<string, Blob>()
   for (const asset of parsed.assets ?? []) {
-    const recorded = asset.file ? unzipped?.[prefix + asset.file] : undefined
+    const recorded = asset.file ? unzipped[found.prefix + asset.file] : undefined
     const bytes = recorded ?? byId.get(asset.meta.id)
-    if (bytes) {
-      blobs.set(asset.meta.id, new Blob([bytes as BlobPart], { type: asset.meta.mime }))
-    } else if (asset.dataUrl) {
-      // 旧 .thumbpon.json は画像を dataURL で埋め込んでいる
-      blobs.set(asset.meta.id, await (await fetch(asset.dataUrl)).blob())
-    }
+    if (bytes) blobs.set(asset.meta.id, new Blob([bytes as BlobPart], { type: asset.meta.mime }))
   }
 
   await applyProjectFile(parsed, blobs)
+  await disconnectProjectFolder()
 }

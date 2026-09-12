@@ -130,7 +130,7 @@ slice を feature 側に置くと `app/store` が `features/*` を import して
 - `html-to-image` は初回呼び出しでWebフォントや画像の埋め込みが間に合わないことがあるため、
   `exportImage.ts` では意図的に2回呼んで1回目を捨てている。消さないこと。
 - **フォントファイルはプロジェクトに含めない。同梱するとフォントの再配布にあたるため。**
-  実体は IndexedDB にのみ保存する。代わりに `project.json` の `fonts` に
+  実体は IndexedDB にのみ保存する。代わりにマニフェスト(`*.thumbpon`)の `fonts` に
   使用フォントのマニフェスト（表示名 / family / local か file か）を持たせ、
   読み込み側で解決できなかったものを `missingFontLabels` に入れて名前で告知する。
   マニフェストの組み立ては `domain/project.ts` の `collectUsedFonts` / `findMissingFonts`。
@@ -143,13 +143,29 @@ slice を feature 側に置くと `app/store` が `features/*` を import して
   非対応ブラウザ・明示保存前のクラッシュ復旧）に徹する。
 - **フォルダへの書き込みは明示保存のみ**（保存ボタン / Ctrl+S）。自動では書かない。
   外部エディタとの競合と、編集途中の意図しない上書きを避けるため。
+- **「開く」も「保存」もフォルダ単位**（`projectFolder.ts` の `openProjectFolder` /
+  `saveProjectFolder`）。**ファイルピッカーにはしないこと。** 選んだファイルからは親フォルダを
+  辿れないので、素材（マニフェストの隣の `assets/`）の許可をもらう2つ目のダイアログが要る。
+  一度そう実装して、ダイアログが2回出るのが煩わしいと判断して戻した経緯がある。
+  - **「開く」はプロジェクトが無いフォルダを受け付けない。** 開くで新しい作業場所まで
+    作れると「保存」と役割が混ざるため。新しい保存先は「保存」から選ぶ。
+  - **「保存」は選んだフォルダを読み込まない。** 保存を押したのに今の作業が捨てられるのを
+    防ぐため、別のプロジェクトが入っていても確認のうえ今の内容で上書きする。
+  - **インポートは読み込み後に `disconnectProjectFolder()` を通す**（`importProjectFile` の中）。
+    繋いだままだと次の保存が前のフォルダを別プロジェクトの内容で上書きしてしまう。
 - **`.thumbpon.zip` はワークスペースフォルダをそのまま ZIP にしただけ**。形式は1つしかなく、
   入れ物（1ファイルか展開したフォルダか）だけが違う。`buildProjectFile()` を両方から使うこと。
   拡張子を `.zip` で終わらせているのは OS から普通の ZIP として扱えるようにするため。
   読み込み側はフォルダごと圧縮された ZIP（中身が「フォルダ名/」の下にある形）も受け付ける。
+- **マニフェストの名前は固定ではない**（`<フォルダ名>.thumbpon`。外からリネームしてよい）。
+  探索と命名は `domain/project.ts` の `findManifestName` / `findManifestEntry` /
+  `defaultManifestName` に集約し、ZIP とフォルダの両方から同じものを使う。
+  保存時は覚えている名前（`workspaceFileName`）を最優先にする。付け直すと同じフォルダに
+  マニフェストが2つ並んでしまうため。
 - **File System Access API は Chromium 系のみ。** `shared/lib/storage/fsAccess.ts` の
   `canUseFileSystemAccess()` で判定し、非対応ブラウザでは UI を出さない
-  （`fontRepo.ts` の `canQueryLocalFonts()` と同じ段階的強化の形）。
+  （`fontRepo.ts` の `canQueryLocalFonts()` と同じ段階的強化の形）。開く/保存はこれで隠し、
+  インポート/エクスポート（生の file input と download）だけはどこでも出す。
   型は lib.dom に無いので、型定義パッケージを足さず `fsAccess.ts` 内にローカル宣言している。
   権限の要求（`requestPermission`）はユーザー操作の中からしか通らないため、
   起動時の自動復元では要求せず `needs-permission` を立てて通知バーに委ねる。
@@ -181,7 +197,7 @@ slice を feature 側に置くと `app/store` が `features/*` を import して
   ここで拾い落とすと実体まで消える。どちらにも無かったものは
   `missingAssetNames` に入れて通知帯で名前を出す（`missingFontLabels` と同じ形）。
 - **素材フォルダの保存先はプロジェクトではなく素材と同じ場所**（IndexedDB の `meta:folders`）。
-  素材の実体がプロジェクトと独立して溜まるのと同じ扱いにしてある。project.json には
+  素材の実体がプロジェクトと独立して溜まるのと同じ扱いにしてある。マニフェストには
   `assetFolders` として書き出し、読み込み時は `normalizeAssets()` で
   無くなったフォルダを指す素材を未分類に落とす。
 - **後から増えたフィールドは `domain/project.ts` の `normalizeThumbnails` で補う。**
