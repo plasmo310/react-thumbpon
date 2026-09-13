@@ -217,7 +217,3 @@ npm run build
 - [現行仕様](docs/spec/thumbpon-spec.md)
 - [基本コーディング規約](docs/instructions/code_guide.md)
 - [アーキテクチャガイド](docs/instructions/architecture_guide.md)
-
-## まだ無いもの
-
-Undo / Redo、整列コマンド、レイヤーのグループ化、テキストのグラデーション、テンプレート機能、複数画像の一括生成。
