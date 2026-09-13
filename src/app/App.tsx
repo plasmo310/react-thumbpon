@@ -43,62 +43,68 @@ export function App() {
   }
 
   return (
-    <div className={styles.app}>
-      <Header />
-      <WorkspaceNotice />
-      <div className={styles.main}>
-        <aside ref={sidebarRef} className={styles.sidebar} style={{ width: layout.sidebarWidth }}>
-          <div className={styles.pane} style={{ height: layout.thumbnailHeight }}>
-            <ThumbnailPanel />
-          </div>
+    <div className={styles.appShell}>
+      <div className={styles.app}>
+        <Header />
+        <WorkspaceNotice />
+        <div className={styles.main}>
+          <aside ref={sidebarRef} className={styles.sidebar} style={{ width: layout.sidebarWidth }}>
+            <div className={styles.pane} style={{ height: layout.thumbnailHeight }}>
+              <ThumbnailPanel />
+            </div>
+            <Splitter
+              axis="y"
+              size={layout.thumbnailHeight}
+              title="ドラッグでサムネイルの高さを変える"
+              onResize={(height) =>
+                setLayout((current) => ({
+                  ...current,
+                  thumbnailHeight: clampPanelHeight(height, current.assetHeight),
+                }))
+              }
+            />
+
+            <LayerPanel />
+
+            <Splitter
+              axis="y"
+              size={layout.assetHeight}
+              invert
+              title="ドラッグで素材の高さを変える"
+              onResize={(height) =>
+                setLayout((current) => ({
+                  ...current,
+                  assetHeight: clampPanelHeight(height, current.thumbnailHeight),
+                }))
+              }
+            />
+            <div className={styles.pane} style={{ height: layout.assetHeight }}>
+              <AssetPanel />
+            </div>
+          </aside>
+
           <Splitter
-            axis="y"
-            size={layout.thumbnailHeight}
-            title="ドラッグでサムネイルの高さを変える"
-            onResize={(height) =>
+            axis="x"
+            size={layout.sidebarWidth}
+            title="ドラッグで左パネルの幅を変える"
+            onResize={(width) =>
               setLayout((current) => ({
                 ...current,
-                thumbnailHeight: clampPanelHeight(height, current.assetHeight),
+                sidebarWidth: clamp(width, MIN_SIDEBAR, MAX_SIDEBAR),
               }))
             }
           />
 
-          <LayerPanel />
+          <CanvasStage />
+        </div>
 
-          <Splitter
-            axis="y"
-            size={layout.assetHeight}
-            invert
-            title="ドラッグで素材の高さを変える"
-            onResize={(height) =>
-              setLayout((current) => ({
-                ...current,
-                assetHeight: clampPanelHeight(height, current.thumbnailHeight),
-              }))
-            }
-          />
-          <div className={styles.pane} style={{ height: layout.assetHeight }}>
-            <AssetPanel />
-          </div>
-        </aside>
-
-        <Splitter
-          axis="x"
-          size={layout.sidebarWidth}
-          title="ドラッグで左パネルの幅を変える"
-          onResize={(width) =>
-            setLayout((current) => ({
-              ...current,
-              sidebarWidth: clamp(width, MIN_SIDEBAR, MAX_SIDEBAR),
-            }))
-          }
-        />
-
-        <CanvasStage />
+        {/* レイヤー一覧とキャンバスの両方から出すので、ここで1つだけ描く */}
+        <LayerMenu />
       </div>
-
-      {/* レイヤー一覧とキャンバスの両方から出すので、ここで1つだけ描く */}
-      <LayerMenu />
+      <main className={styles.mobileUnsupported}>
+        <p>ThumbPon はモバイル端末に対応していません。</p>
+        <p>PC からアクセスしてください。</p>
+      </main>
     </div>
   )
 }
