@@ -8,7 +8,7 @@ title サムネぽん / ThumbPon — パッケージ依存関係
 
 skinparam backgroundColor #FFFFFF
 skinparam shadowing false
-skinparam defaultFontName "Hiragino Sans"
+skinparam defaultFontName SansSerif
 skinparam linetype ortho
 skinparam nodesep 25
 skinparam ranksep 55
@@ -27,39 +27,26 @@ skinparam rectangle {
 }
 
 package "app" {
-  rectangle "main / App
-layout / config" as cApp #FFF1EB
-  rectangle "store
-useEditorStore / patch
-8つの slice" as cStore
+  rectangle "main / App\nlayout / config" as cApp #FFF1EB
+  rectangle "store\nuseEditorStore / patch\n8つの slice" as cStore
 }
 
 package "features" {
   rectangle "thumbnail" as fThumbnail
-  rectangle "layer
-(+ EffectsSection / PresetRow)" as fLayer
-  rectangle "canvas
-(+ snap / layerRect)" as fCanvas
+  rectangle "layer\n(+ EffectsSection / PresetRow)" as fLayer
+  rectangle "canvas\n(+ snap / layerRect)" as fCanvas
   rectangle "asset" as fAsset
-  rectangle "project
-(+ download)" as fProject
+  rectangle "project\n(+ download)" as fProject
 }
 
 package "shared" {
-  rectangle "ui
-Button / Panel / Row / SliderRow
-PercentRow / 各種入力 / Splitter" as sUi
-  rectangle "lib
-cx / pointerDrag / dnd / notify
-surfaceRef / useDropTarget / useAsyncAction" as sLib
-  rectangle "lib/storage
-db / assetRepo / fontRepo / fsAccess" as sStorage
+  rectangle "ui\nButton / Panel / Row / SliderRow\nPercentRow / 各種入力 / Splitter" as sUi
+  rectangle "lib\ncx / pointerDrag / dnd / notify\nsurfaceRef / useDropTarget / useAsyncAction" as sLib
+  rectangle "lib/storage\ndb / assetRepo / fontRepo / fsAccess" as sStorage
 }
 
 package "domain" {
-  rectangle "layer / background / effects
-thumbnail / preset / asset / font
-project / geometry / id" as cDomain #F5F6F8
+  rectangle "layer / background / effects\nthumbnail / preset / asset / font\nproject / geometry / id" as cDomain #F5F6F8
 }
 
 ' --- app が組み立てる ---

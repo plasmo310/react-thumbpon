@@ -8,11 +8,14 @@
 | [package-dependencies.puml](package-dependencies.puml) | パッケージ | どのパッケージが何に依存しているかの詳細 |
 
 依存は `domain → shared → app/store → features → app` の一方向のみで、features 同士は import しない。
-ルールの詳細は [CLAUDE.md](../../CLAUDE.md) の「ディレクトリ構成」を参照。
+ルールの詳細は [アーキテクチャガイド](../instructions/architecture_guide.md)を参照。
 
 ## 描画
 
-VS Code なら PlantUML 拡張でプレビューできる。CLI で出す場合:
+VS Code では PlantUML 拡張で `.puml` を開き、`PlantUML: Preview Current Diagram` を実行する。
+図中の改行は、拡張・PlantUML のバージョン差で解釈が割れない `\n` 記法に統一している。
+
+ローカル描画を選ぶ場合は Java と Graphviz が必要である。PlantUML Server 描画を選ぶ場合は、図の内容がサーバーへ送信されることを理解したうえで利用する。CLI で出す場合:
 
 ```bash
 # plantuml.jar は https://plantuml.com/download から取得する（Graphviz が必要）
