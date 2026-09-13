@@ -4,6 +4,7 @@ import { ExportButton } from './ExportButton'
 import { ProjectMenu } from './ProjectMenu'
 import { WorkspaceStatus } from './WorkspaceStatus'
 import styles from '../styles.module.css'
+import logoUrl from '../../../../resources/images/logo/logo.png'
 
 /**
  * 見出し「サムネぽん！」だけの縦位置の微調整(px)。マイナスで上、プラスで下。小数も可。
@@ -35,6 +36,7 @@ export function Header() {
           そのうえで見出しだけ大きさが違うぶんの差が残るので、TITLE_OFFSET_Y で詰める。
         */}
         <div className={styles.brand}>
+          <img className={styles.logo} src={logoUrl} alt="" />
           <h1 className={styles.title} style={{ transform: `translateY(${TITLE_OFFSET_Y}px)` }}>
             サムネぽん！
           </h1>
