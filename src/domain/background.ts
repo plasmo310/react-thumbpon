@@ -74,22 +74,23 @@ function patternStyle(background: Background): CSSProperties {
   }
 
   if (background.pattern === 'checker') {
-    // 45度のグラデーション2枚を半マスずらして重ねると市松模様になる（CSS の定番手法）
-    const square = `linear-gradient(45deg, ${color} 25%, transparent 25%, transparent 75%, ${color} 75%)`
-    const half = size / 2
+    // 象限ごとに塗り分けることで、市松模様の境界を水平・垂直に保つ。
+    const square = `conic-gradient(${color} 25%, transparent 25% 50%, ${color} 50% 75%, transparent 75%)`
     return {
-      backgroundImage: `${square}, ${square}`,
+      backgroundImage: square,
       backgroundSize: `${size}px ${size}px`,
-      backgroundPosition: `0 0, ${half}px ${half}px`,
       backgroundRepeat: 'repeat',
     }
   }
 
-  // 水玉。知らない値が来たときの受け皿も兼ねる
-  const radius = (size * weight) / 2
+  // 半端な中心座標・半径は円の輪郭をぼかすため、タイルと直径を整数 px に揃える。
+  // タイルを偶数にすると中心も整数座標になり、繰り返し境界でのにじみも防げる。
+  const dotSize = Math.max(2, Math.round(size / 2) * 2)
+  const diameter = Math.round((dotSize * weight) / 2) * 2
+  const radius = diameter / 2
   return {
     backgroundImage: `radial-gradient(circle at 50% 50%, ${color} ${radius}px, transparent ${radius}px)`,
-    backgroundSize: `${size}px ${size}px`,
+    backgroundSize: `${dotSize}px ${dotSize}px`,
     backgroundRepeat: 'repeat',
   }
 }

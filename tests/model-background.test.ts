@@ -30,6 +30,15 @@ describe('backgroundArtStyle', () => {
     expect(style.backgroundSize).toBe('40px 40px')
   })
 
+  it('水玉は整数 px の中心と半径で描いて輪郭をぼかさない', () => {
+    const style = backgroundArtStyle(
+      background({ type: 'pattern', pattern: 'dots', patternSize: 33, patternWeight: 0.3 }),
+      null,
+    )
+    expect(style.backgroundImage).toContain('5px')
+    expect(style.backgroundSize).toBe('34px 34px')
+  })
+
   it('ラインは角度を反映する', () => {
     const style = backgroundArtStyle(
       background({ type: 'pattern', pattern: 'lines', patternAngle: 90 }),
@@ -43,7 +52,9 @@ describe('backgroundArtStyle', () => {
       background({ type: 'pattern', pattern: 'checker', patternSize: 32 }),
       null,
     )
-    expect(style.backgroundPosition).toBe('0 0, 16px 16px')
+    expect(style.backgroundImage).toContain('conic-gradient')
+    expect(style.backgroundImage).not.toContain('45deg')
+    expect(style.backgroundSize).toBe('32px 32px')
   })
 
   it('画像は cover / contain なら1枚だけ敷く', () => {

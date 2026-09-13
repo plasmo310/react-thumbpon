@@ -1,6 +1,5 @@
 import { useState } from 'react'
-import styles from '../styles.module.css'
-import { IconButton, Row } from '@/shared/ui'
+import { IconButton, Row, Select } from '@/shared/ui'
 
 /**
  * プリセットの適用・保存・削除をまとめた行。
@@ -26,21 +25,17 @@ export function PresetRow({
 
   return (
     <Row label="プリセット">
-      <select
-        className={styles.select}
+      <Select
         value={selected}
-        onChange={(e) => {
-          setSelected(e.target.value)
-          if (e.target.value) onApply(e.target.value)
+        options={[
+          { label: '選択…', value: '' },
+          ...presets.map((preset) => ({ label: preset.name, value: preset.id })),
+        ]}
+        onChange={(id) => {
+          setSelected(id)
+          if (id) onApply(id)
         }}
-      >
-        <option value="">選択…</option>
-        {presets.map((preset) => (
-          <option key={preset.id} value={preset.id}>
-            {preset.name}
-          </option>
-        ))}
-      </select>
+      />
       <IconButton
         title="今の設定をプリセットとして保存"
         onClick={() => {
