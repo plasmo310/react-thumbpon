@@ -40,7 +40,7 @@ export function Header() {
           </h1>
           <span className={styles.sub}>ThumbPon</span>
           <div className={styles.separator} />
-          <span className={styles.lead}>テンプレートからサムネイルを量産するツール</span>
+          <span className={styles.lead}>サムネイルをサクッと作るツール</span>
         </div>
 
         <div className={styles.tools}>
