@@ -334,6 +334,39 @@ describe('removeThumbnail', () => {
   })
 })
 
+describe('reorderThumbnail', () => {
+  it('指定したサムネイルの前後へ並べ替え、移動先のフォルダに入れる', () => {
+    const thumbnails = ['a', 'b', 'c'].map((name) => createThumbnail(name))
+    thumbnails[1].folderId = 'f1'
+    useEditorStore.setState({ thumbnails, currentThumbnailId: thumbnails[0].id })
+
+    useEditorStore.getState().reorderThumbnail(thumbnails[0].id, thumbnails[1].id, 'after')
+
+    expect(useEditorStore.getState().thumbnails.map((thumbnail) => thumbnail.name)).toEqual([
+      'b',
+      'a',
+      'c',
+    ])
+    expect(useEditorStore.getState().thumbnails[1].folderId).toBe('f1')
+  })
+})
+
+describe('reorderFolder', () => {
+  it('指定したフォルダの前後へ並べ替える', () => {
+    useEditorStore.setState({
+      folders: [
+        { id: 'f1', name: '1', collapsed: false },
+        { id: 'f2', name: '2', collapsed: false },
+        { id: 'f3', name: '3', collapsed: false },
+      ],
+    })
+
+    useEditorStore.getState().reorderFolder('f1', 'f2', 'after')
+
+    expect(useEditorStore.getState().folders.map((folder) => folder.id)).toEqual(['f2', 'f1', 'f3'])
+  })
+})
+
 // slice は分かれているが実体は1つのオブジェクトなので、またいだ更新ができる。
 // これは意図した設計なので、崩れていないことを固定しておく。
 describe('slice をまたぐ更新', () => {

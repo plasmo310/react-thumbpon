@@ -4,8 +4,10 @@
  */
 export const DND_TYPE = {
   asset: 'application/x-thumbpon-asset',
+  assetFolder: 'application/x-thumbpon-asset-folder',
   layer: 'application/x-thumbpon-layer',
   thumbnail: 'application/x-thumbpon-thumbnail',
+  thumbnailFolder: 'application/x-thumbpon-thumbnail-folder',
   /** OSからのファイルドロップ。ブラウザが付ける固定値 */
   files: 'Files',
 } as const

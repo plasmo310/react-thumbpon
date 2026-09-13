@@ -73,6 +73,34 @@ describe('moveAssetToFolder', () => {
   })
 })
 
+describe('reorderAsset', () => {
+  it('指定した素材の前後へ並べ替え、メタを保存する', async () => {
+    useEditorStore.setState({
+      assets: [meta('a1'), meta('a2', 'f1'), meta('a3')],
+      assetFolders: [folder('f1', '素材 1')],
+    })
+
+    await state().reorderAsset('a1', 'a2', 'after')
+
+    expect(state().assets.map((asset) => asset.id)).toEqual(['a2', 'a1', 'a3'])
+    expect(state().assets[1].folderId).toBe('f1')
+    expect(saved.metas.map((asset) => asset.id)).toEqual(['a2', 'a1', 'a3'])
+  })
+})
+
+describe('reorderAssetFolder', () => {
+  it('指定したフォルダの前後へ並べ替え、保存する', async () => {
+    useEditorStore.setState({
+      assetFolders: [folder('f1', '1'), folder('f2', '2'), folder('f3', '3')],
+    })
+
+    await state().reorderAssetFolder('f1', 'f2', 'after')
+
+    expect(state().assetFolders.map((assetFolder) => assetFolder.id)).toEqual(['f2', 'f1', 'f3'])
+    expect(saved.folders.map((assetFolder) => assetFolder.id)).toEqual(['f2', 'f1', 'f3'])
+  })
+})
+
 describe('initAssets', () => {
   it('保存済みの素材とフォルダを読み込む', async () => {
     saved.metas = [meta('a1', 'f1')]

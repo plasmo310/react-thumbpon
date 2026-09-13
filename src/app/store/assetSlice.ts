@@ -21,9 +21,11 @@ export type AssetSlice = {
   addAssetFiles: (files: File[], folderId?: string | null) => Promise<AssetMeta[]>
   removeAsset: (id: string) => Promise<void>
   moveAssetToFolder: (id: string, folderId: string | null) => Promise<void>
+  reorderAsset: (id: string, targetId: string, position: 'before' | 'after') => Promise<void>
 
   addAssetFolder: () => Promise<void>
   renameAssetFolder: (id: string, name: string) => Promise<void>
+  reorderAssetFolder: (id: string, targetId: string, position: 'before' | 'after') => Promise<void>
   toggleAssetFolder: (id: string) => Promise<void>
   removeAssetFolder: (id: string) => Promise<void>
 }
@@ -115,6 +117,30 @@ export const createAssetSlice: SliceCreator<AssetSlice> = (set, get) => {
       await saveAssetMetas(assets)
     },
 
+    /**
+     * 素材を別の素材の前後へ移す。移動先の所属フォルダも引き継いで保存する。
+     *
+     * @param id       移動する素材の id
+     * @param targetId 移動先の基準になる素材の id
+     * @param position 基準の前か後か
+     */
+    reorderAsset: async (id, targetId, position) => {
+      if (id === targetId) return
+      const assets = get().assets
+      const sourceIndex = assets.findIndex((asset) => asset.id === id)
+      const targetIndex = assets.findIndex((asset) => asset.id === targetId)
+      if (sourceIndex < 0 || targetIndex < 0) return
+
+      const next = [...assets]
+      const [source] = next.splice(sourceIndex, 1)
+      const adjustedTargetIndex = targetIndex > sourceIndex ? targetIndex - 1 : targetIndex
+      const insertIndex = adjustedTargetIndex + (position === 'after' ? 1 : 0)
+      const target = assets[targetIndex]
+      next.splice(insertIndex, 0, { ...source, folderId: target.folderId })
+      set({ assets: next })
+      await saveAssetMetas(next)
+    },
+
     /** 素材フォルダを追加する */
     addAssetFolder: async () => {
       const { assetFolders } = get()
@@ -129,6 +155,27 @@ export const createAssetSlice: SliceCreator<AssetSlice> = (set, get) => {
      */
     renameAssetFolder: async (id, name) => {
       await commitFolders(get().assetFolders.map((f) => (f.id === id ? { ...f, name } : f)))
+    },
+
+    /**
+     * 素材フォルダを別のフォルダの前後へ移し、並び順を保存する。
+     *
+     * @param id       移動するフォルダの id
+     * @param targetId 移動先の基準になるフォルダの id
+     * @param position 基準の前か後か
+     */
+    reorderAssetFolder: async (id, targetId, position) => {
+      if (id === targetId) return
+      const folders = get().assetFolders
+      const sourceIndex = folders.findIndex((folder) => folder.id === id)
+      const targetIndex = folders.findIndex((folder) => folder.id === targetId)
+      if (sourceIndex < 0 || targetIndex < 0) return
+
+      const next = [...folders]
+      const [source] = next.splice(sourceIndex, 1)
+      const adjustedTargetIndex = targetIndex > sourceIndex ? targetIndex - 1 : targetIndex
+      next.splice(adjustedTargetIndex + (position === 'after' ? 1 : 0), 0, source)
+      await commitFolders(next)
     },
 
     /**

@@ -21,10 +21,12 @@ export type ThumbnailSlice = {
   copyThumbnail: (id: string) => void
   pasteThumbnail: (folderId: string | null) => void
   moveThumbnailToFolder: (id: string, folderId: string | null) => void
+  reorderThumbnail: (id: string, targetId: string, position: 'before' | 'after') => void
   setCanvasSize: (size: CanvasSize) => void
 
   addFolder: () => void
   renameFolder: (id: string, name: string) => void
+  reorderFolder: (id: string, targetId: string, position: 'before' | 'after') => void
   toggleFolder: (id: string) => void
   removeFolder: (id: string) => void
 
@@ -156,6 +158,29 @@ export const createThumbnailSlice: SliceCreator<ThumbnailSlice> = (set, get) => 
       set((s) => ({ thumbnails: s.thumbnails.map((t) => (t.id === id ? { ...t, folderId } : t)) })),
 
     /**
+     * サムネイルを別のサムネイルの前後へ移す。移動先の所属フォルダも引き継ぐ。
+     *
+     * @param id       移動するサムネイルの id
+     * @param targetId 移動先の基準になるサムネイルの id
+     * @param position 基準の前か後か
+     */
+    reorderThumbnail: (id, targetId, position) =>
+      set((s) => {
+        if (id === targetId) return s
+        const sourceIndex = s.thumbnails.findIndex((thumbnail) => thumbnail.id === id)
+        const targetIndex = s.thumbnails.findIndex((thumbnail) => thumbnail.id === targetId)
+        if (sourceIndex < 0 || targetIndex < 0) return s
+
+        const next = [...s.thumbnails]
+        const [source] = next.splice(sourceIndex, 1)
+        const adjustedTargetIndex = targetIndex > sourceIndex ? targetIndex - 1 : targetIndex
+        const insertIndex = adjustedTargetIndex + (position === 'after' ? 1 : 0)
+        const target = s.thumbnails[targetIndex]
+        next.splice(insertIndex, 0, { ...source, folderId: target.folderId })
+        return { thumbnails: next }
+      }),
+
+    /**
      * 現在のサムネイルのキャンバスサイズを変える。サイズはサムネイルごとに持つ。
      *
      * @param size 新しい実寸サイズ
@@ -179,6 +204,27 @@ export const createThumbnailSlice: SliceCreator<ThumbnailSlice> = (set, get) => 
      */
     renameFolder: (id, name) =>
       set((s) => ({ folders: s.folders.map((f) => (f.id === id ? { ...f, name } : f)) })),
+
+    /**
+     * フォルダを別のフォルダの前後へ移す。
+     *
+     * @param id       移動するフォルダの id
+     * @param targetId 移動先の基準になるフォルダの id
+     * @param position 基準の前か後か
+     */
+    reorderFolder: (id, targetId, position) =>
+      set((s) => {
+        if (id === targetId) return s
+        const sourceIndex = s.folders.findIndex((folder) => folder.id === id)
+        const targetIndex = s.folders.findIndex((folder) => folder.id === targetId)
+        if (sourceIndex < 0 || targetIndex < 0) return s
+
+        const next = [...s.folders]
+        const [source] = next.splice(sourceIndex, 1)
+        const adjustedTargetIndex = targetIndex > sourceIndex ? targetIndex - 1 : targetIndex
+        next.splice(adjustedTargetIndex + (position === 'after' ? 1 : 0), 0, source)
+        return { folders: next }
+      }),
 
     /**
      * フォルダの開閉を切り替える。

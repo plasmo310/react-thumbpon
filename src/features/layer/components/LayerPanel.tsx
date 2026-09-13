@@ -53,12 +53,11 @@ export function LayerPanel() {
   return (
     <Panel
       title="レイヤー"
-      note="下が前面"
       divider
       actions={
         <>
-          <Button onClick={addTextLayer}>＋ テキスト</Button>
           <Button onClick={() => addShapeLayer('rectangle')}>＋ 図形</Button>
+          <Button onClick={addTextLayer}>＋ テキスト</Button>
         </>
       }
       body={{

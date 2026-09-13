@@ -22,8 +22,10 @@ export function ThumbnailRow({ thumbnail, depth }: { thumbnail: Thumbnail; depth
   const duplicateThumbnail = useEditorStore((s) => s.duplicateThumbnail)
   const copyThumbnail = useEditorStore((s) => s.copyThumbnail)
   const removeThumbnail = useEditorStore((s) => s.removeThumbnail)
+  const reorderThumbnail = useEditorStore((s) => s.reorderThumbnail)
   const canRemove = useEditorStore((s) => s.thumbnails.length > 1)
   const [editing, setEditing] = useState(false)
+  const [dropPosition, setDropPosition] = useState<'before' | 'after' | null>(null)
 
   const active = currentId === thumbnail.id
   const indent = { paddingLeft: depth * 12 }
@@ -36,10 +38,34 @@ export function ThumbnailRow({ thumbnail, depth }: { thumbnail: Thumbnail; depth
           event.dataTransfer.setData(DND_TYPE.thumbnail, thumbnail.id)
           event.dataTransfer.effectAllowed = 'move'
         }}
+        onDragOver={(event) => {
+          if (!event.dataTransfer.types.includes(DND_TYPE.thumbnail)) return
+          event.preventDefault()
+          event.stopPropagation()
+          const rect = event.currentTarget.getBoundingClientRect()
+          setDropPosition(event.clientY > rect.top + rect.height / 2 ? 'after' : 'before')
+        }}
+        onDragLeave={(event) => {
+          if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
+            setDropPosition(null)
+          }
+        }}
+        onDrop={(event) => {
+          event.preventDefault()
+          event.stopPropagation()
+          const id = event.dataTransfer.getData(DND_TYPE.thumbnail)
+          if (id && dropPosition) reorderThumbnail(id, thumbnail.id, dropPosition)
+          setDropPosition(null)
+        }}
+        onDragEnd={() => setDropPosition(null)}
         onClick={() => selectThumbnail(thumbnail.id)}
         onDoubleClick={() => setEditing(true)}
         style={indent}
-        className={styles.handle}
+        className={cx(
+          styles.handle,
+          dropPosition === 'before' && styles.dropBefore,
+          dropPosition === 'after' && styles.dropAfter,
+        )}
       >
         <span className={styles.icon}>▦</span>
         {editing ? (

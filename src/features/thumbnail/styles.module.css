@@ -30,6 +30,14 @@
   cursor: pointer;
 }
 
+.dropBefore {
+  box-shadow: inset 0 2px 0 var(--color-accent);
+}
+
+.dropAfter {
+  box-shadow: inset 0 -2px 0 var(--color-accent);
+}
+
 .icon {
   flex-shrink: 0;
   font-size: var(--font-mini);
@@ -81,6 +89,14 @@
 
 .folderHeader:hover {
   background: var(--color-app);
+}
+
+.folderDropBefore {
+  box-shadow: inset 0 2px 0 var(--color-accent);
+}
+
+.folderDropAfter {
+  box-shadow: inset 0 -2px 0 var(--color-accent);
 }
 
 .folderToggle {
