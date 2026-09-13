@@ -84,9 +84,15 @@ feature の分割によって feature 間 import が必要になるなら、原�
 
 ## 状態と既存の共通化
 
-状態はすべて `app/store/` の Zustand ストアに集約する。slice は操作のまとまりであり、状態の所有単位ではない。feature 側に slice を置かず、書き込みは既存の action に一本化する。外部から `setState` を直接呼ばない。
+状態はすべて `app/store/` の Zustand ストアに集約する。アプリ全体で共有し、React の外（キーボード操作・ポインタ操作・自動保存・ファイル操作）からも読むエディタ状態を扱うためである。Context と `useReducer` だけでは、これらの処理へ状態や操作を渡す経路が増え、状態管理の実装も分散する。
+
+Zustand の直接 import は `app/store/` に限定する。feature や `app/config/` は `@/app/store` が公開する `useEditorStore` だけを使う。UI は `useEditorStore((state) => state.xxx)` の selector で必要な値・action だけを購読し、ストア全体を購読しない。React 外の処理では `useEditorStore.getState()` を使える。`setState()` の直接呼び出しはテストの状態準備に限る。
+
+slice は操作のまとまりであり、状態の所有単位ではない。feature 側に slice を置かず、書き込みは既存の action に一本化する。selector 付き `subscribe()` は自動保存など、UI の再描画を伴わない購読に限り、比較関数を指定して不要な通知を避ける。
 
 状態は JSON 化できる値だけにする。Blob、Object URL、DOM 参照は Zustand に入れず、Blob は IndexedDB、Object URL は `assetRepo.ts` 内の Map で扱う。
+
+依存パッケージを減らすことだけを理由に Zustand を置き換えない。置き換える場合は、selector 購読、外部からの `getState()`、自動保存用の差分購読を安全に維持できることを確認してから行う。
 
 新しい実装の前に既存の共通部品を確認し、同じ定型を作り直さない。代表例は `useDropTarget`、`useAsyncAction`、`dnd`、`notify`、`cx`、`Panel`、`Button`、`SliderRow`、`PercentRow`、`InlineName`、`useFilePicker`、`ContextMenu`、`createId` である。
 

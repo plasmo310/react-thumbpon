@@ -43,6 +43,7 @@ export function LayerRow({
   onDrop: () => void
 }) {
   const selectedId = useEditorStore((s) => s.selectedId)
+  const selectedIds = useEditorStore((s) => s.selectedIds)
   const propertiesOpen = useEditorStore((s) => s.propertiesOpen)
   const select = useEditorStore((s) => s.select)
   const toggleProperties = useEditorStore((s) => s.toggleProperties)
@@ -52,15 +53,21 @@ export function LayerRow({
   const moveLayer = useEditorStore((s) => s.moveLayer)
   const openLayerMenu = useEditorStore((s) => s.openLayerMenu)
 
-  const selected = selectedId === layer.id
-  const open = selected && propertiesOpen
+  const primarySelected = selectedId === layer.id
+  // キャンバスで Shift+クリックした複数選択も一覧側で分かるよう強調する。
+  // プロパティ欄は primarySelected（最後に選んだ1件）にだけ開く
+  const selected = primarySelected || selectedIds.includes(layer.id)
+  const open = primarySelected && propertiesOpen
   const isText = layer.type === 'text'
   const isFront = index === total - 1
   const isBack = index === 0
 
-  /** 未選択なら選ぶ、選択中ならプロパティ欄を開閉する */
+  /**
+   * 主選択でなければ選び直す（複数選択の一員をここで押した場合も単一選択に戻す）、
+   * 既に主選択ならプロパティ欄を開閉する
+   */
   const handleActivate = () => {
-    if (selected) toggleProperties()
+    if (primarySelected) toggleProperties()
     else select(layer.id)
   }
 

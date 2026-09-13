@@ -31,14 +31,51 @@ export function LayerView({ layer, scale }: { layer: Layer; scale: number }) {
   const updateLayer = useEditorStore((s) => s.updateLayer)
   const snapEnabled = useEditorStore((s) => s.snapEnabled)
   const setGuides = useEditorStore((s) => s.setGuides)
-  const { canvas } = useCurrentThumbnail()
+  const { canvas, layers } = useCurrentThumbnail()
 
   if (!layer.visible) return null
 
   const handlePointerDown = (event: ReactPointerEvent) => {
     if (layer.locked || event.button !== 0) return
     event.stopPropagation()
-    select(layer.id)
+
+    const additive = event.shiftKey
+    const before = useEditorStore.getState()
+    // Shiftなしで複数選択の一員を掴んだときは、選択を崩さずそのまま一緒に動かす
+    const keepGroup =
+      !additive && before.selectedIds.includes(layer.id) && before.selectedIds.length > 1
+    if (!keepGroup) select(layer.id, { additive })
+
+    const activeIds = keepGroup ? before.selectedIds : useEditorStore.getState().selectedIds
+    // Shift+クリックで自分を選択から外した場合は、掴んで動かす対象が無い
+    if (!activeIds.includes(layer.id)) return
+
+    // 変更の直前で一度だけ履歴に積む。実際に動かさなかった（クリックだけの）場合は積まない
+    let historyCommitted = false
+    const commitHistoryOnce = () => {
+      if (historyCommitted) return
+      historyCommitted = true
+      useEditorStore.getState().recordHistory()
+    }
+
+    if (activeIds.length > 1) {
+      const starts = new Map(
+        activeIds
+          .map((id) => layers.find((l) => l.id === id))
+          .filter((l): l is Layer => !!l && !l.locked)
+          .map((l) => [l.id, { x: l.x, y: l.y }] as const),
+      )
+      startPointerDrag(event, (dx, dy) => {
+        commitHistoryOnce()
+        const ddx = dx / scale
+        const ddy = dy / scale
+        starts.forEach((start, id) => {
+          updateLayer(id, { x: Math.round(start.x + ddx), y: Math.round(start.y + ddy) })
+        })
+      })
+      return
+    }
+
     const startX = layer.x
     const startY = layer.y
 
@@ -52,6 +89,7 @@ export function LayerView({ layer, scale }: { layer: Layer; scale: number }) {
     startPointerDrag(
       event,
       (dx, dy, moveEvent) => {
+        commitHistoryOnce()
         let x = startX + dx / scale
         let y = startY + dy / scale
         if (moveEvent.shiftKey) {

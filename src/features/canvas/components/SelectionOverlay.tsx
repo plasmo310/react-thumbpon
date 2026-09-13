@@ -13,8 +13,9 @@ import { cropByHandle, cropImageStyle } from '@/domain/crop'
 import { imageFrameStyle } from '@/domain/layer'
 import { getAssetUrl } from '@/shared/lib/storage/assetRepo'
 import { startPointerDrag } from '@/shared/lib/pointerDrag'
-import { useEditorStore, useSelectedLayer } from '@/app/store'
+import { useCurrentThumbnail, useEditorStore, useSelectedLayer } from '@/app/store'
 import { useLayerHeight } from '../hooks/useLayerHeight'
+import { measureLayerHeight } from '../lib/layerRect'
 
 const ACCENT = '#FF8A5B'
 /* クロップ中は枠の意味が変わる（掴むと中身が切れる）ので、色も変えて区別する */
@@ -60,27 +61,65 @@ const TEXT_HANDLES: Handle[] = ['nw', 'ne', 'se', 'sw', 'e', 'w']
  */
 export function SelectionOverlay({ scale }: { scale: number }) {
   const layer = useSelectedLayer()
+  const selectedIds = useEditorStore((s) => s.selectedIds)
+  const { layers } = useCurrentThumbnail()
   const updateLayer = useEditorStore((s) => s.updateLayer)
   const updateLayerCrop = useEditorStore((s) => s.updateLayerCrop)
   const cropping = useEditorStore((s) => s.cropping)
   const overlayRef = useRef<HTMLDivElement>(null)
   const height = useLayerHeight(layer)
 
+  /** ハンドルや枠線が拡大率によらず同じ太さに見えるよう、実寸に割り戻す */
+  const px = (value: number) => value / scale
+
+  // 複数選択中は動かす・削除するだけの対象なので、リサイズや回転のハンドルは出さず
+  // どれが選ばれているか分かる枠だけを重ねる
+  if (selectedIds.length > 1) {
+    return (
+      <>
+        {selectedIds.map((id) => {
+          const target = layers.find((l) => l.id === id)
+          if (!target || !target.visible) return null
+          const boxHeight = target.type === 'image' ? target.height : measureLayerHeight(target.id)
+          return (
+            <div
+              key={id}
+              data-export-ignore="true"
+              style={{
+                position: 'absolute',
+                left: target.x,
+                top: target.y,
+                width: target.width,
+                height: Math.max(boxHeight, 1),
+                transform: `rotate(${target.rotation}deg)`,
+                transformOrigin: 'center',
+                border: `${px(1.5)}px solid ${ACCENT}`,
+                pointerEvents: 'none',
+              }}
+            />
+          )
+        })}
+      </>
+    )
+  }
+
   if (!layer || !layer.visible || layer.locked) return null
 
   const image = cropping && layer.type === 'image' ? layer : null
   const accent = image ? CROP_ACCENT : ACCENT
-
-  /** ハンドルや枠線が拡大率によらず同じ太さに見えるよう、実寸に割り戻す */
-  const px = (value: number) => value / scale
 
   const startResize = (handle: Handle) => (event: ReactPointerEvent) => {
     event.stopPropagation()
     const start = { x: layer.x, y: layer.y, width: layer.width, height: Math.max(height, 1) }
     const startFontSize = layer.type === 'text' ? layer.fontSize : 0
     const corner = isCornerHandle(handle)
+    let historyCommitted = false
 
     startPointerDrag(event, (dx, dy, moveEvent) => {
+      if (!historyCommitted) {
+        historyCommitted = true
+        useEditorStore.getState().recordHistory()
+      }
       const isText = layer.type === 'text'
       // テキストのコーナーは常に比例スケール、画像は Shift でアスペクト維持
       const keepAspect = isText ? corner : moveEvent.shiftKey
@@ -111,8 +150,13 @@ export function SelectionOverlay({ scale }: { scale: number }) {
     event.stopPropagation()
     const start = { x: image.x, y: image.y, width: image.width, height: image.height }
     const from = image.crop
+    let historyCommitted = false
 
     startPointerDrag(event, (dx, dy) => {
+      if (!historyCommitted) {
+        historyCommitted = true
+        useEditorStore.getState().recordHistory()
+      }
       const next = cropByHandle(start, from, image.rotation, handle, dx / scale, dy / scale)
       updateLayerCrop(image.id, next.crop, {
         x: Math.round(next.rect.x),
@@ -131,8 +175,13 @@ export function SelectionOverlay({ scale }: { scale: number }) {
     const cy = box.top + box.height / 2
     const startAngle = angleFromCenter(cx, cy, event.clientX, event.clientY)
     const startRotation = layer.rotation
+    let historyCommitted = false
 
     startPointerDrag(event, (_dx, _dy, moveEvent) => {
+      if (!historyCommitted) {
+        historyCommitted = true
+        useEditorStore.getState().recordHistory()
+      }
       const delta = angleFromCenter(cx, cy, moveEvent.clientX, moveEvent.clientY) - startAngle
       const next = moveEvent.shiftKey
         ? snapAngle(startRotation + delta)

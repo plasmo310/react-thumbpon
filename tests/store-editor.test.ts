@@ -18,6 +18,7 @@ function withLayers(names: string[]) {
     thumbnails: [thumbnail],
     currentThumbnailId: thumbnail.id,
     selectedId: null,
+    selectedIds: [],
   })
   return thumbnail
 }
@@ -30,7 +31,13 @@ const idOf = (name: string) =>
   useEditorStore.getState().thumbnails[0].layers.find((l) => l.name === name)!.id
 
 beforeEach(() => {
-  useEditorStore.setState({ selectedId: null, propertiesOpen: false })
+  useEditorStore.setState({
+    selectedId: null,
+    selectedIds: [],
+    propertiesOpen: false,
+    historyPast: [],
+    historyFuture: [],
+  })
 })
 
 describe('reorderLayer', () => {
@@ -145,6 +152,105 @@ describe('removeLayer', () => {
     useEditorStore.getState().select(selected)
     useEditorStore.getState().removeLayer(idOf('b'))
     expect(useEditorStore.getState().selectedId).toBe(selected)
+  })
+})
+
+describe('removeLayers', () => {
+  beforeEach(() => withLayers(['a', 'b', 'c']))
+
+  it('複数まとめて消せる', () => {
+    useEditorStore.getState().removeLayers([idOf('a'), idOf('c')])
+    expect(order()).toEqual(['b'])
+  })
+
+  it('複数選択の一員（主選択ではない）を消しても、複数選択からだけ外れる', () => {
+    const a = idOf('a')
+    const b = idOf('b')
+    useEditorStore.getState().select(a)
+    useEditorStore.getState().select(b, { additive: true }) // b が主選択になる
+    useEditorStore.getState().removeLayers([a])
+    expect(useEditorStore.getState().selectedId).toBe(b)
+    expect(useEditorStore.getState().selectedIds).toEqual([b])
+  })
+
+  it('主選択中のものを消すと選択も複数選択もまとめて外れる', () => {
+    const a = idOf('a')
+    const b = idOf('b')
+    useEditorStore.getState().select(a)
+    useEditorStore.getState().select(b, { additive: true }) // b が主選択になる
+    useEditorStore.getState().removeLayers([b])
+    expect(useEditorStore.getState().selectedId).toBeNull()
+    expect(useEditorStore.getState().selectedIds).toEqual([])
+  })
+})
+
+describe('select（Shift+クリックでの複数選択）', () => {
+  beforeEach(() => withLayers(['a', 'b', 'c']))
+
+  it('additive無しで選ぶと単一選択になる', () => {
+    useEditorStore.getState().select(idOf('a'))
+    expect(useEditorStore.getState().selectedId).toBe(idOf('a'))
+    expect(useEditorStore.getState().selectedIds).toEqual([idOf('a')])
+  })
+
+  it('additiveで足すと複数選択になり、最後に足したものが主選択になる', () => {
+    useEditorStore.getState().select(idOf('a'))
+    useEditorStore.getState().select(idOf('b'), { additive: true })
+    expect(useEditorStore.getState().selectedIds).toEqual([idOf('a'), idOf('b')])
+    expect(useEditorStore.getState().selectedId).toBe(idOf('b'))
+  })
+
+  it('選択済みのものをadditiveで選ぶと外れる', () => {
+    useEditorStore.getState().select(idOf('a'))
+    useEditorStore.getState().select(idOf('b'), { additive: true })
+    useEditorStore.getState().select(idOf('a'), { additive: true })
+    expect(useEditorStore.getState().selectedIds).toEqual([idOf('b')])
+  })
+
+  it('背景を選ぶと複数選択が外れる', () => {
+    useEditorStore.getState().select(idOf('a'))
+    useEditorStore.getState().select(idOf('b'), { additive: true })
+    useEditorStore.getState().select(BACKGROUND_ID)
+    expect(useEditorStore.getState().selectedIds).toEqual([])
+    expect(useEditorStore.getState().selectedId).toBe(BACKGROUND_ID)
+  })
+})
+
+describe('Undo / Redo', () => {
+  beforeEach(() => withLayers(['a', 'b']))
+
+  it('recordHistory を挟んでからの変更は、まとめて1回で戻せる', () => {
+    // nudgeLayer 自体は履歴を積まない。ドラッグや矢印キーの連続移動と同じ形
+    const startX = useEditorStore.getState().thumbnails[0].layers[0].x
+    useEditorStore.getState().recordHistory()
+    useEditorStore.getState().nudgeLayer(idOf('a'), 10, 0)
+    useEditorStore.getState().nudgeLayer(idOf('a'), 10, 0)
+    expect(useEditorStore.getState().thumbnails[0].layers[0].x).toBe(startX + 20)
+
+    useEditorStore.getState().undo()
+    expect(useEditorStore.getState().thumbnails[0].layers[0].x).toBe(startX)
+  })
+
+  it('戻した内容はやり直せる', () => {
+    useEditorStore.getState().duplicateLayer(idOf('a'))
+    expect(order()).toEqual(['a', 'a のコピー', 'b'])
+    useEditorStore.getState().undo()
+    expect(order()).toEqual(['a', 'b'])
+    useEditorStore.getState().redo()
+    expect(order()).toEqual(['a', 'a のコピー', 'b'])
+  })
+
+  it('新しい変更をするとやり直し履歴は捨てられる', () => {
+    useEditorStore.getState().duplicateLayer(idOf('a'))
+    useEditorStore.getState().undo()
+    useEditorStore.getState().addTextLayer()
+    expect(useEditorStore.getState().historyFuture).toEqual([])
+  })
+
+  it('積んだものが無ければ何もしない', () => {
+    const before = order()
+    useEditorStore.getState().undo()
+    expect(order()).toEqual(before)
   })
 })
 

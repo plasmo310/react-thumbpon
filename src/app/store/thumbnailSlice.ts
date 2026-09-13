@@ -54,7 +54,8 @@ export const createThumbnailSlice: SliceCreator<ThumbnailSlice> = (set, get) => 
      *
      * @param id 切り替え先のサムネイルの id
      */
-    selectThumbnail: (id) => set({ currentThumbnailId: id, selectedId: null, cropping: false }),
+    selectThumbnail: (id) =>
+      set({ currentThumbnailId: id, selectedId: null, selectedIds: [], cropping: false }),
 
     /**
      * サムネイルを追加して、そのまま編集対象にする。
@@ -73,6 +74,7 @@ export const createThumbnailSlice: SliceCreator<ThumbnailSlice> = (set, get) => 
         thumbnails: [...thumbnails, thumbnail],
         currentThumbnailId: thumbnail.id,
         selectedId: null,
+        selectedIds: [],
       })
     },
 
@@ -97,7 +99,7 @@ export const createThumbnailSlice: SliceCreator<ThumbnailSlice> = (set, get) => 
       const copy = cloneThumbnail(thumbnails[index], `${thumbnails[index].name} のコピー`)
       const next = [...thumbnails]
       next.splice(index + 1, 0, copy)
-      set({ thumbnails: next, currentThumbnailId: copy.id, selectedId: null })
+      set({ thumbnails: next, currentThumbnailId: copy.id, selectedId: null, selectedIds: [] })
     },
 
     /**
@@ -113,7 +115,7 @@ export const createThumbnailSlice: SliceCreator<ThumbnailSlice> = (set, get) => 
       // 削除したら「ひとつ上」のサムネイルへ移る
       const nextCurrent =
         currentThumbnailId === id ? next[Math.max(0, index - 1)].id : currentThumbnailId
-      set({ thumbnails: next, currentThumbnailId: nextCurrent, selectedId: null })
+      set({ thumbnails: next, currentThumbnailId: nextCurrent, selectedId: null, selectedIds: [] })
     },
 
     /**
@@ -136,7 +138,12 @@ export const createThumbnailSlice: SliceCreator<ThumbnailSlice> = (set, get) => 
       if (!clipboard) return
       const copy = cloneThumbnail(clipboard, `${clipboard.name} のコピー`)
       copy.folderId = folderId
-      set({ thumbnails: [...thumbnails, copy], currentThumbnailId: copy.id, selectedId: null })
+      set({
+        thumbnails: [...thumbnails, copy],
+        currentThumbnailId: copy.id,
+        selectedId: null,
+        selectedIds: [],
+      })
     },
 
     /**
@@ -210,10 +217,13 @@ export const createThumbnailSlice: SliceCreator<ThumbnailSlice> = (set, get) => 
         thumbnails: list,
         currentThumbnailId: (wanted ?? list[0]).id,
         selectedId: null,
+        selectedIds: [],
         cropping: false,
         textPresets: textPresets ?? s.textPresets,
         backgroundPresets: backgroundPresets ?? s.backgroundPresets,
       }))
+      // 読み込み前の編集内容を戻せても意味が無いので、Undo 履歴は捨てる
+      get().resetHistory()
     },
   }
 }

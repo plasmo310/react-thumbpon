@@ -1,3 +1,5 @@
+import { useEditorStore } from '@/app/store'
+import { IconButton } from '@/shared/ui'
 import { ExportButton } from './ExportButton'
 import { ProjectMenu } from './ProjectMenu'
 import { WorkspaceStatus } from './WorkspaceStatus'
@@ -18,6 +20,11 @@ const TITLE_OFFSET_Y = -1
  * 常用する PNG書き出しだけが一番右に出る。
  */
 export function Header() {
+  const canUndo = useEditorStore((s) => s.historyPast.length > 0)
+  const canRedo = useEditorStore((s) => s.historyFuture.length > 0)
+  const undo = useEditorStore((s) => s.undo)
+  const redo = useEditorStore((s) => s.redo)
+
   return (
     <header className={styles.header}>
       <div className={styles.bar}>
@@ -37,6 +44,12 @@ export function Header() {
         </div>
 
         <div className={styles.tools}>
+          <IconButton title="元に戻す (Ctrl+Z)" onClick={undo} disabled={!canUndo}>
+            ↶
+          </IconButton>
+          <IconButton title="やり直す (Ctrl+Shift+Z)" onClick={redo} disabled={!canRedo}>
+            ↷
+          </IconButton>
           <WorkspaceStatus />
           <ProjectMenu />
           <ExportButton />

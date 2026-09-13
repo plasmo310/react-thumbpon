@@ -7,6 +7,7 @@ import type { Folder, Thumbnail } from '@/domain/thumbnail'
 import { createAssetSlice, type AssetSlice } from './assetSlice'
 import { createBackgroundSlice, type BackgroundSlice } from './backgroundSlice'
 import { createFontSlice, type FontSlice } from './fontSlice'
+import { createHistorySlice, type HistorySlice } from './historySlice'
 import { createLayerSlice, type LayerSlice } from './layerSlice'
 import { createPresetSlice, type PresetSlice } from './presetSlice'
 import { createThumbnailSlice, type ThumbnailSlice } from './thumbnailSlice'
@@ -14,7 +15,7 @@ import { createUiSlice, type UiSlice } from './uiSlice'
 import { createWorkspaceSlice, type WorkspaceSlice } from './workspaceSlice'
 
 /**
- * エディタの状態すべて。8つの slice を合成したもの。
+ * エディタの状態すべて。9つの slice を合成したもの。
  *
  * slice は「操作のまとまり」であって「状態の所有単位」ではない。実体は1つのオブジェクトなので
  * slice をまたいだ更新ができる（素材を消したらそれを使うレイヤーも消す、サムネイルを
@@ -28,7 +29,8 @@ export type EditorState = ThumbnailSlice &
   FontSlice &
   PresetSlice &
   UiSlice &
-  WorkspaceSlice
+  WorkspaceSlice &
+  HistorySlice
 
 /** slice を書くための StateCreator。set / get からは合成後の全状態が見える */
 export type SliceCreator<T> = StateCreator<EditorState, [], [], T>
@@ -48,6 +50,7 @@ export const useEditorStore = create<EditorState>()(
     ...createPresetSlice(...a),
     ...createUiSlice(...a),
     ...createWorkspaceSlice(...a),
+    ...createHistorySlice(...a),
   })),
 )
 

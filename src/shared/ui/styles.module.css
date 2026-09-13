@@ -143,8 +143,13 @@
   transition: background-color 150ms;
 }
 
-.iconButton:hover {
+.iconButton:hover:not(:disabled) {
   background: var(--color-app);
+}
+
+.iconButton:disabled {
+  opacity: 0.4;
+  cursor: default;
 }
 
 .iconButtonOn {

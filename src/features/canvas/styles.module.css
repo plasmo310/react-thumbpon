@@ -71,10 +71,16 @@
   color: var(--color-accent-hover);
 }
 
-/* 実寸のキャンバス本体。位置とサイズは倍率で決まるので style 側で与える */
+/*
+ * 実寸のキャンバス本体。位置とサイズは倍率で決まるので style 側で与える。
+ * user-select は子のレイヤーにも継承されるので、Shift+クリックでの複数選択やドラッグ中に
+ * テキストやレイヤーがブラウザの選択状態（青いハイライト）にならないよう、ここで止めておく。
+ */
 .surface {
   position: absolute;
   top: 0;
   left: 0;
   overflow: hidden;
+  user-select: none;
+  -webkit-user-select: none;
 }
