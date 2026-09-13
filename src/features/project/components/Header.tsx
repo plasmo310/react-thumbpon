@@ -61,7 +61,7 @@ export function Header() {
       {/* 操作が1段目に収まったので、2段目は案内だけの細い帯にする */}
       <div className={styles.subBar}>
         <span className={styles.lead}>
-          素材を配置した後、「PNG書き出し」ボタンから画像を書き出せます。画像やフォントは端末内だけで処理され、どこにも送信されません。
+          素材を配置した後、「PNG書き出し」ボタンから画像を書き出せます。画像やフォントはブラウザ内だけで処理され、どこにも送信されません。
         </span>
       </div>
     </header>
