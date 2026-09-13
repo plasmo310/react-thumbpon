@@ -1,9 +1,9 @@
-import type { DragEvent } from 'react'
+import { useEffect, useRef, useState, type DragEvent } from 'react'
 import type { Layer } from '@/domain/layer'
 import { useEditorStore } from '@/app/store'
 import { cx } from '@/shared/lib/cx'
 import { DND_TYPE } from '@/shared/lib/dnd'
-import { EyeIcon, EyeOffIcon, IconButton } from '@/shared/ui'
+import { EyeIcon, EyeOffIcon, IconButton, InlineName } from '@/shared/ui'
 import { LayerProperties } from './LayerProperties'
 import type { DropMark } from '../types'
 import styles from '../styles.module.css'
@@ -52,6 +52,14 @@ export function LayerRow({
   const duplicateLayer = useEditorStore((s) => s.duplicateLayer)
   const moveLayer = useEditorStore((s) => s.moveLayer)
   const openLayerMenu = useEditorStore((s) => s.openLayerMenu)
+  const [editing, setEditing] = useState(false)
+  const activateTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  useEffect(() => {
+    return () => {
+      if (activateTimer.current) clearTimeout(activateTimer.current)
+    }
+  }, [])
 
   const primarySelected = selectedId === layer.id
   // キャンバスで Shift+クリックした複数選択も一覧側で分かるよう強調する。
@@ -103,21 +111,45 @@ export function LayerRow({
       <div
         role="button"
         tabIndex={0}
-        draggable
+        draggable={!editing}
         onDragStart={(event) => {
           event.dataTransfer.setData(DND_TYPE.layer, String(index))
           event.dataTransfer.effectAllowed = 'move'
           onDragStart(index)
         }}
         aria-expanded={open}
-        onClick={handleActivate}
+        onClick={(event) => {
+          if (event.detail !== 1) return
+          activateTimer.current = setTimeout(() => {
+            handleActivate()
+            activateTimer.current = null
+          }, 250)
+        }}
+        onDoubleClick={() => {
+          if (activateTimer.current) clearTimeout(activateTimer.current)
+          activateTimer.current = null
+          setEditing(true)
+        }}
         onKeyDown={(e) => {
           if (e.key === 'Enter' || e.key === ' ') handleActivate()
         }}
         className={styles.handle}
       >
         <span className={cx(styles.badge, isText && styles.badgeText)}>{badge}</span>
-        <span className={cx(styles.name, !layer.visible && styles.nameHidden)}>{layer.name}</span>
+        {editing ? (
+          <InlineName
+            value={layer.name}
+            onCommit={(name) => {
+              updateLayer(layer.id, { name })
+              setEditing(false)
+            }}
+            onCancel={() => setEditing(false)}
+          />
+        ) : (
+          <span className={cx(styles.name, !layer.visible && styles.nameHidden)} title={layer.name}>
+            {layer.name}
+          </span>
+        )}
         <IconButton
           title={layer.visible ? '非表示にする' : '表示する'}
           onClick={() => updateLayer(layer.id, { visible: !layer.visible })}

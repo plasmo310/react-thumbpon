@@ -1,7 +1,7 @@
 import { EffectsSection } from './EffectsSection'
 import { useEditorStore } from '@/app/store'
 import type { Layer } from '@/domain/layer'
-import { NumberInput, Row, TextInput } from '@/shared/ui'
+import { NumberInput, Row } from '@/shared/ui'
 import { ImageProperties } from './ImageProperties'
 import { ShapeProperties } from './ShapeProperties'
 import { TextProperties } from './TextProperties'
@@ -19,9 +19,6 @@ export function LayerProperties({ layer }: { layer: Layer }) {
 
   return (
     <div className={styles.properties}>
-      <Row label="名前">
-        <TextInput value={layer.name} onChange={(name) => updateLayer(layer.id, { name })} />
-      </Row>
       <div className={styles.pair}>
         <Row label="X">
           <NumberInput value={layer.x} onChange={(x) => updateLayer(layer.id, { x })} />

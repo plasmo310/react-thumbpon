@@ -1,12 +1,12 @@
 import type { Meta, StoryObj } from '@storybook/react-vite'
-import { NumberInput, Row, TextInput } from '@/shared/ui'
+import { NumberInput, Row } from '@/shared/ui'
 import { PanelBox } from '../../helpers/frames'
 import { Stateful } from '../../helpers/state'
 
 const meta = {
   title: 'shared/ui/Row',
   component: Row,
-  args: { label: '名前', children: null },
+  args: { label: 'Name', children: null },
 } satisfies Meta<typeof Row>
 
 export default meta
@@ -15,10 +15,10 @@ type Story = StoryObj<typeof meta>
 export const Default: Story = {
   render: (args) => (
     <PanelBox>
-      <Stateful initial="見出し">
+      <Stateful initial="Example">
         {(value, onChange) => (
           <Row {...args}>
-            <TextInput value={value} onChange={onChange} />
+            <input value={value} onChange={(event) => onChange(event.target.value)} />
           </Row>
         )}
       </Stateful>
@@ -26,7 +26,6 @@ export const Default: Story = {
   ),
 }
 
-/** ラベル列の幅は固定なので、縦に並べても右側が揃う */
 export const Stacked: Story = {
   render: () => (
     <PanelBox>
@@ -39,7 +38,7 @@ export const Stacked: Story = {
             <Row label="Y">
               <NumberInput value={value.y} onChange={(y) => onChange({ ...value, y })} />
             </Row>
-            <Row label="長いラベル名">
+            <Row label="Label width">
               <NumberInput value={value.x} onChange={(x) => onChange({ ...value, x })} />
             </Row>
           </>

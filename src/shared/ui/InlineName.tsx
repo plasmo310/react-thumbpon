@@ -24,6 +24,7 @@ export function InlineName({
       defaultValue={value}
       onBlur={(e) => onCommit(e.target.value.trim() || value)}
       onKeyDown={(e) => {
+        e.stopPropagation()
         if (e.key === 'Enter') e.currentTarget.blur()
         if (e.key === 'Escape') onCancel()
       }}
