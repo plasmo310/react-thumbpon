@@ -1,8 +1,10 @@
 import { useEditorStore } from '@/app/store'
-import { IconButton } from '@/shared/ui'
+import { useAsyncAction } from '@/shared/lib/useAsyncAction'
+import { IconButton, RefreshIcon } from '@/shared/ui'
 import { ExportButton } from './ExportButton'
 import { ProjectMenu } from './ProjectMenu'
 import { WorkspaceStatus } from './WorkspaceStatus'
+import { reloadProjectFolder } from '../lib/projectFolder'
 import styles from '../styles.module.css'
 import logoUrl from '../../../../resources/images/logo/logo.png'
 
@@ -23,8 +25,22 @@ const TITLE_OFFSET_Y = -1
 export function Header() {
   const canUndo = useEditorStore((s) => s.historyPast.length > 0)
   const canRedo = useEditorStore((s) => s.historyFuture.length > 0)
+  const workspaceStatus = useEditorStore((s) => s.workspaceStatus)
+  const workspaceDirty = useEditorStore((s) => s.workspaceDirty)
   const undo = useEditorStore((s) => s.undo)
   const redo = useEditorStore((s) => s.redo)
+  const { busy, run } = useAsyncAction()
+
+  /** 未保存の編集を確認してから、ワークスペースフォルダの内容で現在の表示を置き換える */
+  const handleReload = () => {
+    if (
+      workspaceDirty &&
+      !window.confirm('未保存の変更を破棄して、プロジェクトを読み込みなおします。よろしいですか？')
+    ) {
+      return
+    }
+    void run('プロジェクトを読み込みなおせませんでした', reloadProjectFolder)
+  }
 
   return (
     <header className={styles.header}>
@@ -51,6 +67,13 @@ export function Header() {
           </IconButton>
           <IconButton title="やり直す (Ctrl+Shift+Z)" onClick={redo} disabled={!canRedo}>
             ↷
+          </IconButton>
+          <IconButton
+            title="プロジェクトデータを読み込みなおす"
+            onClick={handleReload}
+            disabled={workspaceStatus !== 'connected' || busy}
+          >
+            <RefreshIcon />
           </IconButton>
           <WorkspaceStatus />
           <ProjectMenu />

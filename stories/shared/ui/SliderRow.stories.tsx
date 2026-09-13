@@ -6,7 +6,15 @@ import { Stateful } from '../../helpers/state'
 const meta = {
   title: 'shared/ui/SliderRow',
   component: SliderRow,
-  args: { label: '文字サイズ', value: 140, min: 8, max: 400, step: 1, unit: 'px', onChange: () => {} },
+  args: {
+    label: '文字サイズ',
+    value: 140,
+    min: 8,
+    max: 400,
+    step: 1,
+    unit: 'px',
+    onChange: () => {},
+  },
 } satisfies Meta<typeof SliderRow>
 
 export default meta
@@ -34,8 +42,22 @@ export const Digits: Story = {
       <Stateful initial={0}>
         {(value, onChange) => (
           <>
-            <SliderRow label="小さい値" value={value} min={0} max={9999} onChange={onChange} unit="px" />
-            <SliderRow label="大きい値" value={9999} min={0} max={9999} onChange={() => {}} unit="px" />
+            <SliderRow
+              label="小さい値"
+              value={value}
+              min={0}
+              max={9999}
+              onChange={onChange}
+              unit="px"
+            />
+            <SliderRow
+              label="大きい値"
+              value={9999}
+              min={0}
+              max={9999}
+              onChange={() => {}}
+              unit="px"
+            />
           </>
         )}
       </Stateful>

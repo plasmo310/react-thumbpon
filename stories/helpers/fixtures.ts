@@ -182,7 +182,11 @@ export function sampleTextPresets(): TextPreset[] {
 
 export function sampleBackgroundPresets(): BackgroundPreset[] {
   return [
-    { id: 'bg-preset-gradient', name: '夕焼けグラデ', background: { ...SAMPLE_GRADIENT_BACKGROUND } },
+    {
+      id: 'bg-preset-gradient',
+      name: '夕焼けグラデ',
+      background: { ...SAMPLE_GRADIENT_BACKGROUND },
+    },
     {
       id: 'bg-preset-dots',
       name: '水玉',

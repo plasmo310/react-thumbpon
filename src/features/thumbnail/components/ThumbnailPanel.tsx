@@ -62,9 +62,9 @@ export function ThumbnailPanel() {
       gesture.dragging = true
     }
 
-    const target = document.elementFromPoint(event.clientX, event.clientY)?.closest<HTMLElement>(
-      '[data-folder-id]',
-    )
+    const target = document
+      .elementFromPoint(event.clientX, event.clientY)
+      ?.closest<HTMLElement>('[data-folder-id]')
     if (!target || target.dataset.folderId === gesture.id) {
       folderDropRef.current = null
       setFolderDrop(null)
@@ -73,7 +73,8 @@ export function ThumbnailPanel() {
     const rect = target.getBoundingClientRect()
     const drop = {
       id: target.dataset.folderId!,
-      position: event.clientY > rect.top + rect.height / 2 ? ('after' as const) : ('before' as const),
+      position:
+        event.clientY > rect.top + rect.height / 2 ? ('after' as const) : ('before' as const),
     }
     folderDropRef.current = drop
     setFolderDrop(drop)

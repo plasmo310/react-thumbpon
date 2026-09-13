@@ -349,6 +349,32 @@ export async function reconnectProjectFolder() {
 }
 
 /**
+ * 接続中のワークスペースフォルダを読み直して、現在の内容を置き換える。
+ * ユーザー操作から呼ぶので、権限が切れていた場合は再度許可を求める。
+ *
+ * @returns 読み込んだか。接続先が無い、または権限を得られない場合は false
+ */
+export async function reloadProjectFolder(): Promise<boolean> {
+  const dir = getCurrentDirectory() ?? (await loadHandle())
+  if (!dir) return false
+
+  const { workspaceFileName } = useEditorStore.getState()
+  if (!(await verifyPermission(dir, true))) {
+    useEditorStore.getState().setWorkspace('needs-permission', dir.name, workspaceFileName)
+    return false
+  }
+
+  setCurrentDirectory(dir)
+  const manifest = await loadFrom(dir, workspaceFileName ?? undefined)
+  if (!manifest) throw new Error(`「${dir.name}」にサムネぽんのプロジェクトがありません`)
+
+  const store = useEditorStore.getState()
+  store.setWorkspace('connected', dir.name, manifest)
+  store.markWorkspaceSaved()
+  return true
+}
+
+/**
  * 現在の内容をフォルダに保存する。
  * 未接続なら先に保存先のフォルダを選んでもらう。
  *

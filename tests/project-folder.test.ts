@@ -9,6 +9,7 @@ import {
   openProjectFolder,
   disconnectProjectFolder,
   reconnectProjectFolder,
+  reloadProjectFolder,
   restoreProjectFolder,
   saveProjectFolder,
 } from '@/features/project/lib/projectFolder'
@@ -389,6 +390,27 @@ describe('reconnectProjectFolder', () => {
     fake.grantOnRequest = false
     await reconnectProjectFolder()
     expect(useEditorStore.getState().workspaceStatus).toBe('needs-permission')
+  })
+})
+
+describe('reloadProjectFolder', () => {
+  it('接続中のフォルダの内容で現在の編集を置き換える', async () => {
+    const dir = makeDir('work')
+    fake.picked = dir
+    seed(['a1'])
+    await saveProjectFolder(agree)
+
+    useEditorStore.setState({ thumbnails: [], assets: [], workspaceDirty: true })
+
+    expect(await reloadProjectFolder()).toBe(true)
+    const state = useEditorStore.getState()
+    expect(state.thumbnails.map((thumbnail) => thumbnail.id)).toEqual(['th1'])
+    expect(state.assets.map((asset) => asset.id)).toEqual(['a1'])
+    expect(state.workspaceDirty).toBe(false)
+  })
+
+  it('読み込み先が無ければ何もしない', async () => {
+    expect(await reloadProjectFolder()).toBe(false)
   })
 })
 

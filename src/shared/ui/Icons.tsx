@@ -49,3 +49,23 @@ export function EyeOffIcon() {
     </svg>
   )
 }
+
+/** プロジェクトの内容を読み直すことを表す、時計回りの矢印 */
+export function RefreshIcon() {
+  return (
+    <svg
+      viewBox={VIEW_BOX}
+      width="14"
+      height="14"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={STROKE_WIDTH}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M11.7 5.4A5 5 0 1 0 12 8" />
+      <path d="M11.7 1.8v3.6H8.1" />
+    </svg>
+  )
+}

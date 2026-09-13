@@ -75,30 +75,34 @@ export function LayerView({ layer, scale }: { layer: Layer; scale: number }) {
       const targets = surface ? collectLayerRects(surface, activeIds) : []
       const canSnap = snapEnabled && !!snapLayer && snapLayer.rotation === 0
 
-      startPointerDrag(event, (dx, dy, moveEvent) => {
-        commitHistoryOnce()
-        let ddx = dx / scale
-        let ddy = dy / scale
-        if (canSnap && snapLayer && !moveEvent.altKey) {
-          const snapped = snapPosition(
-            {
-              x: snapLayer.x + ddx,
-              y: snapLayer.y + ddy,
-              width: snapLayer.width,
-              height: snapHeight,
-            },
-            targets,
-            canvas,
-            SNAP_THRESHOLD / scale,
-          )
-          ddx = snapped.x - snapLayer.x
-          ddy = snapped.y - snapLayer.y
-          setGuides({ x: snapped.guidesX, y: snapped.guidesY })
-        }
-        starts.forEach((start, id) => {
-          updateLayer(id, { x: Math.round(start.x + ddx), y: Math.round(start.y + ddy) })
-        })
-      }, () => setGuides({ x: [], y: [] }))
+      startPointerDrag(
+        event,
+        (dx, dy, moveEvent) => {
+          commitHistoryOnce()
+          let ddx = dx / scale
+          let ddy = dy / scale
+          if (canSnap && snapLayer && !moveEvent.altKey) {
+            const snapped = snapPosition(
+              {
+                x: snapLayer.x + ddx,
+                y: snapLayer.y + ddy,
+                width: snapLayer.width,
+                height: snapHeight,
+              },
+              targets,
+              canvas,
+              SNAP_THRESHOLD / scale,
+            )
+            ddx = snapped.x - snapLayer.x
+            ddy = snapped.y - snapLayer.y
+            setGuides({ x: snapped.guidesX, y: snapped.guidesY })
+          }
+          starts.forEach((start, id) => {
+            updateLayer(id, { x: Math.round(start.x + ddx), y: Math.round(start.y + ddy) })
+          })
+        },
+        () => setGuides({ x: [], y: [] }),
+      )
       return
     }
 

@@ -2,5 +2,5 @@
 export { Header } from './components/Header'
 export { WorkspaceNotice } from './components/WorkspaceNotice'
 export { restoreWorkspace, startAutoSave } from './lib/workspace'
-export { saveProjectFolder } from './lib/projectFolder'
+export { reloadProjectFolder, saveProjectFolder } from './lib/projectFolder'
 export { confirmFolderOverwrite } from './lib/confirmOverwrite'
