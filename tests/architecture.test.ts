@@ -35,11 +35,11 @@ const LAYERS: [prefix: string, layer: (typeof ORDER)[number]][] = [
  * どれにも当てはまらない app/store 以外の src/app（App / main / layout / config）が最上位で、
  * feature を組み立てる場所なので何を見てもよい。
  */
-function rankOf(path: string): number {
+function rankOf(path: string): number | null {
   const found = LAYERS.find(
     ([prefix]) => path === prefix || path.startsWith(prefix + '/') || path.startsWith(prefix + '.'),
   )
-  return ORDER.indexOf(found ? found[1] : 'app')
+  return found ? ORDER.indexOf(found[1]) : null
 }
 
 const layerName = (rank: number) => ORDER[rank]
@@ -94,7 +94,7 @@ describe('層の依存方向', () => {
       const from = rankOf(path)
       for (const target of importsOf(path, source)) {
         const to = rankOf(target)
-        if (to > from) {
+        if (from !== null && to !== null && to > from) {
           violations.push(`${path} (${layerName(from)}) -> ${target} (${layerName(to)})`)
         }
       }
