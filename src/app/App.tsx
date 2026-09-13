@@ -8,6 +8,7 @@ import { ThumbnailPanel } from '@/features/thumbnail'
 import { Splitter } from '@/shared/ui'
 import styles from './styles.module.css'
 import { clamp } from '@/domain/geometry'
+import { isUnsupportedDevice } from '@/app/config/deviceSupport'
 import { loadPanelLayout, savePanelLayout } from '@/app/layout/panelLayout'
 import { useKeyboardShortcuts } from '@/app/config/shortcuts'
 import { restoreWorkspace, startAutoSave } from '@/features/project'
@@ -19,6 +20,7 @@ const MIN_PANEL = 80
 const MIN_LAYER_PANEL = 120
 
 export function App() {
+  const unsupportedDevice = isUnsupportedDevice(navigator)
   useKeyboardShortcuts()
   const sidebarRef = useRef<HTMLElement>(null)
   const [layout, setLayout] = useState(loadPanelLayout)
@@ -43,7 +45,7 @@ export function App() {
   }
 
   return (
-    <div className={styles.appShell}>
+    <div className={`${styles.appShell} ${unsupportedDevice ? styles.unsupported : ''}`}>
       <div className={styles.app}>
         <Header />
         <WorkspaceNotice />

@@ -33,19 +33,17 @@
   display: none;
 }
 
-@media (max-width: 767px) {
-  .app {
-    display: none;
-  }
+.unsupported .app {
+  display: none;
+}
 
-  .mobileUnsupported {
-    display: flex;
-    min-height: 100%;
-    padding: var(--space-4);
-    align-items: center;
-    justify-content: center;
-    flex-direction: column;
-    gap: var(--space-2);
-    text-align: center;
-  }
+.unsupported .mobileUnsupported {
+  display: flex;
+  min-height: 100%;
+  padding: var(--space-4);
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: var(--space-2);
+  text-align: center;
 }
