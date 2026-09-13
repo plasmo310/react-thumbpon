@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react-vite'
 import { NumberInput, Row, TextInput } from '@/shared/ui'
-import { PanelBox } from '../helpers/frames'
-import { Stateful } from '../helpers/state'
+import { PanelBox } from '../../helpers/frames'
+import { Stateful } from '../../helpers/state'
 
 const meta = {
   title: 'shared/ui/Row',

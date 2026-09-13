@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite'
 import { CanvasStage } from '@/features/canvas'
-import { withStore } from '../helpers/store'
+import { withStore } from '../../helpers/store'
 
 const meta = {
   title: 'features/canvas/CanvasStage',

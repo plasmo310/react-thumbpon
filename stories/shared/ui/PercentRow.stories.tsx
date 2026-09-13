@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react-vite'
 import { PercentRow } from '@/shared/ui'
-import { PanelBox } from '../helpers/frames'
-import { Stateful } from '../helpers/state'
+import { PanelBox } from '../../helpers/frames'
+import { Stateful } from '../../helpers/state'
 
 /** ストアは 0..1 で持ち、画面には % で見せる行 */
 const meta = {

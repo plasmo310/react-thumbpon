@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react-vite'
 import { AssetPanel } from '@/features/asset'
-import { PanelBox } from '../helpers/frames'
-import { withStore } from '../helpers/store'
+import { PanelBox } from '../../helpers/frames'
+import { withStore } from '../../helpers/store'
 
 const meta = {
   title: 'features/asset/AssetPanel',

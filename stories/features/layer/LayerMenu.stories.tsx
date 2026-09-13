@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react-vite'
 import { LayerMenu } from '@/features/layer'
-import { SAMPLE_TEXT_LAYER_ID } from '../helpers/fixtures'
-import { withStore } from '../helpers/store'
+import { SAMPLE_TEXT_LAYER_ID } from '../../helpers/fixtures'
+import { withStore } from '../../helpers/store'
 
 const meta = {
   title: 'features/layer/LayerMenu',

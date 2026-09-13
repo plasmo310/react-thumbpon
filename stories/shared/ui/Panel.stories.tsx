@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite'
 import { Panel, TextInput } from '@/shared/ui'
-import { PanelBox } from '../helpers/frames'
+import { PanelBox } from '../../helpers/frames'
 
 const meta = {
   title: 'shared/ui/Panel',

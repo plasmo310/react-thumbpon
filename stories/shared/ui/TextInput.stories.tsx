@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite'
 import { TextInput } from '@/shared/ui'
-import { Stateful } from '../helpers/state'
+import { Stateful } from '../../helpers/state'
 
 const meta = {
   title: 'shared/ui/TextInput',
