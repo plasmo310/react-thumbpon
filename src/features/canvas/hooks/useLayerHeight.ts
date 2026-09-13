@@ -13,7 +13,7 @@ export function useLayerHeight(layer: Layer | null): number {
 
   useLayoutEffect(() => {
     if (!layer) return
-    if (layer.type === 'image') {
+    if (layer.type !== 'text') {
       setMeasured(layer.height)
       return
     }
@@ -27,5 +27,5 @@ export function useLayerHeight(layer: Layer | null): number {
   }, [layer])
 
   if (!layer) return 0
-  return layer.type === 'image' ? layer.height : measured
+  return layer.type === 'text' ? measured : layer.height
 }

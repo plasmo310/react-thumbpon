@@ -3,6 +3,7 @@ import { useEditorStore } from '@/app/store'
 import type { Layer } from '@/domain/layer'
 import { NumberInput, Row, TextInput } from '@/shared/ui'
 import { ImageProperties } from './ImageProperties'
+import { ShapeProperties } from './ShapeProperties'
 import { TextProperties } from './TextProperties'
 import styles from '../styles.module.css'
 
@@ -30,16 +31,16 @@ export function LayerProperties({ layer }: { layer: Layer }) {
         </Row>
       </div>
 
-      {layer.type === 'image' ? (
-        <ImageProperties layer={layer} />
-      ) : (
-        <TextProperties layer={layer} />
-      )}
+      {layer.type === 'image' && <ImageProperties layer={layer} />}
+      {layer.type === 'text' && <TextProperties layer={layer} />}
+      {layer.type === 'shape' && <ShapeProperties layer={layer} />}
 
-      <EffectsSection
-        effects={layer.effects}
-        onChange={(patch) => updateLayerEffects(layer.id, patch)}
-      />
+      {layer.type !== 'shape' && (
+        <EffectsSection
+          effects={layer.effects}
+          onChange={(patch) => updateLayerEffects(layer.id, patch)}
+        />
+      )}
     </div>
   )
 }

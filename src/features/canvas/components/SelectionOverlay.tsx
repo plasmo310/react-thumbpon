@@ -80,7 +80,7 @@ export function SelectionOverlay({ scale }: { scale: number }) {
         {selectedIds.map((id) => {
           const target = layers.find((l) => l.id === id)
           if (!target || !target.visible) return null
-          const boxHeight = target.type === 'image' ? target.height : measureLayerHeight(target.id)
+          const boxHeight = target.type === 'text' ? measureLayerHeight(target.id) : target.height
           return (
             <div
               key={id}
@@ -121,7 +121,7 @@ export function SelectionOverlay({ scale }: { scale: number }) {
         useEditorStore.getState().recordHistory()
       }
       const isText = layer.type === 'text'
-      // テキストのコーナーは常に比例スケール、画像は Shift でアスペクト維持
+      // テキストのコーナーは常に比例スケール。画像・図形は Shift でアスペクトを維持する
       const keepAspect = isText ? corner : moveEvent.shiftKey
       const rect = resizeRect(start, layer.rotation, handle, dx / scale, dy / scale, keepAspect)
       const common = {

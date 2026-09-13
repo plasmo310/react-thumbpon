@@ -76,6 +76,22 @@ describe('reorderLayer', () => {
   })
 })
 
+describe('addShapeLayer', () => {
+  it('最前面に追加して、その図形を選択する', () => {
+    const thumbnail = withLayers(['下のテキスト'])
+    useEditorStore.getState().addShapeLayer('rectangle')
+
+    const layers = useEditorStore.getState().thumbnails[0].layers
+    const shape = layers[layers.length - 1]
+    expect(shape).toMatchObject({ type: 'shape', shape: 'rectangle' })
+    expect(useEditorStore.getState().selectedId).toBe(shape.id)
+    expect(useEditorStore.getState().selectedIds).toEqual([shape.id])
+    expect(useEditorStore.getState().propertiesOpen).toBe(true)
+    expect(useEditorStore.getState().historyPast).toHaveLength(1)
+    expect(thumbnail.layers).toHaveLength(1)
+  })
+})
+
 describe('moveLayer', () => {
   beforeEach(() => withLayers(['a', 'b', 'c']))
 

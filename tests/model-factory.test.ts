@@ -3,6 +3,7 @@ import { createId } from '@/domain/id'
 import {
   cloneLayer,
   createImageLayer,
+  createShapeLayer,
   createTextLayer,
   extractTextStyle,
   imageFrameStyle,
@@ -131,6 +132,39 @@ describe('createTextLayer', () => {
 
   it('height は持たない（内容に応じて伸びるため）', () => {
     expect('height' in createTextLayer(DEFAULT_CANVAS)).toBe(false)
+  })
+})
+
+describe('createShapeLayer', () => {
+  it('四角形をキャンバス中央に、見える単色で作る', () => {
+    const layer = createShapeLayer({ width: 1000, height: 500 }, 'rectangle')
+
+    expect(layer).toMatchObject({
+      type: 'shape',
+      shape: 'rectangle',
+      name: '四角形',
+      width: 500,
+      height: 150,
+      x: 250,
+      y: 175,
+      fillType: 'color',
+      color: '#FF8A5B',
+      cornerRadius: 0,
+    })
+  })
+
+  it('円は短辺に対する正円で作る', () => {
+    const layer = createShapeLayer({ width: 1000, height: 500 }, 'ellipse')
+
+    expect(layer).toMatchObject({
+      type: 'shape',
+      shape: 'ellipse',
+      name: '円',
+      width: 200,
+      height: 200,
+      x: 400,
+      y: 150,
+    })
   })
 })
 

@@ -18,6 +18,7 @@ export function LayerPanel() {
   const select = useEditorStore((s) => s.select)
   const toggleProperties = useEditorStore((s) => s.toggleProperties)
   const addTextLayer = useEditorStore((s) => s.addTextLayer)
+  const addShapeLayer = useEditorStore((s) => s.addShapeLayer)
   const reorderLayer = useEditorStore((s) => s.reorderLayer)
 
   const [dragIndex, setDragIndex] = useState<number | null>(null)
@@ -54,7 +55,12 @@ export function LayerPanel() {
       title="レイヤー"
       note="下が前面"
       divider
-      actions={<Button onClick={addTextLayer}>＋ テキスト</Button>}
+      actions={
+        <>
+          <Button onClick={addTextLayer}>＋ テキスト</Button>
+          <Button onClick={() => addShapeLayer('rectangle')}>＋ 図形</Button>
+        </>
+      }
       body={{
         onDragEnd: () => {
           setDragIndex(null)

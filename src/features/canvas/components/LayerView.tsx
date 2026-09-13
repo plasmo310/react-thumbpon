@@ -1,7 +1,13 @@
 import type { MouseEvent as ReactMouseEvent, PointerEvent as ReactPointerEvent } from 'react'
 import { snapPosition } from '../lib/snap'
 import { cropImageStyle } from '@/domain/crop'
-import { imageFrameStyle, layerStyle, textStyle } from '@/domain/layer'
+import {
+  imageFrameStyle,
+  layerStyle,
+  shapeFillStyle,
+  shapeFrameStyle,
+  textStyle,
+} from '@/domain/layer'
 import type { Layer } from '@/domain/layer'
 import { getAssetUrl } from '@/shared/lib/storage/assetRepo'
 import { useCurrentThumbnail, useEditorStore } from '@/app/store'
@@ -161,6 +167,19 @@ export function LayerView({ layer, scale }: { layer: Layer; scale: number }) {
             }}
           />
         )}
+      </div>
+    )
+  }
+
+  if (layer.type === 'shape') {
+    return (
+      <div
+        data-layer-id={layer.id}
+        style={base}
+        onPointerDown={handlePointerDown}
+        onContextMenu={handleContextMenu}
+      >
+        <div style={{ ...shapeFrameStyle(layer), ...shapeFillStyle(layer) }} />
       </div>
     )
   }

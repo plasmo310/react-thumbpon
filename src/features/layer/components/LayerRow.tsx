@@ -59,6 +59,14 @@ export function LayerRow({
   const selected = primarySelected || selectedIds.includes(layer.id)
   const open = primarySelected && propertiesOpen
   const isText = layer.type === 'text'
+  const badge =
+    layer.type === 'text'
+      ? 'T'
+      : layer.type === 'image'
+        ? 'I'
+        : layer.shape === 'ellipse'
+          ? '●'
+          : '■'
   const isFront = index === total - 1
   const isBack = index === 0
 
@@ -108,7 +116,7 @@ export function LayerRow({
         }}
         className={styles.handle}
       >
-        <span className={cx(styles.badge, isText && styles.badgeText)}>{isText ? 'T' : 'I'}</span>
+        <span className={cx(styles.badge, isText && styles.badgeText)}>{badge}</span>
         <span className={cx(styles.name, !layer.visible && styles.nameHidden)}>{layer.name}</span>
         <IconButton
           title={layer.visible ? '非表示にする' : '表示する'}

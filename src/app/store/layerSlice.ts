@@ -1,10 +1,10 @@
 import { BACKGROUND_ID } from '@/domain/background'
-import { cloneLayer, createImageLayer, createTextLayer } from '@/domain/layer'
+import { cloneLayer, createImageLayer, createShapeLayer, createTextLayer } from '@/domain/layer'
 import { fitInto, type Rect } from '@/domain/geometry'
 import { createPatchers } from './patch'
 import { mergeCrop, type Crop } from '@/domain/crop'
 import { DEFAULT_EFFECTS, type Effects } from '@/domain/effects'
-import type { Layer } from '@/domain/layer'
+import type { Layer, ShapeKind } from '@/domain/layer'
 import type { SliceCreator } from './index'
 
 /** 重なり順の動かし方。配列順がそのまま重なり順なので、端の1つ隣か端そのものになる */
@@ -22,6 +22,7 @@ export type LayerSlice = {
   select: (id: string | null, options?: { additive?: boolean }) => void
   addImageLayer: (assetId: string, center?: { x: number; y: number }) => void
   addTextLayer: () => void
+  addShapeLayer: (shape: ShapeKind) => void
   updateLayer: (id: string, patch: Partial<Layer>) => void
   updateLayerEffects: (id: string, patch: Partial<Effects>) => void
   updateLayerCrop: (id: string, patch: Partial<Crop>, rect?: Partial<Rect>) => void
@@ -106,6 +107,16 @@ export const createLayerSlice: SliceCreator<LayerSlice> = (set, get) => {
       if (!thumbnail) return
       get().recordHistory()
       const layer = createTextLayer(thumbnail.canvas)
+      patchLayers((layers) => [...layers, layer])
+      set({ selectedId: layer.id, selectedIds: [layer.id], propertiesOpen: true, cropping: false })
+    },
+
+    /** 図形レイヤーをキャンバス中央の最前面に追加し、選択する。 */
+    addShapeLayer: (shape) => {
+      const thumbnail = current()
+      if (!thumbnail) return
+      get().recordHistory()
+      const layer = createShapeLayer(thumbnail.canvas, shape)
       patchLayers((layers) => [...layers, layer])
       set({ selectedId: layer.id, selectedIds: [layer.id], propertiesOpen: true, cropping: false })
     },

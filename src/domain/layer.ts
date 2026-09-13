@@ -6,6 +6,9 @@ import { BUILTIN_FONTS } from './font'
 import type { CanvasSize } from './thumbnail'
 
 export type TextAlign = 'left' | 'center' | 'right'
+export type ShapeKind = 'rectangle' | 'ellipse'
+export type ShapeFillType = 'color' | 'gradient' | 'pattern'
+export type ShapePattern = 'dots' | 'lines' | 'checker'
 
 /** 画像・テキストに共通する配置と表示の情報 */
 export type LayerBase = {
@@ -51,7 +54,26 @@ export type TextLayer = LayerBase & {
   strokeColor: string
 }
 
-export type Layer = ImageLayer | TextLayer
+/** 配置できる図形。ellipse は通常のリサイズで楕円にもなる「円」の実体。 */
+export type ShapeLayer = LayerBase & {
+  type: 'shape'
+  height: number
+  shape: ShapeKind
+  /** 四角形の均一な角丸半径。ellipse では使わないが、形状を戻したときのため保持する */
+  cornerRadius: number
+  fillType: ShapeFillType
+  color: string
+  gradientFrom: string
+  gradientTo: string
+  gradientAngle: number
+  pattern: ShapePattern
+  patternColor: string
+  patternSize: number
+  patternWeight: number
+  patternAngle: number
+}
+
+export type Layer = ImageLayer | TextLayer | ShapeLayer
 
 /** テキストレイヤーの見た目だけを抜き出したもの。プリセットの中身になる */
 export type TextStyle = Pick<
@@ -153,6 +175,38 @@ export function createTextLayer(canvas: CanvasSize): TextLayer {
 }
 
 /**
+ * 図形レイヤーをキャンバス中央に追加する。
+ *
+ * @param canvas キャンバス実寸。初期サイズを決める
+ * @param shape  追加する形状
+ */
+export function createShapeLayer(canvas: CanvasSize, shape: ShapeKind): ShapeLayer {
+  const size = Math.round(Math.min(canvas.width, canvas.height) * 0.4)
+  const width = shape === 'rectangle' ? Math.round(canvas.width * 0.5) : size
+  const height = shape === 'rectangle' ? Math.round(canvas.height * 0.3) : size
+  return {
+    ...createLayerBase(shape === 'rectangle' ? '四角形' : '円'),
+    type: 'shape',
+    shape,
+    width,
+    height,
+    x: Math.round((canvas.width - width) / 2),
+    y: Math.round((canvas.height - height) / 2),
+    cornerRadius: 0,
+    fillType: 'color',
+    color: '#FF8A5B',
+    gradientFrom: '#FF8A5B',
+    gradientTo: '#FFD8C6',
+    gradientAngle: 135,
+    pattern: 'dots',
+    patternColor: '#FFD8C6',
+    patternSize: 64,
+    patternWeight: 0.3,
+    patternAngle: 45,
+  }
+}
+
+/**
  * レイヤーを、入れ子のフィールドまで作り直して複製する。
  * 位置も名前もそのままなので、サムネイルごと複製するときに使う。
  *
@@ -201,7 +255,7 @@ export function layerStyle(layer: Layer): CSSProperties {
     left: layer.x,
     top: layer.y,
     width: layer.width,
-    height: layer.type === 'image' ? layer.height : undefined,
+    height: layer.type === 'text' ? undefined : layer.height,
     opacity: layer.opacity,
     transform: `rotate(${layer.rotation}deg)`,
     transformOrigin: 'center',
@@ -209,6 +263,53 @@ export function layerStyle(layer: Layer): CSSProperties {
     filter: effectsFilter(layer.effects),
     pointerEvents: layer.locked ? 'none' : 'auto',
     cursor: layer.locked ? 'default' : 'move',
+  }
+}
+
+/** 図形の塗りを CSS 背景に変換する。 */
+export function shapeFillStyle(layer: ShapeLayer): CSSProperties {
+  if (layer.fillType === 'color') return { backgroundColor: layer.color }
+  if (layer.fillType === 'gradient') {
+    return {
+      backgroundImage: `linear-gradient(${layer.gradientAngle}deg, ${layer.gradientFrom}, ${layer.gradientTo})`,
+    }
+  }
+  const size = Math.max(2, layer.patternSize)
+  const weight = Math.min(1, Math.max(0, layer.patternWeight))
+  if (layer.pattern === 'lines') {
+    const thickness = Math.max(1, size * weight)
+    return {
+      backgroundColor: layer.color,
+      backgroundImage: `repeating-linear-gradient(${layer.patternAngle}deg, ${layer.patternColor} 0px, ${layer.patternColor} ${thickness}px, transparent ${thickness}px, transparent ${size}px)`,
+    }
+  }
+  if (layer.pattern === 'checker') {
+    const square = `linear-gradient(45deg, ${layer.patternColor} 25%, transparent 25%, transparent 75%, ${layer.patternColor} 75%)`
+    return {
+      backgroundColor: layer.color,
+      backgroundImage: `${square}, ${square}`,
+      backgroundSize: `${size}px ${size}px`,
+      backgroundPosition: `0 0, ${size / 2}px ${size / 2}px`,
+    }
+  }
+  const radius = (size * weight) / 2
+  return {
+    backgroundColor: layer.color,
+    backgroundImage: `radial-gradient(circle at 50% 50%, ${layer.patternColor} ${radius}px, transparent ${radius}px)`,
+    backgroundSize: `${size}px ${size}px`,
+  }
+}
+
+/** 図形の輪郭。角丸は四角形だけに掛ける。 */
+export function shapeFrameStyle(layer: ShapeLayer): CSSProperties {
+  return {
+    width: '100%',
+    height: '100%',
+    overflow: 'hidden',
+    borderRadius:
+      layer.shape === 'ellipse'
+        ? '50%'
+        : `${Math.min(layer.cornerRadius, layer.width / 2, layer.height / 2)}px`,
   }
 }
 
