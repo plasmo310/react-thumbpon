@@ -65,20 +65,40 @@ export function LayerView({ layer, scale }: { layer: Layer; scale: number }) {
     }
 
     if (activeIds.length > 1) {
-      const starts = new Map(
-        activeIds
-          .map((id) => layers.find((l) => l.id === id))
-          .filter((l): l is Layer => !!l && !l.locked)
-          .map((l) => [l.id, { x: l.x, y: l.y }] as const),
-      )
-      startPointerDrag(event, (dx, dy) => {
+      const movableLayers = activeIds
+        .map((id) => layers.find((l) => l.id === id))
+        .filter((l): l is Layer => !!l && !l.locked)
+      const starts = new Map(movableLayers.map((l) => [l.id, { x: l.x, y: l.y }] as const))
+      const surface = (event.currentTarget as HTMLElement).offsetParent as HTMLElement | null
+      const snapLayer = movableLayers.find((target) => target.id === before.selectedId)
+      const snapHeight = snapLayer ? measureLayerHeight(snapLayer.id) : 0
+      const targets = surface ? collectLayerRects(surface, activeIds) : []
+      const canSnap = snapEnabled && !!snapLayer && snapLayer.rotation === 0
+
+      startPointerDrag(event, (dx, dy, moveEvent) => {
         commitHistoryOnce()
-        const ddx = dx / scale
-        const ddy = dy / scale
+        let ddx = dx / scale
+        let ddy = dy / scale
+        if (canSnap && snapLayer && !moveEvent.altKey) {
+          const snapped = snapPosition(
+            {
+              x: snapLayer.x + ddx,
+              y: snapLayer.y + ddy,
+              width: snapLayer.width,
+              height: snapHeight,
+            },
+            targets,
+            canvas,
+            SNAP_THRESHOLD / scale,
+          )
+          ddx = snapped.x - snapLayer.x
+          ddy = snapped.y - snapLayer.y
+          setGuides({ x: snapped.guidesX, y: snapped.guidesY })
+        }
         starts.forEach((start, id) => {
           updateLayer(id, { x: Math.round(start.x + ddx), y: Math.round(start.y + ddy) })
         })
-      })
+      }, () => setGuides({ x: [], y: [] }))
       return
     }
 
@@ -88,7 +108,7 @@ export function LayerView({ layer, scale }: { layer: Layer; scale: number }) {
     // スナップ用に、他レイヤーの矩形と自分の実寸をドラッグ開始時に一度だけ集める
     const surface = (event.currentTarget as HTMLElement).offsetParent as HTMLElement | null
     const height = measureLayerHeight(layer.id)
-    const targets = surface ? collectLayerRects(surface, layer.id) : []
+    const targets = surface ? collectLayerRects(surface, [layer.id]) : []
     // 回転していると矩形が合わないのでスナップしない
     const canSnap = snapEnabled && layer.rotation === 0
 

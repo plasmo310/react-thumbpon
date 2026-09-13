@@ -26,11 +26,11 @@ export function measureLayerHeight(layerId: string): number {
  * テキストの実測高さもここで取れる。
  *
  * @param surface   レイヤーを含むキャンバス要素。offsetParent になっている必要がある
- * @param excludeId 除外するレイヤーの id。通常は移動中のレイヤー自身
+ * @param excludeIds 除外するレイヤーの id。通常は移動中のレイヤー自身または選択グループ
  */
-export function collectLayerRects(surface: HTMLElement, excludeId: string): SnapRect[] {
+export function collectLayerRects(surface: HTMLElement, excludeIds: string[]): SnapRect[] {
   return [...surface.querySelectorAll<HTMLElement>('[data-layer-id]')]
-    .filter((el) => el.dataset.layerId !== excludeId)
+    .filter((el) => !excludeIds.includes(el.dataset.layerId ?? ''))
     .map((el) => ({
       x: el.offsetLeft,
       y: el.offsetTop,
