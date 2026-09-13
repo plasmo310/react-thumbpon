@@ -6,7 +6,7 @@ import { Stateful } from '../helpers/state'
 const meta = {
   title: 'shared/ui/Row',
   component: Row,
-  args: { label: '名前' },
+  args: { label: '名前', children: null },
 } satisfies Meta<typeof Row>
 
 export default meta

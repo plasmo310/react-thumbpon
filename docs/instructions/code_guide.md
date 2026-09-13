@@ -6,6 +6,14 @@
 
 ---
 
+## Storybook
+
+- Story は `stories/` に `*.stories.tsx` として配置し、`src/` の実装コードに混在させない。
+- `shared/ui` のコンポーネントを追加・変更したら、最低 1 つの基本 Story を用意する。
+- 入力など状態を持つ部品は、Story 内で状態を管理して操作できるようにする。
+- Story は代表的な利用例に絞り、実装上必要になった場合のみバリエーションを追加する。
+- `npm run storybook` で表示を確認し、完了時は `npm run typecheck` と `npm run format:check` を実行する。
+
 ## 1. 全体の構成
 
 ```
