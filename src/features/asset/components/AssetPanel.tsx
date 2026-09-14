@@ -38,6 +38,7 @@ export function AssetPanel() {
     startX: number
     startY: number
     dragging: boolean
+    onName: boolean
   } | null>(null)
   const folderDropRef = useRef<{ id: string; position: 'before' | 'after' } | null>(null)
 
@@ -48,14 +49,15 @@ export function AssetPanel() {
   }
 
   const handleFolderPointerDown = (id: string, event: PointerEvent<HTMLDivElement>) => {
-    if (event.button !== 0 || (event.target as Element).closest('button, input')) return
-    event.currentTarget.setPointerCapture(event.pointerId)
+    const target = event.target as Element
+    if (event.button !== 0 || target.closest('button, input')) return
     folderGesture.current = {
       id,
       pointerId: event.pointerId,
       startX: event.clientX,
       startY: event.clientY,
       dragging: false,
+      onName: target.closest('[data-folder-name]') !== null,
     }
   }
 
@@ -66,6 +68,8 @@ export function AssetPanel() {
       const distance = Math.hypot(event.clientX - gesture.startX, event.clientY - gesture.startY)
       if (distance < FOLDER_DRAG_THRESHOLD) return
       gesture.dragging = true
+      // 押した時点で捕捉すると click / dblclick がヘッダーに付け替わり、名前のダブルクリックが効かなくなる
+      event.currentTarget.setPointerCapture(event.pointerId)
     }
 
     const target = document
@@ -92,7 +96,8 @@ export function AssetPanel() {
     if (gesture.dragging) {
       const drop = folderDropRef.current
       if (drop) void reorderAssetFolder(gesture.id, drop.id, drop.position)
-    } else {
+    } else if (!gesture.onName) {
+      // 名前はダブルクリックで編集するので、クリックでは開閉しない
       void toggleAssetFolder(gesture.id)
     }
     resetFolderGesture()
@@ -183,6 +188,7 @@ export function AssetPanel() {
                 />
               ) : (
                 <span
+                  data-folder-name
                   className={styles.folderName}
                   title="ダブルクリックで名前を変える（書き出し先のフォルダ名になる）"
                   onDoubleClick={() => setEditingFolderId(folder.id)}
