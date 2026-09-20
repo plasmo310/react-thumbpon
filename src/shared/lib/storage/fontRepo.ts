@@ -23,11 +23,28 @@ export function canQueryLocalFonts(): boolean {
  * 一覧の取得だけに権限が必要で、描画自体は family 名を指定すれば使える。
  *
  * @returns family で重複を除き、名前順に並べたもの
+ * @throws 権限が拒否・ブロックされた場合は、許可のしかたを添えた Error
  */
 export async function queryLocalFonts(): Promise<FontEntry[]> {
   const query = (window as WindowWithLocalFonts).queryLocalFonts
   if (!query) throw new Error('このブラウザはローカルフォント一覧に対応していません')
-  const fonts = await query()
+  let fonts: LocalFontData[]
+  try {
+    fonts = await query()
+  } catch (error) {
+    // 拒否や過去のブロックでは Chrome の許可ダイアログがアイコンだけになり、理由が分からない。
+    // 英語の "Permission denied." をそのまま出さず、許可のしかたをこちらで案内する
+    if (
+      error instanceof DOMException &&
+      (error.name === 'NotAllowedError' || error.name === 'SecurityError')
+    ) {
+      throw new Error(
+        'フォント一覧の取得が許可されていません。\n' +
+          'アドレスバー左のアイコン →「サイトの設定」で「フォント」を「許可」にして、もう一度お試しください。',
+      )
+    }
+    throw error
+  }
   const families = new Map<string, string>()
   for (const font of fonts) {
     if (!families.has(font.family)) families.set(font.family, font.family)

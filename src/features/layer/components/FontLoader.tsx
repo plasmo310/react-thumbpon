@@ -1,4 +1,5 @@
 import { addFontFiles, canQueryLocalFonts, queryLocalFonts } from '@/shared/lib/storage/fontRepo'
+import type { FontEntry } from '@/domain/font'
 import { useEditorStore } from '@/app/store'
 import { useAsyncAction } from '@/shared/lib/useAsyncAction'
 import { Button, useFilePicker } from '@/shared/ui'
@@ -11,17 +12,30 @@ const ACCEPT = '.ttf,.otf,.woff,.woff2,font/*'
  * 一覧の取得は Chrome 系でしか使えないため、非対応ブラウザではボタン自体を出さない。
  */
 export function FontLoader() {
+  const fonts = useEditorStore((s) => s.fonts)
   const addFonts = useEditorStore((s) => s.addFonts)
   const { busy, run } = useAsyncAction()
+
+  /**
+   * 追加結果を知らせて反映する。成功時も何も出ないと、押したのに何も起きていないように見えるため。
+   *
+   * @param added 新しく追加できたフォント。空なら追加できるものが無かったことを伝える
+   */
+  const applyAdded = (added: FontEntry[]) => {
+    if (added.length === 0) {
+      window.alert('追加できるフォントがありませんでした')
+      return
+    }
+    addFonts(added)
+    window.alert(`${added.length}件のフォントを追加しました`)
+  }
 
   const picker = useFilePicker(
     ACCEPT,
     (files) =>
-      void run('フォントを読み込めませんでした', async () => {
-        const added = await addFontFiles(Array.from(files))
-        if (added.length === 0) window.alert('追加できるフォントがありませんでした')
-        else addFonts(added)
-      }),
+      void run('フォントを読み込めませんでした', async () =>
+        applyAdded(await addFontFiles(Array.from(files))),
+      ),
     true,
   )
 
@@ -32,9 +46,11 @@ export function FontLoader() {
           grow
           disabled={busy}
           onClick={() =>
-            void run('ローカルフォントを読み込めませんでした', async () =>
-              addFonts(await queryLocalFonts()),
-            )
+            void run('ローカルフォントを読み込めませんでした', async () => {
+              // 一覧は毎回全件返るため、読み込み済みを除いたものを「追加された分」として数える
+              const known = new Set(fonts.map((f) => f.family))
+              applyAdded((await queryLocalFonts()).filter((f) => !known.has(f.family)))
+            })
           }
         >
           PCのフォントを読み込む
