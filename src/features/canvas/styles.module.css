@@ -84,3 +84,16 @@
   user-select: none;
   -webkit-user-select: none;
 }
+
+/*
+ * サーフェスと重ねる選択枠の層。サーフェスと違って切らないので、キャンバス外にも枠が出る。
+ * 層自体はポインタを受けず、下のレイヤーの操作を邪魔しない。受けるのはハンドルだけ。
+ */
+.overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-select: none;
+}

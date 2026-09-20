@@ -52,7 +52,8 @@ const TEXT_HANDLES: Handle[] = ['nw', 'ne', 'se', 'sw', 'e', 'w']
 
 /**
  * 選択中のレイヤーに重ねる枠・リサイズハンドル・回転ハンドル。
- * 書き出しには含めないため data-export-ignore を付けている。
+ * キャンバスからはみ出たレイヤーも操作できるよう、切り抜くサーフェスの外に置かれる。
+ * 書き出し対象のサーフェスの外にあるので、書き出しには含まれない。
  *
  * クロップ編集中は同じハンドルの意味が変わり、枠のリサイズではなく
  * 画像の表示範囲を詰める操作になる（中身は動かさない）。
@@ -84,7 +85,6 @@ export function SelectionOverlay({ scale }: { scale: number }) {
           return (
             <div
               key={id}
-              data-export-ignore="true"
               style={{
                 position: 'absolute',
                 left: target.x,
@@ -211,7 +211,6 @@ export function SelectionOverlay({ scale }: { scale: number }) {
   return (
     <div
       ref={overlayRef}
-      data-export-ignore="true"
       style={{
         position: 'absolute',
         left: layer.x,
