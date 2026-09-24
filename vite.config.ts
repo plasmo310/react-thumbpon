@@ -1,5 +1,6 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
+import pkg from './package.json' with { type: 'json' }
 
 export default defineConfig({
   plugins: [react()],
@@ -8,5 +9,9 @@ export default defineConfig({
     // fileURLToPath を使うと @types/node が要るので、依存を増やさずに済むこの形にしている。
     // vitest もこの設定を共有するので、テスト側に同じ指定は要らない。
     alias: { '@': '/src' },
+  },
+  define: {
+    // package.json のバージョンを画面表示用に埋め込む。
+    __APP_VERSION__: JSON.stringify(pkg.version),
   },
 })

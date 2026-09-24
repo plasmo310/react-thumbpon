@@ -56,7 +56,7 @@ export function Header() {
           <h1 className={styles.title} style={{ transform: `translateY(${TITLE_OFFSET_Y}px)` }}>
             サムネぽん！
           </h1>
-          <span className={styles.sub}>ThumbPon</span>
+          <span className={styles.sub}>ThumbPon v{__APP_VERSION__}</span>
           <div className={styles.separator} />
           <span className={styles.lead}>サムネイルをサクッと作るツール</span>
         </div>
