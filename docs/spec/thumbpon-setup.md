@@ -55,6 +55,10 @@ npm install -D vite typescript @vitejs/plugin-react @types/react @types/react-do
 
 ## npm scripts
 
+標準 Web フォント（Noto Sans JP / M PLUS 1p / M PLUS 2 / Roboto）は npm パッケージを追加せず、`index.html` の Google Fonts CSS API で読み込む。初回取得には `fonts.googleapis.com` / `fonts.gstatic.com` への接続が必要。CSP を設定する公開環境では、前者からのスタイル、後者からのフォント取得を許可する。PNG 書き出し時の `html-to-image` による CSS・フォントの取得にも両ホストへの接続を許可する。
+
+ライセンス原文と出典一覧は `public/licenses/fonts/` に置き、Vite のビルド出力へ同梱する。公開時にこのディレクトリを削除しない。書体や配布元を変更した場合は [Web フォントとライセンス](web-fonts.md) と同梱原文を更新する。
+
 | コマンド | 用途 |
 |---|---|
 | `npm run dev` | 開発サーバーを起動 |

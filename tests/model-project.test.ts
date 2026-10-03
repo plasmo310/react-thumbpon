@@ -15,7 +15,7 @@ import type { AssetFolder, AssetMeta } from '@/domain/asset'
 import { DEFAULT_BACKGROUND } from '@/domain/background'
 import { DEFAULT_CROP } from '@/domain/crop'
 import { DEFAULT_EFFECTS } from '@/domain/effects'
-import type { FontEntry } from '@/domain/font'
+import { BUILTIN_FONTS, type FontEntry } from '@/domain/font'
 import type { ImageLayer, TextLayer } from '@/domain/layer'
 import type { Thumbnail } from '@/domain/thumbnail'
 
@@ -134,10 +134,21 @@ describe('collectUsedFonts', () => {
     expect(used).toEqual([{ label: 'Mine', family: '"Mine"', source: 'file' }])
   })
 
-  it('builtin はどの環境でも出るので含めない', () => {
-    const used = collectUsedFonts([thumbnail([textLayer('"Noto Sans JP", sans-serif')])], fonts)
-    expect(used).toEqual([])
-  })
+  it.each(['Noto Sans JP', 'M PLUS 1p', 'M PLUS 2', 'Roboto'])(
+    '標準 Web フォント %s はファイル追加なしで解決し、同梱要求に含めない',
+    (label) => {
+      const font = BUILTIN_FONTS.find((entry) => entry.label === label)!
+      expect(font).toBeDefined()
+      const layer = {
+        ...textLayer(font.family),
+        inlineStyles: [{ start: 0, end: 1, style: { fontFamily: font.family } }],
+      }
+      expect(collectUsedFonts([thumbnail([layer])], BUILTIN_FONTS)).toEqual([])
+      expect(
+        findMissingFonts([{ label, family: font.family, source: 'local' }], BUILTIN_FONTS),
+      ).toEqual([])
+    },
+  )
 
   it('同じ family が複数レイヤーにあっても1つにまとめる', () => {
     const th = thumbnail([textLayer('"Mine"'), { ...textLayer('"Mine"'), id: 't2' }])

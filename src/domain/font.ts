@@ -5,6 +5,9 @@ export type FontEntry = { id: string; family: string; label: string; source: Fon
 
 export const BUILTIN_FONTS: FontEntry[] = [
   { id: 'noto', family: '"Noto Sans JP", sans-serif', label: 'Noto Sans JP', source: 'builtin' },
+  { id: 'mplus1p', family: '"M PLUS 1p", sans-serif', label: 'M PLUS 1p', source: 'builtin' },
+  { id: 'mplus2', family: '"M PLUS 2", sans-serif', label: 'M PLUS 2', source: 'builtin' },
+  { id: 'roboto', family: '"Roboto", sans-serif', label: 'Roboto', source: 'builtin' },
   {
     id: 'gothic',
     family: '"Hiragino Kaku Gothic ProN", "Yu Gothic", "Meiryo", sans-serif',
