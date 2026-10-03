@@ -11,6 +11,7 @@ import {
 } from '@/domain/geometry'
 import { cropByHandle, cropImageStyle } from '@/domain/crop'
 import { imageFrameStyle } from '@/domain/layer'
+import { formatWholeText } from '@/domain/text'
 import { getAssetUrl } from '@/shared/lib/storage/assetRepo'
 import { startPointerDrag } from '@/shared/lib/pointerDrag'
 import { useCurrentThumbnail, useEditorStore, useSelectedLayer } from '@/app/store'
@@ -67,6 +68,7 @@ export function SelectionOverlay({ scale }: { scale: number }) {
   const updateLayer = useEditorStore((s) => s.updateLayer)
   const updateLayerCrop = useEditorStore((s) => s.updateLayerCrop)
   const cropping = useEditorStore((s) => s.cropping)
+  const editing = useEditorStore((s) => s.textEditing)
   const overlayRef = useRef<HTMLDivElement>(null)
   const height = useLayerHeight(layer)
 
@@ -104,6 +106,7 @@ export function SelectionOverlay({ scale }: { scale: number }) {
   }
 
   if (!layer || !layer.visible || layer.locked) return null
+  if (editing?.layerId === layer.id) return null
 
   const image = cropping && layer.type === 'image' ? layer : null
   const accent = image ? CROP_ACCENT : ACCENT
@@ -137,7 +140,7 @@ export function SelectionOverlay({ scale }: { scale: number }) {
         const factor = rect.width / start.width
         updateLayer(layer.id, {
           ...common,
-          fontSize: Math.max(4, Math.round(startFontSize * factor)),
+          ...formatWholeText(layer, { fontSize: Math.max(4, startFontSize * factor) }),
         })
       } else {
         updateLayer(layer.id, { x: common.x, y: common.y, width: common.width })

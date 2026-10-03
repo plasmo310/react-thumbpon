@@ -127,6 +127,47 @@ describe('exportProjectFile', () => {
 })
 
 describe('往復', () => {
+  it('version 5の部分書式と部分指定フォントをZIPで往復できる', async () => {
+    const layer = {
+      ...textLayer(BUILTIN_FONTS[0].family),
+      text: 'これが最強の方法',
+      inlineStyles: [
+        {
+          start: 3,
+          end: 5,
+          style: {
+            color: '#FF0000',
+            fontSize: 120,
+            fontFamily: 'Custom',
+            strokeWidth: 4,
+            strokeColor: '#FFFFFF',
+          },
+        },
+      ],
+    }
+    useEditorStore.setState({
+      thumbnails: [thumbnail([layer])],
+      fonts: [
+        ...BUILTIN_FONTS,
+        { id: 'custom', family: 'Custom', label: 'Custom', source: 'file' },
+      ],
+    })
+    const file = await exported()
+    const entries = unzipSync(new Uint8Array(await file.arrayBuffer()))
+    const manifest = JSON.parse(
+      new TextDecoder().decode(
+        Object.entries(entries).find(([name]) => name.endsWith('.thumbpon'))![1],
+      ),
+    )
+    expect(manifest.version).toBe(5)
+    expect(manifest.fonts).toEqual([{ family: 'Custom', label: 'Custom', source: 'file' }])
+    useEditorStore.setState({ thumbnails: [thumbnail([])] })
+    await importProjectFile(file)
+    expect(useEditorStore.getState().thumbnails[0].layers[0]).toMatchObject({
+      text: layer.text,
+      inlineStyles: layer.inlineStyles,
+    })
+  })
   it('サムネイルと素材が書き出し前の状態に戻る', async () => {
     useEditorStore.setState({
       folders: [{ id: 'f1', name: 'フォルダ 1', collapsed: false }],

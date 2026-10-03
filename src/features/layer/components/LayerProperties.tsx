@@ -18,7 +18,10 @@ export function LayerProperties({ layer }: { layer: Layer }) {
   const updateLayerEffects = useEditorStore((s) => s.updateLayerEffects)
 
   return (
-    <div className={styles.properties}>
+    <div
+      className={styles.properties}
+      data-text-properties={layer.type === 'text' ? layer.id : undefined}
+    >
       <div className={styles.pair}>
         <Row label="X">
           <NumberInput value={layer.x} onChange={(x) => updateLayer(layer.id, { x })} />

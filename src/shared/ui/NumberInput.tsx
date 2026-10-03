@@ -11,6 +11,7 @@ import styles from './styles.module.css'
  * @param props.step     矢印キーやスピナーの刻み幅
  * @param props.min      下限。blur 時にここまで引き上げる
  * @param props.max      上限。blur 時にここまで引き下げる
+ * @param props.mixed    選択範囲の値が混在しているか
  */
 export function NumberInput({
   value,
@@ -18,12 +19,14 @@ export function NumberInput({
   step = 1,
   min,
   max,
+  mixed = false,
 }: {
   value: number
   onChange: (value: number) => void
   step?: number
   min?: number
   max?: number
+  mixed?: boolean
 }) {
   const [draft, setDraft] = useState<string | null>(null)
   const safeValue = Number.isFinite(value) ? value : 0
@@ -32,7 +35,8 @@ export function NumberInput({
     <input
       type="number"
       className={styles.input}
-      value={draft ?? String(safeValue)}
+      value={draft ?? (mixed ? '' : String(safeValue))}
+      placeholder={mixed ? '混在' : undefined}
       step={step}
       min={min}
       max={max}

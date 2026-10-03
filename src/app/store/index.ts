@@ -13,9 +13,10 @@ import { createPresetSlice, type PresetSlice } from './presetSlice'
 import { createThumbnailSlice, type ThumbnailSlice } from './thumbnailSlice'
 import { createUiSlice, type UiSlice } from './uiSlice'
 import { createWorkspaceSlice, type WorkspaceSlice } from './workspaceSlice'
+import { createTextSlice, type TextSlice } from './textSlice'
 
 /**
- * エディタの状態すべて。9つの slice を合成したもの。
+ * エディタの状態すべて。10の slice を合成したもの。
  *
  * slice は「操作のまとまり」であって「状態の所有単位」ではない。実体は1つのオブジェクトなので
  * slice をまたいだ更新ができる（素材を消したらそれを使うレイヤーも消す、サムネイルを
@@ -30,7 +31,8 @@ export type EditorState = ThumbnailSlice &
   PresetSlice &
   UiSlice &
   WorkspaceSlice &
-  HistorySlice
+  HistorySlice &
+  TextSlice
 
 /** slice を書くための StateCreator。set / get からは合成後の全状態が見える */
 export type SliceCreator<T> = StateCreator<EditorState, [], [], T>
@@ -51,7 +53,21 @@ export const useEditorStore = create<EditorState>()(
     ...createUiSlice(...a),
     ...createWorkspaceSlice(...a),
     ...createHistorySlice(...a),
+    ...createTextSlice(...a),
   })),
+)
+
+// 別の編集対象に切り替わった場合、古い文字範囲が新しい項目へ適用されないようにする。
+useEditorStore.subscribe(
+  (s) => s.currentThumbnailId,
+  () => useEditorStore.getState().endTextEditing(),
+)
+useEditorStore.subscribe(
+  (s) => s.selectedId,
+  (id) => {
+    const state = useEditorStore.getState()
+    if (state.textEditing && state.textEditing.layerId !== id) state.endTextEditing()
+  },
 )
 
 /**

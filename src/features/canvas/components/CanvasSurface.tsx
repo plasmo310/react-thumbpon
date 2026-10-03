@@ -29,6 +29,26 @@ export function CanvasSurface({ scale }: { scale: number }) {
     return () => setSurface(null)
   }, [])
 
+  useEffect(() => {
+    const finishOutside = (event: PointerEvent) => {
+      const session = useEditorStore.getState().textEditing
+      if (!session || !(event.target instanceof Element)) return
+      const owner = event.target.closest('[data-text-layer], [data-text-properties]')
+      if (
+        owner?.getAttribute('data-text-layer') === session.layerId ||
+        owner?.getAttribute('data-text-properties') === session.layerId
+      )
+        return
+      // ポインタによるフォーカス移動でIMEが確定してから編集を終了する。
+      window.setTimeout(() => {
+        if (useEditorStore.getState().textEditing?.layerId === session.layerId)
+          useEditorStore.getState().endTextEditing()
+      }, 0)
+    }
+    document.addEventListener('pointerdown', finishOutside, true)
+    return () => document.removeEventListener('pointerdown', finishOutside, true)
+  }, [])
+
   return (
     <>
       <div

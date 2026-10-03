@@ -5,6 +5,7 @@ import { DEFAULT_EFFECTS } from './effects'
 import type { FontEntry } from './font'
 import type { BackgroundPreset, TextPreset } from './preset'
 import type { Layer } from './layer'
+import { normalizeInlineStyles } from './text'
 import type { Folder, Thumbnail } from './thumbnail'
 
 /** ワークスペースのマニフェストの拡張子。中身は JSON だが、OS から見てサムネぽんのものだと分かる名前にする */
@@ -37,11 +38,12 @@ export type ProjectFontRef = {
  * プロジェクトファイル(.thumbpon.zip)とワークスペースフォルダのマニフェスト(*.thumbpon)の中身。
  * version 1 は fonts を、version 2 までは背景の模様設定とレイヤーのエフェクトを、
  * version 3 までは素材フォルダと画像のクロップ・左右反転を持たない。
+ * version 4 までは文字範囲ごとの部分書式を持たない。
  * 読み込み側は無い前提で扱うこと（欠けは normalizeThumbnails が既定値で補う）。
  */
 export type ProjectFile = {
   format: 'thumbpon-project'
-  version: 1 | 2 | 3 | 4
+  version: 1 | 2 | 3 | 4 | 5
   folders: Folder[]
   thumbnails: Thumbnail[]
   currentThumbnailId: string | null
@@ -184,10 +186,15 @@ export function collectUsedFonts(thumbnails: Thumbnail[], fonts: FontEntry[]): P
   for (const thumbnail of thumbnails) {
     for (const layer of thumbnail.layers) {
       if (layer.type !== 'text') continue
-      const font = byFamily.get(layer.fontFamily)
-      if (!font || font.source === 'builtin') continue
-      if (used.has(font.family)) continue
-      used.set(font.family, { label: font.label, family: font.family, source: font.source })
+      const families = [
+        layer.fontFamily,
+        ...(layer.inlineStyles ?? []).map((range) => range.style.fontFamily),
+      ]
+      for (const family of families) {
+        const font = family ? byFamily.get(family) : undefined
+        if (!font || font.source === 'builtin' || used.has(font.family)) continue
+        used.set(font.family, { label: font.label, family: font.family, source: font.source })
+      }
     }
   }
 
@@ -227,6 +234,11 @@ export function normalizeThumbnails(thumbnails: Thumbnail[]): Thumbnail[] {
     },
     layers: thumbnail.layers.map((layer) => {
       const normalized = { ...layer, effects: { ...DEFAULT_EFFECTS, ...layer.effects } } as Layer
+      if (normalized.type === 'text')
+        return {
+          ...normalized,
+          inlineStyles: normalizeInlineStyles(normalized.text, normalized.inlineStyles),
+        }
       if (normalized.type !== 'image') return normalized
       return {
         ...normalized,

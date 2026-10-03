@@ -4,6 +4,7 @@ import { DEFAULT_EFFECTS, effectsFilter, type Effects } from './effects'
 import { createId } from './id'
 import { BUILTIN_FONTS } from './font'
 import type { CanvasSize } from './thumbnail'
+import type { InlineStyleRange } from './text'
 
 export type TextAlign = 'left' | 'center' | 'right'
 export type ShapeKind = 'rectangle' | 'ellipse'
@@ -41,6 +42,8 @@ export type ImageLayer = LayerBase & {
 export type TextLayer = LayerBase & {
   type: 'text'
   text: string
+  /** 文字範囲ごとの上書き。旧データでは省略される。 */
+  inlineStyles?: InlineStyleRange[]
   fontFamily: string
   fontSize: number
   fontWeight: number
@@ -214,6 +217,11 @@ export function createShapeLayer(canvas: CanvasSize, shape: ShapeKind): ShapeLay
  */
 export function copyLayer(source: Layer): Layer {
   const copy = { ...source, id: createId(), effects: { ...source.effects } }
+  if (copy.type === 'text')
+    return {
+      ...copy,
+      inlineStyles: copy.inlineStyles?.map((range) => ({ ...range, style: { ...range.style } })),
+    }
   return copy.type === 'image' ? { ...copy, crop: { ...copy.crop } } : copy
 }
 

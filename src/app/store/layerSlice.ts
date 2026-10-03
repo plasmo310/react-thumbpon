@@ -60,6 +60,8 @@ export const createLayerSlice: SliceCreator<LayerSlice> = (set, get) => {
           const exists = s.selectedIds.includes(id)
           const nextIds = exists ? s.selectedIds.filter((x) => x !== id) : [...s.selectedIds, id]
           return {
+            textEditing: null,
+            textInputGroup: null,
             selectedId: nextIds.length > 0 ? nextIds[nextIds.length - 1] : null,
             selectedIds: nextIds,
             propertiesOpen: true,
@@ -67,6 +69,8 @@ export const createLayerSlice: SliceCreator<LayerSlice> = (set, get) => {
           }
         }
         return {
+          textEditing: s.selectedId === id ? s.textEditing : null,
+          textInputGroup: s.selectedId === id ? s.textInputGroup : null,
           selectedId: id,
           selectedIds: id && id !== BACKGROUND_ID ? [id] : [],
           propertiesOpen: s.selectedId === id ? s.propertiesOpen : true,
@@ -127,8 +131,11 @@ export const createLayerSlice: SliceCreator<LayerSlice> = (set, get) => {
      * @param id    更新するレイヤーの id
      * @param patch 変更したい項目だけ
      */
-    updateLayer: (id, patch) =>
-      patchLayers((layers) => layers.map((l) => (l.id === id ? ({ ...l, ...patch } as Layer) : l))),
+    updateLayer: (id, patch) => {
+      patchLayers((layers) => layers.map((l) => (l.id === id ? ({ ...l, ...patch } as Layer) : l)))
+      if (get().textEditing?.layerId === id && (patch.locked || patch.visible === false))
+        get().endTextEditing()
+    },
 
     /**
      * レイヤーのエフェクトを部分的に更新する。
@@ -171,6 +178,7 @@ export const createLayerSlice: SliceCreator<LayerSlice> = (set, get) => {
       if (ids.length === 0) return
       get().recordHistory()
       patchLayers((layers) => layers.filter((l) => !ids.includes(l.id)))
+      if (get().textEditing && ids.includes(get().textEditing!.layerId)) get().endTextEditing()
       set((s) =>
         s.selectedId && ids.includes(s.selectedId)
           ? { selectedId: null, selectedIds: [], cropping: false }

@@ -266,6 +266,8 @@ export const createThumbnailSlice: SliceCreator<ThumbnailSlice> = (set, get) => 
         selectedIds: [],
         cropping: false,
         textPresets: textPresets ?? s.textPresets,
+        textEditing: null,
+        textInputGroup: null,
         backgroundPresets: backgroundPresets ?? s.backgroundPresets,
       }))
       // 読み込み前の編集内容を戻せても意味が無いので、Undo 履歴は捨てる

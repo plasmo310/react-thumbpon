@@ -20,19 +20,22 @@ function normalizeHtmlColor(value: string): string | undefined {
  *
  * @param props.value    現在の色。#RRGGBB 形式
  * @param props.onChange 色が変わったときに呼ばれる
+ * @param props.mixed    選択範囲の色が混在しているか
  */
 export function ColorInput({
   value,
   onChange,
+  mixed = false,
 }: {
   value: string
   onChange: (value: string) => void
+  mixed?: boolean
 }) {
-  const [code, setCode] = useState(value)
+  const [code, setCode] = useState(mixed ? '' : value)
 
   useEffect(() => {
-    setCode(value)
-  }, [value])
+    setCode(mixed ? '' : value)
+  }, [value, mixed])
 
   const commitCode = () => {
     const color = normalizeHtmlColor(code)
@@ -56,6 +59,7 @@ export function ColorInput({
         type="text"
         className={styles.input}
         value={code}
+        placeholder={mixed ? '混在' : undefined}
         inputMode="text"
         pattern="#[0-9A-Fa-f]{3}([0-9A-Fa-f]{3})?"
         aria-label="HTMLカラーコード"

@@ -13,6 +13,7 @@ import { getAssetUrl } from '@/shared/lib/storage/assetRepo'
 import { useCurrentThumbnail, useEditorStore } from '@/app/store'
 import { collectLayerRects, measureLayerHeight } from '../lib/layerRect'
 import { startPointerDrag } from '@/shared/lib/pointerDrag'
+import { RichTextInput } from '@/shared/ui'
 
 /** 画面上でのスナップ距離(px) */
 const SNAP_THRESHOLD = 8
@@ -37,12 +38,20 @@ export function LayerView({ layer, scale }: { layer: Layer; scale: number }) {
   const updateLayer = useEditorStore((s) => s.updateLayer)
   const snapEnabled = useEditorStore((s) => s.snapEnabled)
   const setGuides = useEditorStore((s) => s.setGuides)
+  const editing = useEditorStore((s) => s.textEditing)
+  const beginTextEditing = useEditorStore((s) => s.beginTextEditing)
+  const endTextEditing = useEditorStore((s) => s.endTextEditing)
+  const selectTextRange = useEditorStore((s) => s.selectTextRange)
+  const updateTextContent = useEditorStore((s) => s.updateTextContent)
+  const undo = useEditorStore((s) => s.undo)
+  const redo = useEditorStore((s) => s.redo)
   const { canvas, layers } = useCurrentThumbnail()
 
   if (!layer.visible) return null
 
   const handlePointerDown = (event: ReactPointerEvent) => {
     if (layer.locked || event.button !== 0) return
+    if (editing?.layerId === layer.id) return
     event.stopPropagation()
 
     const additive = event.shiftKey
@@ -211,11 +220,35 @@ export function LayerView({ layer, scale }: { layer: Layer; scale: number }) {
   return (
     <div
       data-layer-id={layer.id}
+      data-text-layer={layer.id}
       style={{ ...base, ...textStyle(layer) }}
       onPointerDown={handlePointerDown}
       onContextMenu={handleContextMenu}
+      onDoubleClick={(event) => {
+        event.stopPropagation()
+        beginTextEditing(layer.id, 'canvas')
+      }}
     >
-      {layer.text}
+      <RichTextInput
+        canvas
+        value={layer}
+        editable={editing?.layerId === layer.id && editing.surface === 'canvas'}
+        active={editing?.layerId === layer.id && editing.surface === 'canvas'}
+        selection={
+          editing?.layerId === layer.id && editing.surface === 'canvas' ? editing.range : undefined
+        }
+        revision={
+          editing?.layerId === layer.id && editing.surface === 'canvas'
+            ? editing.revision
+            : undefined
+        }
+        pendingStyle={editing?.layerId === layer.id ? editing.pendingStyle : undefined}
+        onSelectionChange={selectTextRange}
+        onChange={(content, range, kind) => updateTextContent(layer.id, content, range, kind)}
+        onFinish={endTextEditing}
+        onUndo={undo}
+        onRedo={redo}
+      />
     </div>
   )
 }

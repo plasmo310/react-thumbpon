@@ -43,9 +43,13 @@ export const createPresetSlice: SliceCreator<PresetSlice> = (set, get) => {
     applyTextPreset: (presetId, layerId) => {
       const preset = get().textPresets.find((p) => p.id === presetId)
       if (!preset) return
+      get().recordHistory()
       patchLayers((layers) =>
-        layers.map((l) => (l.id === layerId && l.type === 'text' ? { ...l, ...preset.style } : l)),
+        layers.map((l) =>
+          l.id === layerId && l.type === 'text' ? { ...l, ...preset.style, inlineStyles: [] } : l,
+        ),
       )
+      set({ textInputGroup: null })
     },
 
     /**

@@ -58,13 +58,6 @@
   cursor: pointer;
 }
 
-.textarea {
-  composes: input;
-  height: 64px;
-  resize: vertical;
-  line-height: 1.375;
-}
-
 .slider {
   flex: 1;
   min-width: 0;
@@ -337,4 +330,35 @@
   border-top: 1px solid var(--color-line);
   padding-top: var(--space-2);
   border-radius: 0;
+}
+.richText {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  min-height: 1em;
+  outline: none;
+}
+
+.richText[contenteditable='true'] {
+  user-select: text;
+  -webkit-user-select: text;
+  cursor: text;
+}
+
+.richTextField {
+  width: 100%;
+  max-height: 20rem;
+  overflow: auto;
+  min-height: 4em;
+  padding: var(--space-2);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius);
+  background: var(--color-panel);
+  color: var(--color-ink);
+  font-size: var(--font-label);
+}
+
+.richTextField:focus,
+.richTextEditing {
+  outline: 1px solid var(--color-accent);
 }

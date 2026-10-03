@@ -23,3 +23,5 @@ export const Default: Story = {
     </Stateful>
   ),
 }
+
+export const Mixed: Story = { args: { mixed: true }, render: Default.render }
