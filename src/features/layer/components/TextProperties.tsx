@@ -250,24 +250,66 @@ export function TextProperties({ layer }: { layer: TextLayer }) {
               onChange={(backgroundColor) => patch({ backgroundColor })}
             />
           </Row>
-          {(['paddingTop', 'paddingRight', 'paddingBottom', 'paddingLeft'] as const).map(
-            (key, index) => (
-              <Row key={key} label={`余白・${['上', '右', '下', '左'][index]}`}>
-                <NumberInput
-                  value={layer[key]}
-                  min={0}
-                  onChange={(value) => patch({ [key]: Math.max(0, value) })}
-                />
-              </Row>
-            ),
-          )}
-          <Row label="角丸 (px)">
-            <NumberInput
-              value={layer.backgroundRadius}
-              min={0}
-              onChange={(value) => patch({ backgroundRadius: Math.max(0, value) })}
+          <div className={styles.quad}>
+            {(['paddingTop', 'paddingBottom', 'paddingLeft', 'paddingRight'] as const).map(
+              (key, index) => (
+                <Row key={key} label={`余白・${['上', '下', '左', '右'][index]}`}>
+                  <NumberInput
+                    value={layer[key]}
+                    min={0}
+                    onChange={(value) => patch({ [key]: Math.max(0, value) })}
+                  />
+                </Row>
+              ),
+            )}
+          </div>
+          <Row label="角丸">
+            <SegmentedControl
+              value={layer.backgroundRadiusMode}
+              options={[
+                { label: '全体指定', value: 'uniform' },
+                { label: '個別指定', value: 'individual' },
+              ]}
+              onChange={(backgroundRadiusMode) => patch({ backgroundRadiusMode })}
             />
           </Row>
+          {layer.backgroundRadiusMode === 'individual' ? (
+            <div className={styles.quad}>
+              {(
+                [
+                  'backgroundRadiusTopLeft',
+                  'backgroundRadiusTopRight',
+                  'backgroundRadiusBottomLeft',
+                  'backgroundRadiusBottomRight',
+                ] as const
+              ).map((key, index) => (
+                <Row key={key} label={`角丸・${['左上', '右上', '左下', '右下'][index]}`}>
+                  <NumberInput
+                    value={layer[key]}
+                    min={0}
+                    onChange={(value) => patch({ [key]: Math.max(0, value) })}
+                  />
+                </Row>
+              ))}
+            </div>
+          ) : (
+            <Row label="角丸 (px)">
+              <NumberInput
+                value={layer.backgroundRadius}
+                min={0}
+                onChange={(value) => {
+                  const radius = Math.max(0, value)
+                  patch({
+                    backgroundRadius: radius,
+                    backgroundRadiusTopLeft: radius,
+                    backgroundRadiusTopRight: radius,
+                    backgroundRadiusBottomLeft: radius,
+                    backgroundRadiusBottomRight: radius,
+                  })
+                }}
+              />
+            </Row>
+          )}
         </>
       )}
     </div>

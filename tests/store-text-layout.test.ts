@@ -30,6 +30,37 @@ beforeEach(() => {
 })
 
 describe('テキストの自動フィットと背景', () => {
+  it('角丸のモード切替は個別値を保持し、プリセットとUndoでも復元できる', () => {
+    const store = useEditorStore.getState(),
+      id = current().id
+    store.updateLayer(id, {
+      backgroundRadiusMode: 'individual',
+      backgroundRadius: 10,
+      backgroundRadiusTopLeft: 2,
+      backgroundRadiusTopRight: 4,
+      backgroundRadiusBottomLeft: 6,
+      backgroundRadiusBottomRight: 8,
+    })
+    store.updateLayer(id, { backgroundRadiusMode: 'uniform' })
+    store.updateLayer(id, { backgroundRadiusMode: 'individual' })
+    expect(current()).toMatchObject({ backgroundRadiusTopLeft: 2, backgroundRadiusBottomRight: 8 })
+    store.addTextPreset('四隅', extractTextStyle(current()))
+    store.updateLayer(id, { backgroundRadiusMode: 'uniform', backgroundRadiusTopLeft: 15 })
+    store.applyTextPreset(useEditorStore.getState().textPresets[0].id, id)
+    expect(current()).toMatchObject({
+      backgroundRadiusMode: 'individual',
+      backgroundRadiusTopLeft: 2,
+      backgroundRadiusTopRight: 4,
+      backgroundRadiusBottomLeft: 6,
+      backgroundRadiusBottomRight: 8,
+    })
+    store.undo()
+    expect(current()).toMatchObject({
+      backgroundRadiusMode: 'uniform',
+      backgroundRadiusTopLeft: 15,
+    })
+  })
+
   it('追加時に実測幅で中央に配置し、背景なしで始まる', () => {
     useEditorStore.getState().removeLayer(current().id)
     useEditorStore.getState().addTextLayer()

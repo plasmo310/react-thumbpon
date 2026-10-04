@@ -146,6 +146,10 @@ export function SelectionOverlay({ scale }: { scale: number }) {
           paddingBottom: layer.paddingBottom * factor,
           paddingLeft: layer.paddingLeft * factor,
           backgroundRadius: layer.backgroundRadius * factor,
+          backgroundRadiusTopLeft: layer.backgroundRadiusTopLeft * factor,
+          backgroundRadiusTopRight: layer.backgroundRadiusTopRight * factor,
+          backgroundRadiusBottomLeft: layer.backgroundRadiusBottomLeft * factor,
+          backgroundRadiusBottomRight: layer.backgroundRadiusBottomRight * factor,
           ...formatWholeText(layer, { fontSize: Math.max(4, startFontSize * factor) }),
         })
       } else if (handle === 'e' || handle === 'w') {

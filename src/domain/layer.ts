@@ -47,6 +47,30 @@ export const DEFAULT_TEXT_BACKGROUND = {
   paddingBottom: 0,
   paddingLeft: 0,
   backgroundRadius: 0,
+  backgroundRadiusMode: 'uniform' as 'uniform' | 'individual',
+  backgroundRadiusTopLeft: 0,
+  backgroundRadiusTopRight: 0,
+  backgroundRadiusBottomLeft: 0,
+  backgroundRadiusBottomRight: 0,
+}
+
+/**
+ * 旧データの均一な角丸を四隅の初期値として引き継ぐ。
+ * @param background 保存済みの背景設定。後から増えた項目は省略可能
+ */
+export function normalizeTextBackground(
+  background: Partial<typeof DEFAULT_TEXT_BACKGROUND>,
+): typeof DEFAULT_TEXT_BACKGROUND {
+  const result = { ...DEFAULT_TEXT_BACKGROUND }
+  for (const key of Object.keys(result) as (keyof typeof result)[]) {
+    if (background[key] !== undefined) Object.assign(result, { [key]: background[key] })
+  }
+  const radius = background.backgroundRadius ?? 0
+  result.backgroundRadiusTopLeft = background.backgroundRadiusTopLeft ?? radius
+  result.backgroundRadiusTopRight = background.backgroundRadiusTopRight ?? radius
+  result.backgroundRadiusBottomLeft = background.backgroundRadiusBottomLeft ?? radius
+  result.backgroundRadiusBottomRight = background.backgroundRadiusBottomRight ?? radius
+  return result
 }
 
 /** テキストは height を持たず内容に応じて伸びる */
@@ -389,6 +413,10 @@ export function textFrameStyle(layer: TextLayer): CSSProperties {
     padding: layer.backgroundEnabled
       ? `${layer.paddingTop}px ${layer.paddingRight}px ${layer.paddingBottom}px ${layer.paddingLeft}px`
       : undefined,
-    borderRadius: layer.backgroundEnabled ? layer.backgroundRadius : undefined,
+    borderRadius: layer.backgroundEnabled
+      ? layer.backgroundRadiusMode === 'individual'
+        ? `${layer.backgroundRadiusTopLeft}px ${layer.backgroundRadiusTopRight}px ${layer.backgroundRadiusBottomRight}px ${layer.backgroundRadiusBottomLeft}px`
+        : layer.backgroundRadius
+      : undefined,
   }
 }

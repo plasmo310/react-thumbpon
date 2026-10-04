@@ -129,7 +129,7 @@ describe('exportProjectFile', () => {
 })
 
 describe('往復', () => {
-  it('version 6の部分書式・背景・自動フィットをZIPで往復できる', async () => {
+  it('version 7の部分書式・背景・四隅の角丸をZIPで往復できる', async () => {
     const layer = {
       ...textLayer(BUILTIN_FONTS[0].family),
       autoFit: true,
@@ -140,6 +140,11 @@ describe('往復', () => {
       paddingBottom: 16,
       paddingLeft: 20,
       backgroundRadius: 10,
+      backgroundRadiusMode: 'individual' as const,
+      backgroundRadiusTopLeft: 4,
+      backgroundRadiusTopRight: 8,
+      backgroundRadiusBottomLeft: 12,
+      backgroundRadiusBottomRight: 16,
       text: 'これが最強の方法',
       inlineStyles: [
         {
@@ -169,7 +174,7 @@ describe('往復', () => {
         Object.entries(entries).find(([name]) => name.endsWith('.thumbpon'))![1],
       ),
     )
-    expect(manifest.version).toBe(6)
+    expect(manifest.version).toBe(7)
     expect(manifest.fonts).toEqual([{ family: 'Custom', label: 'Custom', source: 'file' }])
     useEditorStore.setState({ thumbnails: [thumbnail([])] })
     await importProjectFile(file)
@@ -184,6 +189,11 @@ describe('往復', () => {
       paddingBottom: 16,
       paddingLeft: 20,
       backgroundRadius: 10,
+      backgroundRadiusMode: 'individual',
+      backgroundRadiusTopLeft: 4,
+      backgroundRadiusTopRight: 8,
+      backgroundRadiusBottomLeft: 12,
+      backgroundRadiusBottomRight: 16,
     })
   })
   it('サムネイルと素材が書き出し前の状態に戻る', async () => {
