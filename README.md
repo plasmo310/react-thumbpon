@@ -1,297 +1,300 @@
-# サムネぽん / ThumbPon (開発中)
+English · [日本語](README.ja.md)
 
-<img src="docs/readme/02_thumbpon_logo.png" width="200">
+# ThumbPon (in development)
 
-画像やテキストなどの素材を配置し、**サムネイル画像を効率よく制作する**ためのWebツールです。
+<img src="docs/readme/02_thumbpon_logo.png" alt="ThumbPon logo" width="200">
 
-DCCツールを毎回開かずに、シンプルなレイアウトの画像をサクッと作ることを目的にしています。<br>
-自由度よりも、速さ・軽さ・操作の少なさを優先しています。
+A web tool for **creating thumbnail images efficiently** by arranging images, text, and other assets.
 
-読み込み・編集・保存・書き出しはすべてブラウザ内で完結し、画像やフォントは**サーバーに送信されません**。<br>
-標準の Web フォントは Google Fonts から取得するため、フォント取得時には Google への通信が発生します。編集内容や追加したローカルフォントは送信しません。<br>
+ThumbPon helps you put together simple image layouts quickly, without opening a full DCC application each time.<br>
+It prioritizes speed, a lightweight workflow, and fewer steps.
 
-## できること
+Importing, editing, saving, and exporting all happen in your browser. Images and font files are **never uploaded to a server**.<br>
+Built-in web fonts are fetched from Google Fonts, so loading them involves a connection to Google. Your edits and added local fonts are not sent.<br>
 
-- 複数のサムネイルを作成し、フォルダで整理する
-- 画像・テキスト・背景をキャンバスへ配置して編集する
-- レイヤーの移動、拡大縮小、回転、クロップ、重なり順の変更
-- ローカル素材・フォント・テキストの利用
-- PNGファイルの書き出し
-- プロジェクトファイルの入出力・ローカルフォルダ保存（Chromium系のみ）
+## Features
 
-## 画面構成
+- Create multiple thumbnails and organize them in folders
+- Place and edit images, text, and backgrounds on the canvas
+- Move, resize, rotate, crop, and reorder layers
+- Use local assets, fonts, and text
+- Export PNG files
+- Import and export project files, or save to a local folder (Chromium browsers only)
 
-<img src="docs/readme/01_thumbpon_ui.png" alt="ThumbPon の画面" width="720">
+## Interface
 
-- **サムネイル**: 制作物ごとの切替、追加、フォルダ整理、キャンバスサイズの変更
-- **レイヤー**: 背景・画像・テキストの選択、並び替え、詳細編集
-- **素材**: 画像の登録とフォルダ整理
-- **キャンバス**: 配置・リサイズ・回転・クロップなどの直接操作
+<img src="docs/readme/en/01_thumbpon_ui.png" alt="ThumbPon interface" width="720">
 
-## 基本的な使い方
+- **Thumbnails**: Switch between designs, add thumbnails, organize folders, and change canvas sizes
+- **Layers**: Select, reorder, and edit backgrounds, images, and text
+- **Assets**: Import images and organize them in folders
+- **Canvas**: Arrange, resize, rotate, and crop layers directly
 
-### 表示言語
+## Getting started
 
-ヘッダーで日本語・英語を切り替えられます。アプリのURLに `?lang=en` を付けると英語、`?lang=ja` を付けると日本語で開きます。ほかのクエリがある場合は `&lang=en` のように追加してください。
+### Interface language
 
-URL指定は保存済み設定より優先され、指定言語は次回用にも保存されます。URL指定がない場合は、保存済み設定、未設定なら日本語を使います。
+Switch between English and Japanese in the header. Add `?lang=en` to the app URL to open it in English, or `?lang=ja` for Japanese. If the URL already has a query string, use `&lang=en`, for example.
 
-### サムネイル編集・画像書き出し
+The URL setting takes priority over the saved preference and is saved for your next visit. Without a URL setting, the app uses the saved language, or Japanese if no preference has been saved.
 
-#### 1. サムネイルを選び、サイズを決める
+### Editing thumbnails and exporting images
 
-<img src="docs/readme/03_usage_step1_thumbnail.png" alt="サムネイルの選択とサイズ変更" width="640">
+#### 1. Choose a thumbnail and canvas size
 
-- 左上の「サムネイル」パネルで、編集するサムネイルを選びます。
-- 必要なら `＋` で追加し、選択中の行から用途に合うキャンバスサイズを選びます。
-- 用途ごとのサイズ一覧は[詳しい使い方のキャンバスサイズ](#キャンバスサイズ)を参照してください。
+<img src="docs/readme/en/03_usage_step1_thumbnail.png" alt="Selecting a thumbnail and canvas size" width="640">
 
-#### 2. 素材を追加する
+- Select the thumbnail you want to edit in the **Thumbnails** panel at the top left.
+- Add one with `＋` if needed, then choose a canvas size in the selected row.
+- See [Canvas sizes](#canvas-sizes) for the available size presets.
 
-<img src="docs/readme/04_usage_step2_assets.png" alt="素材の追加" width="640">
+#### 2. Add assets
 
-| 素材 | 追加方法 |
+<img src="docs/readme/en/04_usage_step2_assets.png" alt="Adding assets" width="640">
+
+| Asset | How to add it |
 | --- | --- |
-| 画像 | キャンバスへドラッグ&ドロップ。素材パネルの画像はクリックで中央に、ドラッグで任意の位置に配置 |
-| テキスト | 「レイヤー」パネルの `＋ テキスト` を押し、プロパティで内容・フォント・サイズ・色を設定 |
-| 図形 | 「レイヤー」パネルの `＋ 図形` を押し、プロパティで形や塗りを設定 |
+| Image | Drag and drop onto the canvas. Click an image in the Assets panel to place it in the center, or drag it to a specific position |
+| Text | Click `＋ Text` in the Layers panel, then set the content, font, size, and color in its properties |
+| Shape | Click `＋ Shape` in the Layers panel, then set the shape and fill in its properties |
 
-#### 3. 配置と見た目を整える
+#### 3. Adjust the layout and appearance
 
-<img src="docs/readme/05_usage_step3_layout.png" alt="レイヤーの配置調整" width="640">
+<img src="docs/readme/en/05_usage_step3_layout.png" alt="Adjusting a layer on the canvas" width="640">
 
-- キャンバス上でレイヤーをドラッグして動かします。
-- 選択枠のハンドルで大きさや回転を調整し、レイヤー一覧をドラッグして前後関係を変更します。
-- 背景は一覧最上部の `BG 背景` から編集します。
+- Drag layers on the canvas to move them.
+- Use the selection handles to resize or rotate a layer, and drag layers in the list to change their stacking order.
+- Edit the background through `BG Background` at the top of the layer list.
 
-#### 4. 画像を書き出す
+#### 4. Export the image
 
-<img src="docs/readme/06_usage_step4_export.png" alt="PNG書き出しボタン" width="640">
+<img src="docs/readme/en/06_usage_step4_export.png" alt="Export PNG button" width="640">
 
-- PNGファイルとしての書き出しをサポートしています。
-- 完成したら画面右上の `PNG書き出し` を押します。表示倍率に関係なく、キャンバス実寸の PNG がダウンロードされます。
+- Images can be exported as PNG files.
+- When you are finished, click `Export PNG` at the top right. The downloaded PNG uses the actual canvas dimensions, regardless of the current zoom level.
 
-### プロジェクトの保存
+### Saving projects
 
-<img src="docs/readme/11_detail_project.png" alt="プロジェクトメニュー" width="640">
+<img src="docs/readme/en/11_detail_project.png" alt="Project menu" width="640">
 
-プロジェクトの保存方法として、次の2つを用意しています。
+There are two ways to save a project.
 
-| 方法 | 特徴 |
+| Method | Details |
 | --- | --- |
-| ローカルフォルダを指定して保存 | 作業フォルダへ直接保存し、次回もそのフォルダを開いて再開する。**Chrome / Edge など Chromium 系のみ** |
-| エクスポート／インポート | `.thumbpon.zip` ファイルとして保存し、ファイルから再開する。全ブラウザ対応 |
+| Save to a local folder | Save directly to a working folder and reopen that folder to resume. **Chromium browsers such as Chrome and Edge only** |
+| Export / Import | Save as a `.thumbpon.zip` file and import it to resume. Available in all browsers |
 
-#### ローカルフォルダを指定して保存する（Chromium 系のみ）
+#### Save to a local folder (Chromium browsers only)
 
-1. 「プロジェクト」→「プロジェクトを保存」を選びます。初回だけ保存先のフォルダを選択します。
-2. 次回からは `Ctrl` / `⌘` + `S` でも、同じフォルダへ保存できます。
-3. 作業を再開するときは、「プロジェクト」→「プロジェクトを開く」で保存先のフォルダを選びます。
+1. Choose **Project → Save project**. Select a destination folder the first time.
+2. On subsequent saves, you can also use `Ctrl` / `⌘` + `S` to save to the same folder.
+3. To resume editing, choose **Project → Open project** and select the saved folder.
 
-#### エクスポート／インポートする
+#### Export / Import
 
-1. 「プロジェクト」→「エクスポート」を選び、`.thumbpon.zip` をダウンロードします。
-2. 作業を再開するときは、「プロジェクト」→「インポート」からそのファイルを読み込みます。
+1. Choose **Project → Export** to download a `.thumbpon.zip` file.
+2. To resume editing, choose **Project → Import** and select that file.
 
-## 詳しい使い方
+## Detailed usage
 
-### サムネイルと素材の整理
+### Organizing thumbnails and assets
 
-<img src="docs/readme/04_usage_step2_assets.png" alt="サムネイルと素材の整理" width="640">
+<img src="docs/readme/en/04_usage_step2_assets.png" alt="Thumbnail and asset panels" width="640">
 
-1枚の制作物が「サムネイル」です。複数作成してフォルダで分類できます。
+Each design is a thumbnail. You can create multiple thumbnails and organize them in folders.
 
-| 操作 | 方法 |
+| Action | How |
 | --- | --- |
-| 切り替え | 行をクリック |
-| 名前変更 | 行をダブルクリック |
-| 追加 | パネル右上の `＋`。フォルダ行の `＋` ならそのフォルダ内へ追加 |
-| 複製 | 行にホバーして `⧉` |
-| コピー／貼り付け | 行の `📋` でコピーし、パネル右上またはフォルダ行の `📥` で貼り付け |
-| フォルダへ移動 | 行をフォルダへドラッグ |
-| 削除 | 行の `🗑`。削除後はひとつ上のサムネイルへ移動 |
+| Switch | Click a row |
+| Rename | Double-click a row |
+| Add | Click `＋` at the top right of the panel. The `＋` on a folder row adds a thumbnail inside that folder |
+| Duplicate | Hover over a row and click `⧉` |
+| Copy / Paste | Use `📋` on a row to copy, then `📥` at the top right of the panel or on a folder row to paste |
+| Move to a folder | Drag a row into a folder |
+| Delete | Click `🗑` on the row. The thumbnail above it becomes active after deletion |
 
-キャンバスサイズはサムネイルごとに保持します。選択中の行の下にある `サイズ` から変更してください。
+Canvas sizes are saved per thumbnail. Change the size using `Size` below the selected row.
 
-#### キャンバスサイズ
+#### Canvas sizes
 
-| 用途 | サイズ |
+| Use | Size |
 | --- | --- |
-| フルHD | `1920 × 1080` |
+| Full HD | `1920 × 1080` |
 | HD | `1280 × 720` |
 | 4:3 | `800 × 600` |
 | Reels / Shorts / TikTok | `1080 × 1920` |
-| X 投稿 | `1600 × 900` |
-| Instagram 投稿 | `1080 × 1350` |
-| Instagram 正方形 | `1080 × 1080` |
+| X post | `1600 × 900` |
+| Instagram post | `1080 × 1350` |
+| Instagram square | `1080 × 1080` |
 | OGP / Facebook | `1200 × 630` |
 
-一覧にないサイズは `カスタム` から幅と高さを指定できます。
+Choose `Custom` to enter a width and height that are not in the preset list.
 
-#### 素材の整理
+#### Organizing assets
 
-| 項目 | 内容 |
+| Item | Details |
 | --- | --- |
-| 追加方法 | キャンバスへの直接ドロップ、または素材パネルから追加 |
-| 対応形式 | PNG、JPEG、WebP、SVG |
-| 保存先 | IndexedDB（リロード後も残る） |
-| フォルダ分け | パネル右上の `📁` でフォルダを追加し、素材タイルをドラッグして分類 |
+| Adding images | Drop directly onto the canvas, or add through the Assets panel |
+| Supported formats | PNG, JPEG, WebP, SVG |
+| Storage | IndexedDB (assets persist after reloading) |
+| Folders | Click `📁` at the top right of the panel to add a folder, then drag asset tiles into it |
 
-フォルダを削除しても中の素材は未分類へ戻るだけで、画像自体は消えません。素材フォルダの分類は、プロジェクトを書き出したときの `assets/` 内のフォルダ構成にも反映されます。
+Deleting a folder moves its assets back to the unfiled area without deleting the images. Asset folders are also reflected in the `assets/` directory structure when exporting a project.
 
-### クロップと左右反転
+### Cropping and horizontal flipping
 
-<img src="docs/readme/07_detail_crop.png" alt="クロップの調整" width="640">
+<img src="docs/readme/en/07_detail_crop.png" alt="Adjusting the crop frame" width="640">
 
-画像レイヤーは表示する範囲を切り詰められます。切り落とす量は割合で持つため、レイヤーを拡大縮小してもクロップは崩れません。
+You can trim the visible area of an image layer. Crop amounts are stored as proportions, so resizing a layer preserves its crop.
 
-| 操作 | 方法 |
+| Action | How |
 | --- | --- |
-| 枠をドラッグして調整 | プロパティの `枠で調整` を押し、キャンバス上の8つのハンドルで枠を内側へ詰める（切り落とす部分は薄く表示） |
-| スライダーで調整 | `上/下/左/右を切る` のスライダーを操作。`解除` で画像全体へ戻る |
-| 右クリックから調整 | レイヤー一覧またはキャンバス上で右クリック →「クロップを調整」 |
-| 左右反転 | `反転` → `左右`、または右クリックメニューの `左右反転`。枠は動かさず中身だけ鏡像にする（クロップ中も見た目のまま反転） |
+| Adjust the frame | Click `Adjust frame` in the properties, then drag the eight handles inward on the canvas. The cropped-out area appears faded |
+| Use sliders | Adjust `Crop top`, `Crop bottom`, `Crop left`, and `Crop right`. Click `Reset` to show the whole image |
+| Use the context menu | Right-click the layer in the list or on the canvas, then choose **Adjust crop** |
+| Flip horizontally | Use **Flip → Horizontal**, or choose **Flip horizontally** from the context menu. The frame stays in place while its contents are mirrored, including during cropping |
 
-### レイヤー操作
+### Working with layers
 
-<img src="docs/readme/08_detail_layers.png" alt="レイヤー一覧と操作" width="640">
+<img src="docs/readme/en/08_detail_layers.png" alt="Layer list and selection handles" width="640">
 
-| 操作 | 方法 |
+| Action | How |
 | --- | --- |
-| 重なり順の変更 | 一覧をドラッグ、または右クリックメニューで最前面・最背面へ移動（**一覧の下にあるレイヤーほど前面**） |
-| 移動 | キャンバス上でドラッグ、または矢印キーで 1px・`Shift` + 矢印キーで 10px |
-| リサイズ／回転 | キャンバス上の8つのハンドルでリサイズ、上のハンドルで回転 |
-| 削除 | `Delete` / `Backspace` |
-| 軸固定・比率維持 | `Shift` を押しながら移動・拡大縮小・回転（15度単位） |
-| 表示切替／ロック | 行の `👁` / `🔓` |
-| スナップ | 有効時はキャンバスと他レイヤーの端・中央へ吸着（マゼンタのガイド線）。`Alt` で一時無効、キャンバス右下のボタンで ON/OFF |
+| Change stacking order | Drag in the list, or choose **Bring to front** / **Send to back** from the context menu. **Layers lower in the list appear in front** |
+| Move | Drag on the canvas, or use the arrow keys for 1 px steps and `Shift` + arrow keys for 10 px steps |
+| Resize / Rotate | Use the eight selection handles to resize, or the handle above the layer to rotate |
+| Delete | `Delete` / `Backspace` |
+| Constrain movement / Preserve aspect ratio | Hold `Shift` while moving, resizing, or rotating (rotation snaps to 15° increments) |
+| Toggle visibility / Lock | Use `👁` / `🔓` on the row |
+| Snap | When enabled, layers snap to the edges and centers of the canvas and other layers, with magenta guides. Hold `Alt` to temporarily disable snapping; toggle it with the button at the bottom right of the canvas |
 
-右クリックメニューでは、前後への移動、複製、表示切替、ロック、左右反転、クロップ、削除をまとめて操作できます。<br>
-ロック中のレイヤーはキャンバスでは掴めないため、一覧から操作してください。回転しているレイヤーはスナップ対象外です。
+The context menu provides stacking controls, duplication, visibility, locking, horizontal flipping, cropping, and deletion.<br>
+Locked layers cannot be grabbed on the canvas; use the list to work with them. Rotated layers do not participate in snapping.
 
-### 画像、テキスト、背景
+### Images, text, and backgrounds
 
-<img src="docs/readme/09_detail_content.png" alt="画像とテキストのプロパティ" width="640">
+<img src="docs/readme/en/09_detail_content.png" alt="Text content and formatting properties" width="640">
 
-| 種別 | 設定できること |
+| Type | Available settings |
 | --- | --- |
-| 画像 | 表示／ロック、透明度、左右反転、クロップ、ブラー・シャドウ・光彩 |
-| テキスト | 内容、フォント、文字サイズ、太さ、揃え、色、字間、行間、縁取り、エフェクト |
-| 背景 | 単色、グラデーション、画像、パターン（`cover` / `contain` / タイル表示に対応） |
-| プリセット | テキストスタイルと背景設定を名前付きで保存し、別のサムネイルへ再利用 |
+| Image | Visibility, locking, opacity, horizontal flipping, cropping, blur, shadow, and glow |
+| Text | Content, font, size, weight, alignment, color, letter spacing, line spacing, outlines, and effects |
+| Background | Solid color, gradient, image, or pattern; image backgrounds support `cover`, `contain`, and tiling |
+| Presets | Save named text styles and background settings to reuse in other thumbnails |
 
-テキストレイヤーでは、左右のハンドルで折り返し幅、コーナーのハンドルで文字サイズを比例して変更できます。
+For text layers, the left and right handles change the wrapping width. Corner handles scale the font size proportionally.
 
-<img src="docs/readme/10_detail_background.png" alt="背景の設定" width="640">
+<img src="docs/readme/en/10_detail_background.png" alt="Background settings" width="640">
 
-背景の種類と設定は次のとおりです。
+Background types provide the following settings.
 
-| 種類 | 設定できること |
+| Type | Available settings |
 | --- | --- |
-| 単色 | 色 |
-| グラデーション | 開始色・終了色・角度 |
-| 画像 | 素材、`cover` / `contain` / タイル、位置、下地色 |
-| パターン | 水玉／ライン／チェック、間隔、色、太さ、角度、下地色 |
+| Solid color | Color |
+| Gradient | Start color, end color, and angle |
+| Image | Asset, `cover` / `contain` / tiling, position, and base color |
+| Pattern | Dots / lines / checkerboard, spacing, color, weight, angle, and base color |
 
-ブラー、シャドウ、光彩は画像・テキスト・背景に適用できます。影と光彩は矩形ではなく、文字や透過画像など中身の形に沿って表示されます。
+Blur, shadow, and glow can be applied to images, text, and backgrounds. Shadows and glows follow the shape of the content, such as letters or transparent images, rather than a rectangular bounding box.
 
-### フォント
+### Fonts
 
-| 項目 | 内容 |
+| Item | Details |
 | --- | --- |
-| 標準 Web フォント | Noto Sans JP / M PLUS 1p / M PLUS 2 / Roboto。PC に未インストールでも Google Fonts から読み込み、最初から選択できる |
-| PC フォント | Chromium 系ブラウザでは、インストール済みのフォントを読み込める |
-| フォントファイル追加 | `.ttf` / `.otf` / `.woff` / `.woff2` を追加でき、ブラウザ内へ保存される |
-| プロジェクトへの同梱 | フォントファイルは同梱しない。標準 Web フォントは別環境でも自動取得し、PC フォント・追加したファイルは同じフォントを改めて読み込む |
+| Built-in web fonts | Noto Sans JP / M PLUS 1p / M PLUS 2 / Roboto. Loaded from Google Fonts and available immediately, even when not installed on your computer |
+| Computer fonts | Chromium browsers can load fonts installed on your computer |
+| Add font files | Add `.ttf`, `.otf`, `.woff`, or `.woff2` files and store them in the browser |
+| Project portability | Font files are not bundled with projects. Built-in web fonts load automatically on other devices; computer fonts and added files must be loaded again |
 
-Web フォントの初回取得にはインターネット接続が必要です。取得できない場合は代替フォントで表示します。太さは標準・太字・極太（400 / 700 / 900）を読み込み、Roboto は斜体も読み込みます。M PLUS 1p / M PLUS 2 / Noto Sans JP の斜体はブラウザが合成します。Roboto にない日本語などの文字は代替フォントで表示します。
+The first web font download requires an internet connection. If loading fails, the browser uses a fallback font. Regular, bold, and black weights (400 / 700 / 900) are loaded; Roboto also includes italic styles. The browser synthesizes italics for M PLUS 1p, M PLUS 2, and Noto Sans JP. Characters absent from Roboto, including Japanese characters, use fallback fonts.
 
-これら4書体の現行 Google Fonts 配布版は SIL Open Font License 1.1（OFL-1.1）です。著作権表示とライセンス全文は [Web フォントのライセンス](docs/spec/web-fonts.md) と `public/licenses/fonts/` に収録し、公開ビルドにも含めています。商用サムネイルにも利用でき、作成した PNG にフォントのライセンス表記を付ける義務はありません。追加するローカルフォントは各フォントのライセンスを確認してください。
+The Google Fonts versions of these four families use the SIL Open Font License 1.1 (OFL-1.1). Copyright notices and complete license texts are included in [Web font licenses](docs/spec/web-fonts.md) and `public/licenses/fonts/`, and are included in the published build. You can use these fonts in commercial thumbnails without adding a font license notice to the exported PNG. Check the license of each local font you add.
 
-### PNG を書き出す
+### Exporting PNG files
 
-<img src="docs/readme/06_usage_step4_export.png" alt="PNG書き出しボタン" width="640">
+<img src="docs/readme/en/06_usage_step4_export.png" alt="Export PNG button" width="640">
 
-画面右上の `PNG書き出し` を押すと、現在のサムネイルを PNG としてダウンロードできます。表示倍率に関係なくキャンバス実寸で出力され、ファイル名にはサムネイル名を使います。
+Click `Export PNG` at the top right to download the current thumbnail as a PNG. The output uses the actual canvas dimensions regardless of zoom, and the filename is based on the thumbnail name.
 
-### プロジェクトを保存・受け渡す
+### Saving and sharing projects
 
-<img src="docs/readme/11_detail_project.png" alt="プロジェクトメニュー" width="640">
+<img src="docs/readme/en/11_detail_project.png" alt="Project menu" width="640">
 
-ブラウザ内の自動保存は復旧用です。リロード後も作業内容を復元できますが、他の端末への受け渡しやバックアップには、ブラウザに応じて次の方法を使ってください。
+Automatic browser storage is intended for recovery. It restores your work after reloading, but for backups or transfer to another device, use one of the following methods.
 
-| ブラウザ | 保存と再開の方法 |
+| Browser | Save and resume |
 | --- | --- |
-| Chrome / Edge など Chromium 系 | 「プロジェクトを保存」でローカルフォルダを選ぶ。以後は `Ctrl` / `⌘` + `S` で保存し、「プロジェクトを開く」で再開する |
-| Firefox / Safari / モバイルなど | 「エクスポート」で `.thumbpon.zip` をダウンロードし、「インポート」で再開する |
+| Chromium browsers such as Chrome / Edge | Use **Save project** to choose a local folder. Save again with `Ctrl` / `⌘` + `S`, and resume with **Open project** |
+| Firefox / Safari and other browsers | Use **Export** to download a `.thumbpon.zip` file, then **Import** to resume |
 
-ローカルフォルダ連携は File System Access API を使うため、Chrome / Edge など Chromium 系ブラウザのみで使えます。
+Local folder integration uses the File System Access API and is available only in Chromium browsers such as Chrome and Edge.
 
-#### ローカルフォルダをワークスペースにする
+#### Using a local folder as your workspace
 
-初回の「プロジェクトを保存」で保存先フォルダを選ぶと、そのフォルダが以後の作業場所になります。以後の保存はダイアログなしで反映され、素材は増減した分だけ書き込まれます。<br>
-リロード時には同じフォルダへ再接続しますが、ブラウザが権限を忘れた場合は画面上部の案内から再接続してください。
+The folder selected during the first **Save project** operation becomes your workspace. Later saves write directly to it without a dialog, and assets are written only as they are added or removed.<br>
+After reloading, the app reconnects to the same folder. If the browser has forgotten the permission, use the prompt at the top of the screen to reconnect.
 
+```text
+Selected folder/
+  Night series.thumbpon   JSON for thumbnails, layers, presets, etc.
+  assets/                 Image assets
+    Background assets/    Organized by folders in the Assets panel
 ```
-選んだフォルダ/
-  夜景シリーズ.thumbpon   サムネイル・レイヤー・プリセットなどの JSON
-  assets/                 素材画像
-    背景素材/             素材パネルのフォルダごとに分類
-```
 
-「プロジェクトを開く」では `.thumbpon` ファイルではなく、そのファイルと `assets/` を含む**フォルダ**を選びます。<br>
-別のプロジェクトを読み込みたいときは「プロジェクトを開く」を使い、「保存」で現在の内容を別フォルダへ上書きしないようにしてください。
+With **Open project**, select the **folder** containing the `.thumbpon` file and `assets/`, rather than selecting the `.thumbpon` file itself.<br>
+Use **Open project** to switch to another project. Avoid using **Save project** to overwrite a different project's folder with your current work.
 
-#### ファイルとして受け渡す
+#### Sharing as a file
 
-「エクスポート」は、マニフェストと素材を `.thumbpon.zip` 1つにまとめます。画像は再圧縮しないため、容量は素材の合計とほぼ同じです。<br>
-解凍したフォルダは「プロジェクトを開く」で開け、ワークスペースフォルダを ZIP にしたものも「インポート」で読み込めます。<br>
-インポート後は、誤って以前のフォルダを上書きしないようワークスペース接続を解除します。
+**Export** packages the manifest and assets into a single `.thumbpon.zip` file. Images are not recompressed, so the archive size is roughly the total size of the assets.<br>
+You can open an extracted folder with **Open project**, and import a ZIP made from a workspace folder with **Import**.<br>
+Importing disconnects the existing workspace to prevent accidentally overwriting its contents.
 
-フォルダに接続している間はフォルダ側の内容を正として、起動時にそちらを読み込みます。
+While a folder is connected, its contents are treated as the source of truth and loaded when the app starts.
 
-## 開発者向け
+## Development
 
-開発には Node.js と npm が必要です。依存パッケージと実行スクリプトは `package.json` を正とします。
+Development requires Node.js and npm. Refer to `package.json` for dependencies and scripts.
 
 ```bash
 npm install
-npm run dev        # 開発サーバー（http://localhost:5173）
-npm run typecheck  # 型チェック
-npm run test       # ユニットテスト
-npm run format     # Prettier 整形
+npm run dev        # Development server (http://localhost:5173)
+npm run typecheck  # Type checking
+npm run test       # Unit tests
+npm run format     # Prettier formatting
 ```
 
-### README のスクリーンショット
+### README screenshots
 
-`samples/readme-sample/` はスクリーンショット用のサンプルプロジェクトです（ワークスペースフォルダ形式。「プロジェクトを開く」でそのまま開けます）。<br>
-`docs/readme/` の画像は、開発サーバーを起動した状態で次のスクリプトから撮り直せます。Playwright は依存に含めていないため、別途用意してください。
+`samples/readme-sample/` is the sample project used for screenshots. It uses the workspace folder format and can be opened directly through **Open project**.<br>
+With the development server running, use the following script to recapture screenshots. Playwright is not included as a dependency and must be installed separately.
 
 ```bash
-npm run dev   # 別ターミナルで起動しておく
+npm run dev   # Run in a separate terminal
 npm i --no-save playwright && npx playwright install chromium
-node scripts/capture-readme.mjs
+node scripts/capture-readme.mjs --lang=en  # English UI: docs/readme/en/
+node scripts/capture-readme.mjs --lang=ja  # Japanese UI: docs/readme/
 ```
 
-### ビルド
+### Build
 
 ```bash
-npm run build      # tsc --noEmit && vite build。出力先は dist/
-npm run preview    # ビルド結果をローカルで確認
+npm run build      # tsc --noEmit && vite build; output: dist/
+npm run preview    # Preview the build locally
 ```
 
-`npm run build` は型チェックに失敗すると止まります。`dist/` にはブラウザ内で完結する静的な HTML / CSS / JS だけが出力され、サーバー側の処理は一切含みません。
+`npm run build` stops if type checking fails. `dist/` contains only static HTML, CSS, and JavaScript that run in the browser; no server-side processing is included.
 
-### デプロイ
+### Deployment
 
-ThumbPon は読み込み・編集・保存・書き出しがすべてブラウザ内で完結する静的サイトです。`npm run build` で生成した `dist/` の中身を、そのまま任意の静的ホスティングへ配置するだけで動作します（GitHub Pages、Netlify、Vercel、Cloudflare Pages、S3 + CloudFront など）。
+ThumbPon is a static site: importing, editing, saving, and exporting all happen in the browser. Deploy the contents of `dist/` generated by `npm run build` to any static hosting service, such as GitHub Pages, Netlify, Vercel, Cloudflare Pages, or S3 + CloudFront.
 
-- ルート直下（`https://example.com/`）に配置する場合は追加設定不要です。
-- `https://example.com/thumbpon/` のようなサブパスへ配置する場合は、`vite.config.ts` に `base: '/thumbpon/'` を追加してから再ビルドしてください。
-- 本リポジトリには特定サービス向けのデプロイ設定（CI/CD 等）は含まれていません。必要に応じて利用するホスティング先の手順に従ってください。
+- No additional configuration is required when serving at a domain root, such as `https://example.com/`.
+- For a subpath such as `https://example.com/thumbpon/`, add `base: '/thumbpon/'` to `vite.config.ts` and rebuild.
+- This repository does not include hosting-specific deployment or CI/CD configuration. Follow your hosting provider's deployment instructions.
 
-アーキテクチャとコード規約は以下にまとめています。
+Architecture and coding conventions are documented here (in Japanese):
 
-- [現行仕様](docs/spec/thumbpon-spec.md)
-- [基本コーディング規約](docs/instructions/code_guide.md)
-- [アーキテクチャガイド](docs/instructions/architecture_guide.md)
+- [Current specification](docs/spec/thumbpon-spec.md)
+- [Coding guide](docs/instructions/code_guide.md)
+- [Architecture guide](docs/instructions/architecture_guide.md)

@@ -3,21 +3,50 @@
 // 事前準備: 開発サーバーを起動しておく（npm run dev）。
 //           Playwright は依存に入れていないので、別途用意する。
 //           例: npm i --no-save playwright && npx playwright install chromium
-// 実行:     node scripts/capture-readme.mjs
+// 実行:     node scripts/capture-readme.mjs [--lang=ja|en]
 //
 // samples/readme-sample（ワークスペースフォルダ形式）を素材にする。
 // フォルダ選択ダイアログは自動操作できないため、一時的に ZIP へ固めて「インポート」から読み込む。
 import { chromium } from 'playwright'
 import { zipSync } from 'fflate'
-import { readFileSync } from 'node:fs'
+import { mkdirSync, readFileSync } from 'node:fs'
 import { join, resolve } from 'node:path'
 
 const ROOT = resolve(import.meta.dirname, '..')
 const SAMPLE = join(ROOT, 'samples/readme-sample')
-const OUT = join(ROOT, 'docs/readme')
+const language = process.argv.find((arg) => arg.startsWith('--lang='))?.split('=')[1] ?? 'ja'
+if (!['ja', 'en'].includes(language)) throw new Error('--lang must be ja or en')
+const OUT = join(ROOT, language === 'en' ? 'docs/readme/en' : 'docs/readme')
+mkdirSync(OUT, { recursive: true })
 const URL = process.env.THUMBPON_URL ?? 'http://localhost:5173/'
+const labels =
+  language === 'en'
+    ? {
+        app: 'ThumbPon!',
+        asset: 'click to place in the center',
+        crop: 'Adjust frame',
+        finishCrop: 'Finish cropping',
+        text: 'Edit text',
+        background: 'Background',
+        project: 'Project',
+      }
+    : {
+        app: 'サムネぽん！',
+        asset: 'クリックで中央に配置',
+        crop: '枠で調整',
+        finishCrop: '調整を終える',
+        text: 'テキスト編集',
+        background: '背景',
+        project: 'プロジェクト',
+      }
 
 const manifest = JSON.parse(readFileSync(join(SAMPLE, 'readme-sample.thumbpon'), 'utf8'))
+// 撮影用コピーの既定名だけを英語にし、元のサンプルは保持する。
+if (language === 'en') {
+  for (const thumbnail of manifest.thumbnails) {
+    thumbnail.name = thumbnail.name.replace(/^サムネイル (\d+)$/, 'Thumbnail $1')
+  }
+}
 const sampleAssets = manifest.assets.map(({ meta, file }) => ({
   name: meta.name,
   mimeType: meta.mime,
@@ -29,7 +58,9 @@ const sampleZip = zipSync(
   Object.fromEntries(
     ['readme-sample.thumbpon', ...manifest.assets.map(({ file }) => file)].map((file) => [
       file,
-      readFileSync(join(SAMPLE, file)),
+      file === 'readme-sample.thumbpon'
+        ? Buffer.from(JSON.stringify(manifest))
+        : readFileSync(join(SAMPLE, file)),
     ]),
   ),
 )
@@ -51,12 +82,12 @@ const shot = async (name, target = page) => {
   await target.screenshot({ path: join(OUT, name) })
 }
 const settle = () => page.waitForTimeout(300)
-const tiles = page.locator('button[title*="クリックで中央に配置"]')
+const tiles = page.locator(`button[title*="${labels.asset}"]`)
 
 const captureUrl = new globalThis.URL(URL)
-captureUrl.searchParams.set('lang', 'ja')
+captureUrl.searchParams.set('lang', language)
 await page.goto(captureUrl.href)
-await page.getByText('サムネぽん！').waitFor()
+await page.getByText(labels.app, { exact: true }).waitFor()
 await settle()
 
 // 基本1: 空のサムネイル
@@ -98,10 +129,10 @@ await shot('01_thumbpon_ui.png')
 await shot('06_usage_step4_export.png', page.locator('header').first())
 
 await selectLayer(imageLayer.name)
-await page.getByRole('button', { name: '枠で調整' }).click()
+await page.getByRole('button', { name: labels.crop }).click()
 await settle()
 await shot('07_detail_crop.png')
-await page.getByRole('button', { name: '調整を終える' }).click()
+await page.getByRole('button', { name: labels.finishCrop }).click()
 
 // 選択中の行をもう一度押すとプロパティ欄が畳まれ、一覧全体が見える
 await selectLayer(shapeLayer.name)
@@ -112,15 +143,15 @@ await selectLayer(textLayer.name)
 // 長いプロパティ欄をスクロールし、内容と書式の設定を撮影範囲に収める。
 await page
   .locator('[data-text-properties]')
-  .getByRole('textbox', { name: 'テキスト編集' })
+  .getByRole('textbox', { name: labels.text })
   .evaluate((input) => input.parentElement.parentElement.scrollIntoView({ block: 'start' }))
 await shot('09_detail_content.png')
 
-await page.locator('button').filter({ hasText: '背景' }).first().click()
+await page.getByRole('button', { name: `BG ${labels.background}`, exact: true }).click()
 await settle()
 await shot('10_detail_background.png')
 
-await page.getByRole('button', { name: 'プロジェクト', exact: true }).click()
+await page.getByRole('button', { name: labels.project, exact: true }).click()
 await page.waitForTimeout(250)
 await shot('11_detail_project.png')
 
