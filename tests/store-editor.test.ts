@@ -129,6 +129,9 @@ describe('画像の差し替え', () => {
       locked: true,
       crop: { top: 0.1, right: 0.2, bottom: 0.15, left: 0.05 },
       flipX: true,
+      overlayEnabled: true,
+      overlayColor: '#123456',
+      overlayOpacity: 0.7,
       effects: {
         ...DEFAULT_EFFECTS,
         blur: 2,

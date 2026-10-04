@@ -7,6 +7,7 @@ import {
   createTextLayer,
   extractTextStyle,
   imageFrameStyle,
+  DEFAULT_IMAGE_OVERLAY,
 } from '@/domain/layer'
 import { DEFAULT_CROP } from '@/domain/crop'
 import { DEFAULT_CANVAS, cloneThumbnail, createThumbnail } from '@/domain/thumbnail'
@@ -127,6 +128,7 @@ describe('createImageLayer', () => {
       locked: false,
       crop: DEFAULT_CROP,
       flipX: false,
+      ...DEFAULT_IMAGE_OVERLAY,
     })
   })
 })
@@ -194,6 +196,24 @@ describe('createShapeLayer', () => {
 })
 
 describe('cloneLayer', () => {
+  it('画像のマスク設定を保持し、複製後の変更は元へ波及しない', () => {
+    const source = {
+      ...createImageLayer('画像', 'a1', { x: 0, y: 0, width: 100, height: 100 }),
+      overlayEnabled: true,
+      overlayColor: '#123456',
+      overlayOpacity: 0.7,
+    }
+    const copy = cloneLayer(source)
+    expect(copy).toMatchObject({
+      overlayEnabled: true,
+      overlayColor: '#123456',
+      overlayOpacity: 0.7,
+    })
+    if (copy.type !== 'image') throw new Error('画像レイヤーではありません')
+    copy.overlayColor = '#FFFFFF'
+    expect(source.overlayColor).toBe('#123456')
+  })
+
   it('id を振り直し、重ならないようずらす', () => {
     const source = createTextLayer(DEFAULT_CANVAS)
     const copy = cloneLayer(source)

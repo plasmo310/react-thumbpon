@@ -18,6 +18,8 @@ import { DEFAULT_EFFECTS } from '@/domain/effects'
 import { BUILTIN_FONTS, type FontEntry } from '@/domain/font'
 import {
   DEFAULT_OUTER_STROKE,
+  DEFAULT_IMAGE_OVERLAY,
+  createImageLayer,
   DEFAULT_TEXT_BACKGROUND,
   type ImageLayer,
   type TextLayer,
@@ -240,7 +242,19 @@ describe('normalizeThumbnails', () => {
     expect(normalized.layers[0] as ImageLayer).toMatchObject({
       crop: DEFAULT_CROP,
       flipX: false,
+      ...DEFAULT_IMAGE_OVERLAY,
     })
+  })
+
+  it('保存済みのマスク設定は不透明度0も含めて保持する', () => {
+    const image = {
+      ...createImageLayer('画像', 'a1', { x: 0, y: 0, width: 100, height: 100 }),
+      overlayEnabled: true,
+      overlayColor: '#FF0000',
+      overlayOpacity: 0,
+    }
+    const [normalized] = normalizeThumbnails([thumbnail([image])])
+    expect(normalized.layers[0]).toEqual(image)
   })
 })
 

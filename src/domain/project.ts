@@ -5,7 +5,12 @@ import { DEFAULT_CROP } from './crop'
 import { DEFAULT_EFFECTS } from './effects'
 import type { FontEntry } from './font'
 import type { BackgroundPreset, TextPreset } from './preset'
-import { normalizeOuterStroke, normalizeTextBackground, type Layer } from './layer'
+import {
+  DEFAULT_IMAGE_OVERLAY,
+  normalizeOuterStroke,
+  normalizeTextBackground,
+  type Layer,
+} from './layer'
 import { normalizeInlineStyles } from './text'
 import type { Folder, Thumbnail } from './thumbnail'
 
@@ -250,6 +255,9 @@ export function normalizeThumbnails(thumbnails: Thumbnail[]): Thumbnail[] {
         ...normalized,
         crop: { ...DEFAULT_CROP, ...normalized.crop },
         flipX: normalized.flipX ?? false,
+        overlayEnabled: normalized.overlayEnabled ?? DEFAULT_IMAGE_OVERLAY.overlayEnabled,
+        overlayColor: normalized.overlayColor ?? DEFAULT_IMAGE_OVERLAY.overlayColor,
+        overlayOpacity: normalized.overlayOpacity ?? DEFAULT_IMAGE_OVERLAY.overlayOpacity,
       }
     }),
   }))

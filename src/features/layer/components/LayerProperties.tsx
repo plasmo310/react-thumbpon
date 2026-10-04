@@ -1,7 +1,7 @@
 import { EffectsSection } from './EffectsSection'
 import { useEditorStore } from '@/app/store'
 import type { Layer } from '@/domain/layer'
-import { NumberInput, Row } from '@/shared/ui'
+import { ColorInput, NumberInput, PercentRow, Row } from '@/shared/ui'
 import { ImageProperties } from './ImageProperties'
 import { ShapeProperties } from './ShapeProperties'
 import { TextProperties } from './TextProperties'
@@ -39,7 +39,36 @@ export function LayerProperties({ layer }: { layer: Layer }) {
         <EffectsSection
           effects={layer.effects}
           onChange={(patch) => updateLayerEffects(layer.id, patch)}
-        />
+        >
+          {layer.type === 'image' && (
+            <>
+              <label className={styles.toggle}>
+                <input
+                  type="checkbox"
+                  className={styles.checkbox}
+                  checked={layer.overlayEnabled}
+                  onChange={(e) => updateLayer(layer.id, { overlayEnabled: e.target.checked })}
+                />
+                オーバーレイマスク
+              </label>
+              {layer.overlayEnabled && (
+                <>
+                  <Row label="マスクの色">
+                    <ColorInput
+                      value={layer.overlayColor}
+                      onChange={(overlayColor) => updateLayer(layer.id, { overlayColor })}
+                    />
+                  </Row>
+                  <PercentRow
+                    label="不透明度"
+                    value={layer.overlayOpacity}
+                    onChange={(overlayOpacity) => updateLayer(layer.id, { overlayOpacity })}
+                  />
+                </>
+              )}
+            </>
+          )}
+        </EffectsSection>
       )}
     </div>
   )

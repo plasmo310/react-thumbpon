@@ -28,15 +28,24 @@ export type LayerBase = {
   effects: Effects
 }
 
-export type ImageLayer = LayerBase & {
-  type: 'image'
-  assetId: string
-  height: number
-  /** 表示する範囲。素材のどこを切り落とすかを割合で持つ */
-  crop: Crop
-  /** 左右反転。枠は動かさず中身だけを鏡像にする */
-  flipX: boolean
+/** 旧データと新規画像はマスクなし。オンにすると黒の半透明マスクになる。 */
+export const DEFAULT_IMAGE_OVERLAY = {
+  overlayEnabled: false,
+  overlayColor: '#000000',
+  /** 0..1。画像全体の不透明度とは独立して保持する */
+  overlayOpacity: 0.5,
 }
+
+export type ImageLayer = LayerBase &
+  typeof DEFAULT_IMAGE_OVERLAY & {
+    type: 'image'
+    assetId: string
+    height: number
+    /** 表示する範囲。素材のどこを切り落とすかを割合で持つ */
+    crop: Crop
+    /** 左右反転。枠は動かさず中身だけを鏡像にする */
+    flipX: boolean
+  }
 
 /** テキスト背景の既定値。余白と角丸はキャンバス実寸px。 */
 export const DEFAULT_TEXT_BACKGROUND = {
@@ -203,6 +212,7 @@ export function createImageLayer(
     assetId,
     crop: { ...DEFAULT_CROP },
     flipX: false,
+    ...DEFAULT_IMAGE_OVERLAY,
     ...rect,
   }
 }
@@ -394,6 +404,20 @@ export function imageFrameStyle(layer: ImageLayer): CSSProperties {
     position: 'absolute',
     inset: 0,
     transform: layer.flipX ? 'scaleX(-1)' : undefined,
+  }
+}
+
+/**
+ * クロップ後の画像枠を覆うマスク。操作は背面の画像レイヤーに渡す。
+ * @param layer マスクの色と不透明度を持つ画像レイヤー
+ */
+export function imageOverlayStyle(layer: ImageLayer): CSSProperties {
+  return {
+    position: 'absolute',
+    inset: 0,
+    backgroundColor: layer.overlayColor,
+    opacity: layer.overlayOpacity,
+    pointerEvents: 'none',
   }
 }
 

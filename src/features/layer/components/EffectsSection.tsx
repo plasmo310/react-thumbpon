@@ -1,4 +1,5 @@
 import { DEFAULT_EFFECTS, type Effects } from '@/domain/effects'
+import type { ReactNode } from 'react'
 import styles from '../styles.module.css'
 import { ColorInput, NumberInput, PercentRow, Row, SliderRow } from '@/shared/ui'
 
@@ -37,13 +38,16 @@ function EffectToggle({
  *
  * @param props.effects  現在の値。古いプロジェクト由来で欠けていてもよい
  * @param props.onChange 変更のあった項目だけを渡す。呼び出し側で入れ子のまま更新する
+ * @param props.children レイヤー種別固有のエフェクト設定欄
  */
 export function EffectsSection({
   effects,
   onChange,
+  children,
 }: {
   effects: Effects | undefined
   onChange: (patch: Partial<Effects>) => void
+  children?: ReactNode
 }) {
   const value: Effects = { ...DEFAULT_EFFECTS, ...effects }
 
@@ -124,6 +128,7 @@ export function EffectsSection({
           />
         </>
       )}
+      {children}
     </>
   )
 }

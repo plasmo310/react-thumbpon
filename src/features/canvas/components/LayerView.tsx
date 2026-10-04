@@ -3,6 +3,7 @@ import { snapPosition } from '../lib/snap'
 import { cropImageStyle } from '@/domain/crop'
 import {
   imageFrameStyle,
+  imageOverlayStyle,
   layerStyle,
   shapeFillStyle,
   shapeFrameStyle,
@@ -204,6 +205,7 @@ export function LayerView({
                 display: 'block',
               }}
             />
+            {layer.overlayEnabled && <div aria-hidden="true" style={imageOverlayStyle(layer)} />}
           </div>
         ) : (
           <div

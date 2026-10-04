@@ -3,6 +3,7 @@ import { DEFAULT_CROP } from '@/domain/crop'
 import { DEFAULT_EFFECTS, type Effects } from '@/domain/effects'
 import { BUILTIN_FONTS } from '@/domain/font'
 import {
+  DEFAULT_IMAGE_OVERLAY,
   DEFAULT_OUTER_STROKE,
   DEFAULT_TEXT_BACKGROUND,
   type ImageLayer,
@@ -102,6 +103,7 @@ export function sampleImageLayer(overrides: Partial<ImageLayer> = {}): ImageLaye
     assetId: SAMPLE_PHOTO_ID,
     crop: { ...DEFAULT_CROP },
     flipX: false,
+    ...DEFAULT_IMAGE_OVERLAY,
     ...overrides,
   }
 }

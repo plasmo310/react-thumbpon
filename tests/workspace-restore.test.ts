@@ -71,6 +71,9 @@ describe('フォルダに入れた素材の復元', () => {
       rotation: 25,
       opacity: 0.6,
       flipX: true,
+      overlayEnabled: true,
+      overlayColor: '#123456',
+      overlayOpacity: 0.7,
     })
     state().updateLayerCrop(layerId, { top: 0.1, left: 0.2 })
     state().updateLayerEffects(layerId, { shadowEnabled: true, blur: 2 })
