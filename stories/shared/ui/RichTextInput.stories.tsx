@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import type { Meta, StoryObj } from '@storybook/react-vite'
 import { RichTextInput } from '@/shared/ui'
-import { createTextLayer, extractTextStyle } from '@/domain/layer'
+import { createTextLayer, extractTextStyle, textStyle, textFrameStyle } from '@/domain/layer'
 import { formatTextRange } from '@/domain/text'
 import type { TextContent, TextRange } from '@/domain/text'
 
@@ -64,3 +64,79 @@ function Example() {
 }
 
 export const Default: Story = { render: () => <Example /> }
+
+function LineSpacingExample() {
+  const [lineHeight, setLineHeight] = useState(1.3)
+  const [text, setText] = useState('一行のテキスト Ag')
+  const [autoFit, setAutoFit] = useState(true)
+  const preview = {
+    ...layer,
+    text,
+    autoFit,
+    fontSize: 32,
+    lineHeight,
+    backgroundEnabled: true,
+    backgroundColor: '#FFD8C6',
+    paddingTop: 16,
+    paddingRight: 16,
+    paddingBottom: 16,
+    paddingLeft: 16,
+  }
+  return (
+    <>
+      <p>
+        一行では行間を変えても背景の高さは変わりません。改行・折り返しでは行同士の間隔が変わります。
+      </p>
+      <label>
+        行間
+        <input
+          type="range"
+          min="0.5"
+          max="3"
+          step="0.1"
+          value={lineHeight}
+          onChange={(event) => setLineHeight(Number(event.target.value))}
+        />
+        {lineHeight}
+      </label>
+      <button type="button" onClick={() => setText('一行のテキスト Ag')}>
+        一行
+      </button>
+      <button type="button" onClick={() => setText('一行目 Ag\n二行目 pq\n三行目')}>
+        複数行
+      </button>
+      <button type="button" onClick={() => setText('')}>
+        空文字
+      </button>
+      <label>
+        <input
+          type="checkbox"
+          checked={autoFit}
+          onChange={(event) => setAutoFit(event.target.checked)}
+        />
+        折り返さない
+      </label>
+      <div
+        style={{
+          ...textStyle(preview),
+          ...textFrameStyle(preview),
+          width: autoFit ? 'max-content' : 220,
+        }}
+      >
+        <RichTextInput
+          canvas
+          editable
+          value={{ text }}
+          style={{
+            whiteSpace: autoFit ? 'pre' : 'pre-wrap',
+            overflowWrap: autoFit ? 'normal' : 'anywhere',
+            wordBreak: autoFit ? 'normal' : 'break-word',
+          }}
+          onChange={(content) => setText(content.text)}
+        />
+      </div>
+    </>
+  )
+}
+
+export const LineSpacing: Story = { render: () => <LineSpacingExample /> }

@@ -170,6 +170,7 @@ export function RichTextInput(props: Props) {
       ref={rootRef}
       className={cx(
         styles.richText,
+        props.canvas && styles.richTextCanvas,
         !props.canvas && styles.richTextField,
         props.active && props.canvas && styles.richTextEditing,
       )}

@@ -339,6 +339,19 @@
   outline: none;
 }
 
+/* 行間は行同士にだけ残す。文字の下降部分も含め、最初と最後の行の外側を詰める。 */
+.richTextCanvas {
+  text-box-trim: trim-both;
+  text-box-edge: text;
+  min-height: 0;
+}
+
+/* 空の編集欄にもカーソル用の高さを残し、行間による余白は付けない。 */
+.richTextCanvas:has(> [data-text-sentinel]:only-child) {
+  line-height: 1;
+  min-height: 1em;
+}
+
 .richText[contenteditable='true'] {
   user-select: text;
   -webkit-user-select: text;
