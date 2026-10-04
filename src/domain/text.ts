@@ -5,7 +5,15 @@ import type { TextLayer } from './layer'
 export type InlineTextStyle = Partial<
   Pick<
     TextLayer,
-    'color' | 'fontSize' | 'fontFamily' | 'fontWeight' | 'fontStyle' | 'strokeWidth' | 'strokeColor'
+    | 'color'
+    | 'fontSize'
+    | 'fontFamily'
+    | 'fontWeight'
+    | 'fontStyle'
+    | 'strokeWidth'
+    | 'strokeColor'
+    | 'outerStrokeWidth'
+    | 'outerStrokeColor'
   >
 >
 export type TextRange = { start: number; end: number; backward?: boolean }
@@ -20,6 +28,8 @@ const INLINE_STYLE_KEYS = [
   'fontStyle',
   'strokeWidth',
   'strokeColor',
+  'outerStrokeWidth',
+  'outerStrokeColor',
 ] as const
 
 /**
@@ -54,13 +64,16 @@ function cleanStyle(style: InlineTextStyle): InlineTextStyle {
     if (key === 'fontSize' && (typeof value !== 'number' || !Number.isFinite(value) || value < 4))
       continue
     if (
-      (key === 'fontWeight' || key === 'strokeWidth') &&
+      (key === 'fontWeight' || key === 'strokeWidth' || key === 'outerStrokeWidth') &&
       (typeof value !== 'number' || !Number.isFinite(value) || value < 0)
     )
       continue
     if (key === 'fontStyle' && value !== 'normal' && value !== 'italic') continue
     if (
-      (key === 'color' || key === 'strokeColor' || key === 'fontFamily') &&
+      (key === 'color' ||
+        key === 'strokeColor' ||
+        key === 'outerStrokeColor' ||
+        key === 'fontFamily') &&
       typeof value !== 'string'
     )
       continue
@@ -238,13 +251,15 @@ export function reconcileText(
  * @param style 上書きする書式
  */
 export function inlineTextCss(style: InlineTextStyle): CSSProperties {
-  const { strokeWidth, strokeColor, ...font } = style
+  const { strokeWidth, strokeColor, outerStrokeWidth, outerStrokeColor, ...font } = style
   return {
     ...font,
+    '--text-outer-stroke-width': outerStrokeWidth,
+    '--text-outer-stroke-color': outerStrokeColor,
     verticalAlign: 'baseline',
     WebkitTextStrokeWidth: strokeWidth === undefined ? undefined : `${strokeWidth}px`,
     WebkitTextStrokeColor: strokeColor,
-  }
+  } as CSSProperties
 }
 
 /**

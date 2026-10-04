@@ -1,7 +1,12 @@
 import { createId } from '@/domain/id'
 import { createPatchers } from './patch'
 import { DEFAULT_BACKGROUND } from '@/domain/background'
-import { normalizeTextBackground, extractTextStyle, type TextStyle } from '@/domain/layer'
+import {
+  normalizeOuterStroke,
+  normalizeTextBackground,
+  extractTextStyle,
+  type TextStyle,
+} from '@/domain/layer'
 import type { BackgroundPreset, TextPreset } from '@/domain/preset'
 import type { SliceCreator } from './index'
 
@@ -53,6 +58,7 @@ export const createPresetSlice: SliceCreator<PresetSlice> = (set, get) => {
                   ...l,
                   ...preset.style,
                   ...normalizeTextBackground(preset.style),
+                  ...normalizeOuterStroke(preset.style),
                 }),
                 inlineStyles: [],
               }

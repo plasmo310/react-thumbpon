@@ -4,7 +4,7 @@ import { DEFAULT_CROP } from './crop'
 import { DEFAULT_EFFECTS } from './effects'
 import type { FontEntry } from './font'
 import type { BackgroundPreset, TextPreset } from './preset'
-import { normalizeTextBackground, type Layer } from './layer'
+import { normalizeOuterStroke, normalizeTextBackground, type Layer } from './layer'
 import { normalizeInlineStyles } from './text'
 import type { Folder, Thumbnail } from './thumbnail'
 
@@ -240,6 +240,7 @@ export function normalizeThumbnails(thumbnails: Thumbnail[]): Thumbnail[] {
         return {
           ...normalized,
           ...normalizeTextBackground(normalized),
+          ...normalizeOuterStroke(normalized),
           autoFit: normalized.autoFit ?? false,
           inlineStyles: normalizeInlineStyles(normalized.text, normalized.inlineStyles),
         }

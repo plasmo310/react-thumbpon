@@ -339,6 +339,36 @@
   outline: none;
 }
 
+.richTextStack {
+  position: relative;
+}
+
+.richTextFront {
+  position: relative;
+  z-index: 1;
+}
+
+.richTextOutline {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.richTextOutline > .richText {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+}
+
+.richTextField .richText {
+  min-height: 4em;
+}
+
 /* 行間は行同士にだけ残す。文字の下降部分も含め、最初と最後の行の外側を詰める。 */
 .richTextCanvas {
   text-box-trim: trim-both;
@@ -371,7 +401,7 @@
   font-size: var(--font-label);
 }
 
-.richTextField:focus,
+.richTextField:focus-within,
 .richTextEditing {
   outline: 1px solid var(--color-accent);
 }

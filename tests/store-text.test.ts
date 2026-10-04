@@ -27,6 +27,51 @@ beforeEach(() => {
 })
 
 describe('文字編集ストア', () => {
+  it('外側の部分縁をUndo/Redoし、プリセットとして保存・適用する', () => {
+    const store = useEditorStore.getState(),
+      id = current().id
+    store.beginTextEditing(id, 'canvas')
+    store.selectTextRange({ start: 3, end: 5 })
+    store.formatText(id, { outerStrokeWidth: 4, outerStrokeColor: 'white' })
+    store.undo()
+    expect(current().inlineStyles ?? []).toEqual([])
+    store.redo()
+    expect(current().inlineStyles?.[0].style).toEqual({
+      outerStrokeWidth: 4,
+      outerStrokeColor: 'white',
+    })
+    store.setTextFormatTarget('whole')
+    store.formatText(id, { outerStrokeWidth: 8, outerStrokeColor: 'yellow' })
+    store.addTextPreset('double', { ...current() })
+    store.formatText(id, { outerStrokeWidth: 0 })
+    store.applyTextPreset(useEditorStore.getState().textPresets[0].id, id)
+    expect(current()).toMatchObject({
+      outerStrokeWidth: 8,
+      outerStrokeColor: 'yellow',
+      inlineStyles: [],
+    })
+  })
+
+  it('旧プリセットの適用と読み込みでは外側の縁を無効にする', () => {
+    const store = useEditorStore.getState(),
+      id = current().id
+    const { outerStrokeWidth, outerStrokeColor, ...oldStyle } = current()
+    const preset = { id: 'legacy', name: 'legacy', style: oldStyle as TextLayer }
+    useEditorStore.setState({ textPresets: [preset] })
+    store.formatText(id, { outerStrokeWidth: 8 })
+    store.applyTextPreset(preset.id, id)
+    expect(current().outerStrokeWidth).toBe(0)
+    store.loadProject({
+      folders: [],
+      thumbnails: useEditorStore.getState().thumbnails,
+      currentThumbnailId: null,
+      textPresets: [preset],
+    })
+    expect(useEditorStore.getState().textPresets[0].style).toMatchObject({
+      outerStrokeWidth: 0,
+      outerStrokeColor: '#FFFFFF',
+    })
+  })
   it('範囲選択で部分書式に切り替わり、全体指定は明示的に選べる', () => {
     const store = useEditorStore.getState(),
       id = current().id

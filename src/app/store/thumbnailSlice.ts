@@ -5,7 +5,7 @@ import { createPatchers } from './patch'
 import type { BackgroundPreset, TextPreset } from '@/domain/preset'
 import type { CanvasSize, Folder, Thumbnail } from '@/domain/thumbnail'
 import type { SliceCreator } from './index'
-import { normalizeTextBackground } from '@/domain/layer'
+import { normalizeOuterStroke, normalizeTextBackground } from '@/domain/layer'
 import { fitTextLayer } from './textLayout'
 
 export type ThumbnailSlice = {
@@ -272,7 +272,11 @@ export const createThumbnailSlice: SliceCreator<ThumbnailSlice> = (set, get) => 
         cropping: false,
         textPresets: (textPresets ?? s.textPresets).map((preset) => ({
           ...preset,
-          style: { ...preset.style, ...normalizeTextBackground(preset.style) },
+          style: {
+            ...preset.style,
+            ...normalizeTextBackground(preset.style),
+            ...normalizeOuterStroke(preset.style),
+          },
         })),
         textEditing: null,
         textInputGroup: null,

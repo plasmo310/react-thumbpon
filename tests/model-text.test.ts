@@ -21,6 +21,33 @@ const content: TextContent = {
 }
 
 describe('部分書式', () => {
+  it('外側の縁を部分指定し、入力で継承し、全体変更と解除を適用する', () => {
+    const patch = { outerStrokeWidth: 6, outerStrokeColor: '#FFFFFF' }
+    const formatted = formatTextRange(content, { start: 3, end: 5 }, patch)
+    const inserted = replaceTextRange(formatted, { start: 4, end: 4 }, '超')
+    expect(inserted.inlineStyles?.[0]).toMatchObject({ start: 3, end: 6, style: patch })
+    const layer = { ...createTextLayer({ width: 1280, height: 720 }), ...formatted }
+    expect(formatWholeText(layer, { outerStrokeWidth: 0 }).inlineStyles?.[0].style).toEqual({
+      color: '#FF0000',
+      fontSize: 120,
+      outerStrokeColor: '#FFFFFF',
+    })
+    expect(formatTextRange(formatted, { start: 3, end: 5 }, null).inlineStyles).toEqual([])
+    expect(inlineTextCss(patch)).toMatchObject({
+      '--text-outer-stroke-width': 6,
+      '--text-outer-stroke-color': '#FFFFFF',
+    })
+  })
+
+  it('不正な外側の太さを破棄し、無効化の0は保持する', () => {
+    expect(
+      normalizeInlineStyles('ABC', [
+        { start: 0, end: 1, style: { outerStrokeWidth: -1 } },
+        { start: 1, end: 2, style: { outerStrokeWidth: Infinity } },
+        { start: 2, end: 3, style: { outerStrokeWidth: 0 } },
+      ]),
+    ).toEqual([{ start: 2, end: 3, style: { outerStrokeWidth: 0 } }])
+  })
   it('通常部分も含めて連続区間に分ける', () => {
     expect(textSegments(content).map((r) => content.text.slice(r.start, r.end))).toEqual([
       'これが',
@@ -112,6 +139,35 @@ describe('部分書式', () => {
 })
 
 describe('部分書式の互換性', () => {
+  it('旧データは外側なしで復元し、新データはJSON往復と複製で保持する', () => {
+    const { outerStrokeWidth, outerStrokeColor, ...old } = createTextLayer({
+      width: 100,
+      height: 100,
+    })
+    const thumbnail = createThumbnail('legacy')
+    thumbnail.layers = [old as ReturnType<typeof createTextLayer>]
+    expect(normalizeThumbnails([thumbnail])[0].layers[0]).toMatchObject({
+      outerStrokeWidth: 0,
+      outerStrokeColor: '#FFFFFF',
+    })
+    const layer = {
+      ...createTextLayer({ width: 100, height: 100 }),
+      outerStrokeWidth: 6,
+      ...formatTextRange(
+        content,
+        { start: 3, end: 5 },
+        { outerStrokeWidth: 2, outerStrokeColor: 'red' },
+      ),
+    }
+    const restored = normalizeThumbnails(
+      JSON.parse(JSON.stringify([{ ...thumbnail, layers: [layer] }])),
+    )[0].layers[0]
+    expect(restored).toEqual(layer)
+    const copy = copyLayer(layer)
+    if (copy.type !== 'text') throw new Error('text expected')
+    copy.inlineStyles![0].style.outerStrokeColor = 'blue'
+    expect(layer.inlineStyles?.[0].style.outerStrokeColor).toBe('red')
+  })
   it('複製したレイヤーの部分書式は独立している', () => {
     const layer = { ...createTextLayer({ width: 1280, height: 720 }), ...content }
     const copy = copyLayer(layer)

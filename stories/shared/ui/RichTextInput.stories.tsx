@@ -125,6 +125,7 @@ function LineSpacingExample() {
       >
         <RichTextInput
           canvas
+          baseStyle={extractTextStyle(preview)}
           editable
           value={{ text }}
           style={{
@@ -140,3 +141,53 @@ function LineSpacingExample() {
 }
 
 export const LineSpacing: Story = { render: () => <LineSpacingExample /> }
+
+function DoubleOutlineExample() {
+  const [value, setValue] = useState<TextContent>({
+    text: 'プログラムって動く？\n部分書式にも対応 Ag',
+    inlineStyles: [{ start: 9, end: 13, style: { fontSize: 64, outerStrokeColor: '#FFD800' } }],
+  })
+  const [outerStrokeWidth, setOuterStrokeWidth] = useState(8)
+  const preview = {
+    ...layer,
+    fontSize: 40,
+    strokeWidth: 20,
+    strokeColor: '#000000',
+    outerStrokeWidth,
+    outerStrokeColor: '#FFFFFF',
+    color: '#FF8A5B',
+    textAlign: 'left' as const,
+    autoFit: false,
+  }
+  return (
+    <>
+      <label>
+        縁1からのオフセット(px){' '}
+        <input
+          type="range"
+          min="0"
+          max="20"
+          value={outerStrokeWidth}
+          onChange={(event) => setOuterStrokeWidth(Number(event.target.value))}
+        />
+      </label>
+      <div style={{ ...textStyle(preview), width: 460, background: '#888888', padding: 24 }}>
+        <RichTextInput
+          canvas
+          editable
+          baseStyle={extractTextStyle(preview)}
+          value={value}
+          onChange={setValue}
+        />
+      </div>
+      <RichTextInput
+        editable
+        previewStyle={extractTextStyle(preview)}
+        value={value}
+        onChange={setValue}
+      />
+    </>
+  )
+}
+
+export const DoubleOutline: Story = { render: () => <DoubleOutlineExample /> }

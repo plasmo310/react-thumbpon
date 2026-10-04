@@ -73,9 +73,24 @@ export function normalizeTextBackground(
   return result
 }
 
+/** 外側の縁は縁1の外周から広げるオフセット(px)を保持する。 */
+export const DEFAULT_OUTER_STROKE = { outerStrokeWidth: 0, outerStrokeColor: '#FFFFFF' }
+
+/**
+ * 旧レイヤーとプリセットでは外側の縁を無効にする。
+ * @param style 保存済みの外側の縁設定
+ */
+export function normalizeOuterStroke(style: Partial<typeof DEFAULT_OUTER_STROKE>) {
+  return {
+    outerStrokeWidth: style.outerStrokeWidth ?? DEFAULT_OUTER_STROKE.outerStrokeWidth,
+    outerStrokeColor: style.outerStrokeColor ?? DEFAULT_OUTER_STROKE.outerStrokeColor,
+  }
+}
+
 /** テキストは height を持たず内容に応じて伸びる */
 export type TextLayer = LayerBase &
-  typeof DEFAULT_TEXT_BACKGROUND & {
+  typeof DEFAULT_TEXT_BACKGROUND &
+  typeof DEFAULT_OUTER_STROKE & {
     type: 'text'
     autoFit: boolean
     text: string
@@ -128,6 +143,8 @@ export type TextStyle = Pick<
   | 'color'
   | 'strokeWidth'
   | 'strokeColor'
+  | 'outerStrokeWidth'
+  | 'outerStrokeColor'
   | keyof typeof DEFAULT_TEXT_BACKGROUND
 >
 
@@ -143,6 +160,8 @@ export const TEXT_STYLE_KEYS: (keyof TextStyle)[] = [
   'color',
   'strokeWidth',
   'strokeColor',
+  'outerStrokeWidth',
+  'outerStrokeColor',
   ...(Object.keys(DEFAULT_TEXT_BACKGROUND) as (keyof typeof DEFAULT_TEXT_BACKGROUND)[]),
 ]
 
@@ -201,6 +220,7 @@ export function createTextLayer(canvas: CanvasSize): TextLayer {
     type: 'text',
     autoFit: true,
     ...DEFAULT_TEXT_BACKGROUND,
+    ...DEFAULT_OUTER_STROKE,
     text: 'テキストを入力',
     width,
     x: Math.round((canvas.width - width) / 2),

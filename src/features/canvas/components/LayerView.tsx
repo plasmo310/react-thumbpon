@@ -8,6 +8,7 @@ import {
   shapeFrameStyle,
   textStyle,
   textFrameStyle,
+  extractTextStyle,
 } from '@/domain/layer'
 import type { Layer } from '@/domain/layer'
 import { getAssetUrl } from '@/shared/lib/storage/assetRepo'
@@ -232,6 +233,7 @@ export function LayerView({ layer, scale }: { layer: Layer; scale: number }) {
     >
       <RichTextInput
         canvas
+        baseStyle={extractTextStyle(layer)}
         style={{
           whiteSpace: layer.autoFit ? 'pre' : 'pre-wrap',
           overflowWrap: layer.autoFit ? 'normal' : 'anywhere',

@@ -16,7 +16,12 @@ import { DEFAULT_BACKGROUND } from '@/domain/background'
 import { DEFAULT_CROP } from '@/domain/crop'
 import { DEFAULT_EFFECTS } from '@/domain/effects'
 import { BUILTIN_FONTS, type FontEntry } from '@/domain/font'
-import { DEFAULT_TEXT_BACKGROUND, type ImageLayer, type TextLayer } from '@/domain/layer'
+import {
+  DEFAULT_OUTER_STROKE,
+  DEFAULT_TEXT_BACKGROUND,
+  type ImageLayer,
+  type TextLayer,
+} from '@/domain/layer'
 import type { Thumbnail } from '@/domain/thumbnail'
 
 const meta = (over: Partial<AssetMeta>): AssetMeta => ({
@@ -36,6 +41,7 @@ const textLayer = (fontFamily: string): TextLayer => ({
   type: 'text',
   autoFit: false,
   ...DEFAULT_TEXT_BACKGROUND,
+  ...DEFAULT_OUTER_STROKE,
   x: 0,
   y: 0,
   width: 100,

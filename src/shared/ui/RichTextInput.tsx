@@ -1,10 +1,11 @@
-import { useEffect, useLayoutEffect, useRef } from 'react'
+import { useEffect, useId, useLayoutEffect, useRef } from 'react'
 import type { CSSProperties } from 'react'
 import { normalizeTextRange, reconcileText, replaceTextRange } from '@/domain/text'
 import type { InlineTextStyle, TextContent, TextRange } from '@/domain/text'
 import type { TextStyle } from '@/domain/layer'
 import {
   paintEditorText,
+  paintEditorOutline,
   readEditorSelection,
   readEditorText,
   restoreEditorSelection,
@@ -19,6 +20,7 @@ type Props = {
   canvas?: boolean
   style?: CSSProperties
   previewStyle?: TextStyle
+  baseStyle?: TextStyle
   selection?: TextRange
   revision?: number
   pendingStyle?: InlineTextStyle | null
@@ -42,9 +44,12 @@ type Props = {
  * @param props.selection 保存した文字選択範囲。UTF-16位置
  * @param props.canvas キャンバス実寸の書式をそのまま表示するか
  * @param props.active 選択・カーソルを管理する入力欄か
+ * @param props.baseStyle キャンバスの全体書式。背面の縁取りの継承に使う
  */
 export function RichTextInput(props: Props) {
   const rootRef = useRef<HTMLDivElement>(null)
+  const outlineRef = useRef<HTMLDivElement>(null)
+  const outlineId = useId().replace(/:/g, '')
   const latest = useRef(props)
   latest.current = props
   const composing = useRef(false)
@@ -54,9 +59,34 @@ export function RichTextInput(props: Props) {
   const revision = useRef(props.revision)
   const selectionRef = useRef(props.selection)
 
+  const paintOutline = () => {
+    const root = rootRef.current
+    const outline = outlineRef.current
+    if (!root || !outline) return
+    const current = latest.current
+    const enabled =
+      ((current.previewStyle ?? current.baseStyle)?.outerStrokeWidth ?? 0) > 0 ||
+      current.value.inlineStyles?.some((range) => (range.style.outerStrokeWidth ?? 0) > 0)
+    if (!enabled) {
+      outline.replaceChildren()
+      return
+    }
+    paintEditorOutline(
+      root,
+      outline,
+      outlineId,
+      cx(styles.richText, props.canvas && styles.richTextCanvas),
+      current.previewStyle?.fontSize,
+    )
+  }
+
   useLayoutEffect(() => {
     const root = rootRef.current
-    if (!root || composing.current) return
+    if (!root) return
+    if (composing.current) {
+      paintOutline()
+      return
+    }
     const signature = JSON.stringify([
       props.value.text,
       props.value.inlineStyles,
@@ -82,6 +112,7 @@ export function RichTextInput(props: Props) {
     wasActive.current = !!props.active
     revision.current = props.revision
     selectionRef.current = props.selection
+    paintOutline()
   })
 
   useEffect(() => {
@@ -163,96 +194,119 @@ export function RichTextInput(props: Props) {
       current.previewStyle?.fontSize,
     ])
     restoreEditorSelection(root, cursor)
+    paintOutline()
   }
 
   return (
     <div
-      ref={rootRef}
-      className={cx(
-        styles.richText,
-        props.canvas && styles.richTextCanvas,
-        !props.canvas && styles.richTextField,
-        props.active && props.canvas && styles.richTextEditing,
-      )}
+      className={cx(!props.canvas && styles.richTextField)}
       style={
-        props.previewStyle
-          ? {
-              color: props.previewStyle.color,
-              fontFamily: props.previewStyle.fontFamily,
-              fontWeight: props.previewStyle.fontWeight,
-              fontStyle: props.previewStyle.fontStyle,
-              lineHeight: props.previewStyle.lineHeight,
-              paintOrder: 'stroke fill',
-              WebkitTextStrokeWidth: `${props.previewStyle.strokeWidth / props.previewStyle.fontSize}em`,
-              WebkitTextStrokeColor: props.previewStyle.strokeColor,
-            }
-          : props.style
+        {
+          '--text-outer-stroke-width':
+            (props.previewStyle ?? props.baseStyle)?.outerStrokeWidth ?? 0,
+          '--text-outer-stroke-color':
+            (props.previewStyle ?? props.baseStyle)?.outerStrokeColor ?? '#FFFFFF',
+        } as CSSProperties
       }
-      contentEditable={!!props.editable && !props.disabled}
-      suppressContentEditableWarning
-      role={props.editable ? 'textbox' : undefined}
-      aria-label={props.editable ? 'テキスト編集' : undefined}
-      aria-multiline={props.editable ? true : undefined}
-      spellCheck={false}
-      tabIndex={props.editable && !props.disabled ? 0 : undefined}
-      onFocus={() => {
-        if (!props.active) props.onActivate?.()
-      }}
-      onPointerDown={(event) => {
-        if (props.editable) event.stopPropagation()
-      }}
-      onContextMenu={(event) => {
-        if (props.editable) event.stopPropagation()
-      }}
-      onBlur={() => {
-        if (composing.current) {
-          composing.current = false
-          sync('composition')
-        }
-      }}
-      onInput={() => {
-        if (!composing.current) sync('typing')
-      }}
-      onCompositionStart={() => {
-        capture()
-        composing.current = true
-      }}
-      onCompositionEnd={() => {
-        composing.current = false
-        sync('composition')
-      }}
-      onPaste={(event) => {
-        event.preventDefault()
-        insert(event.clipboardData.getData('text/plain').replace(/\r\n?/g, '\n'))
-      }}
-      onDrop={(event) => {
-        if (props.editable) {
-          event.preventDefault()
-          event.stopPropagation()
-        }
-      }}
-      onKeyDown={(event) => {
-        if (!props.editable) return
-        if (composing.current || event.nativeEvent.isComposing || event.keyCode === 229) return
-        const modifier = event.ctrlKey || event.metaKey
-        if (modifier && ['z', 'y'].includes(event.key.toLowerCase())) {
-          event.preventDefault()
-          event.stopPropagation()
-          if (event.shiftKey || event.key.toLowerCase() === 'y') props.onRedo?.()
-          else props.onUndo?.()
-        } else if (modifier && ['b', 'i', 'u'].includes(event.key.toLowerCase())) {
-          // ブラウザによる任意のHTML書式がモデルと食い違わないようにする。
-          event.preventDefault()
-        } else if (event.key === 'Enter') {
-          event.preventDefault()
-          insert('\n')
-        } else if (event.key === 'Escape') {
-          event.preventDefault()
-          event.stopPropagation()
-          event.currentTarget.blur()
-          props.onFinish?.()
-        }
-      }}
-    />
+    >
+      <div className={styles.richTextStack}>
+        <div
+          ref={outlineRef}
+          className={styles.richTextOutline}
+          aria-hidden="true"
+          contentEditable={false}
+        />
+        <div
+          ref={rootRef}
+          className={cx(
+            styles.richText,
+            props.canvas && styles.richTextCanvas,
+            styles.richTextFront,
+            props.active && props.canvas && styles.richTextEditing,
+          )}
+          style={
+            props.previewStyle
+              ? {
+                  color: props.previewStyle.color,
+                  fontFamily: props.previewStyle.fontFamily,
+                  fontWeight: props.previewStyle.fontWeight,
+                  fontStyle: props.previewStyle.fontStyle,
+                  lineHeight: props.previewStyle.lineHeight,
+                  paintOrder: 'stroke fill',
+                  WebkitTextStrokeWidth: `${props.previewStyle.strokeWidth / props.previewStyle.fontSize}em`,
+                  WebkitTextStrokeColor: props.previewStyle.strokeColor,
+                }
+              : props.style
+          }
+          contentEditable={!!props.editable && !props.disabled}
+          suppressContentEditableWarning
+          role={props.editable ? 'textbox' : undefined}
+          aria-label={props.editable ? 'テキスト編集' : undefined}
+          aria-multiline={props.editable ? true : undefined}
+          spellCheck={false}
+          tabIndex={props.editable && !props.disabled ? 0 : undefined}
+          onFocus={() => {
+            if (!props.active) props.onActivate?.()
+          }}
+          onPointerDown={(event) => {
+            if (props.editable) event.stopPropagation()
+          }}
+          onContextMenu={(event) => {
+            if (props.editable) event.stopPropagation()
+          }}
+          onBlur={() => {
+            if (composing.current) {
+              composing.current = false
+              sync('composition')
+            }
+          }}
+          onInput={() => {
+            if (!composing.current) sync('typing')
+            paintOutline()
+          }}
+          onCompositionStart={() => {
+            capture()
+            composing.current = true
+          }}
+          onCompositionEnd={() => {
+            composing.current = false
+            sync('composition')
+            paintOutline()
+          }}
+          onPaste={(event) => {
+            event.preventDefault()
+            insert(event.clipboardData.getData('text/plain').replace(/\r\n?/g, '\n'))
+          }}
+          onDrop={(event) => {
+            if (props.editable) {
+              event.preventDefault()
+              event.stopPropagation()
+            }
+          }}
+          onKeyDown={(event) => {
+            if (!props.editable) return
+            if (composing.current || event.nativeEvent.isComposing || event.keyCode === 229) return
+            const modifier = event.ctrlKey || event.metaKey
+            if (modifier && ['z', 'y'].includes(event.key.toLowerCase())) {
+              event.preventDefault()
+              event.stopPropagation()
+              if (event.shiftKey || event.key.toLowerCase() === 'y') props.onRedo?.()
+              else props.onUndo?.()
+            } else if (modifier && ['b', 'i', 'u'].includes(event.key.toLowerCase())) {
+              // ブラウザによる任意のHTML書式がモデルと食い違わないようにする。
+              event.preventDefault()
+            } else if (event.key === 'Enter') {
+              event.preventDefault()
+              insert('\n')
+            } else if (event.key === 'Escape') {
+              event.preventDefault()
+              event.stopPropagation()
+              event.currentTarget.blur()
+              props.onFinish?.()
+            }
+          }}
+        />
+      </div>
+    </div>
   )
 }

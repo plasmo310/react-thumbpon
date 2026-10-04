@@ -210,7 +210,7 @@ export function TextProperties({ layer }: { layer: TextLayer }) {
           onChange={(color) => format({ color })}
         />
       </Row>
-      <Row label={label('縁取り', 'strokeWidth')}>
+      <Row label={label('縁取り1（内側）', 'strokeWidth')}>
         <NumberInput
           value={value.strokeWidth}
           mixed={mixed('strokeWidth')}
@@ -220,11 +220,31 @@ export function TextProperties({ layer }: { layer: TextLayer }) {
         />
       </Row>
       {(value.strokeWidth > 0 || mixed('strokeWidth')) && (
-        <Row label={label('縁の色', 'strokeColor')}>
+        <Row label={label('縁1の色', 'strokeColor')}>
           <ColorInput
             value={value.strokeColor}
             mixed={mixed('strokeColor')}
             onChange={(strokeColor) => format({ strokeColor })}
+          />
+        </Row>
+      )}
+      <Row label={label('縁2オフセット (px)', 'outerStrokeWidth')}>
+        <NumberInput
+          value={value.outerStrokeWidth}
+          mixed={mixed('outerStrokeWidth')}
+          min={0}
+          step={0.5}
+          onChange={(outerStrokeWidth) =>
+            format({ outerStrokeWidth: Math.max(0, outerStrokeWidth) })
+          }
+        />
+      </Row>
+      {(value.outerStrokeWidth > 0 || mixed('outerStrokeWidth')) && (
+        <Row label={label('縁2の色', 'outerStrokeColor')}>
+          <ColorInput
+            value={value.outerStrokeColor}
+            mixed={mixed('outerStrokeColor')}
+            onChange={(outerStrokeColor) => format({ outerStrokeColor })}
           />
         </Row>
       )}
