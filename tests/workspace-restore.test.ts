@@ -58,6 +58,37 @@ beforeEach(() => {
 })
 
 describe('フォルダに入れた素材の復元', () => {
+  it('画像を差し替えて保存し、開き直しても参照とプロパティが残る', async () => {
+    const [original, replacement] = await state().addAssetFiles([image('a.png'), image('b.png')])
+    state().addImageLayer(original.id)
+    const layerId = state().thumbnails[0].layers[0].id
+    state().updateLayer(layerId, {
+      name: '保持する名前',
+      x: 20,
+      y: 30,
+      width: 320,
+      height: 180,
+      rotation: 25,
+      opacity: 0.6,
+      flipX: true,
+    })
+    state().updateLayerCrop(layerId, { top: 0.1, left: 0.2 })
+    state().updateLayerEffects(layerId, { shadowEnabled: true, blur: 2 })
+    state().updateLayer(layerId, { assetId: replacement.id })
+    const expected = state().thumbnails[0].layers[0]
+
+    fake.picked = makeDir('work')
+    await saveProjectFolder(agree)
+    await saveProjectFolder(agree)
+
+    reload()
+    await restoreWorkspace()
+
+    expect(state().thumbnails[0].layers).toEqual([expected])
+    expect(await getAssetBlob(replacement.id)).toBeDefined()
+    expect(await getAssetBlob(original.id)).toBeDefined()
+  })
+
   it('ブラウザ内(IndexedDB)だけで作業していても、フォルダごと残る', async () => {
     const [added] = await state().addAssetFiles([image('a.png')])
     await state().addAssetFolder()

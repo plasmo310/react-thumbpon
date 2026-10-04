@@ -3,6 +3,7 @@ import { createImageLayer, createTextLayer } from '@/domain/layer'
 import { createThumbnail } from '@/domain/thumbnail'
 import { useEditorStore } from '@/app/store'
 import { BACKGROUND_ID } from '@/domain/background'
+import { DEFAULT_EFFECTS } from '@/domain/effects'
 import type { ImageLayer } from '@/domain/layer'
 import type { Thumbnail } from '@/domain/thumbnail'
 
@@ -115,6 +116,54 @@ describe('moveLayer', () => {
     useEditorStore.getState().moveLayer(idOf('c'), 'forward')
     useEditorStore.getState().moveLayer(idOf('c'), 'front')
     expect(order()).toEqual(['a', 'b', 'c'])
+  })
+})
+
+describe('画像の差し替え', () => {
+  it('画像の参照だけを更新し、設定・選択・他のレイヤーと背景を保持する', () => {
+    const image: ImageLayer = {
+      ...createImageLayer('保持する名前', 'a1', { x: 20, y: 30, width: 320, height: 180 }),
+      rotation: 25,
+      opacity: 0.6,
+      visible: false,
+      locked: true,
+      crop: { top: 0.1, right: 0.2, bottom: 0.15, left: 0.05 },
+      flipX: true,
+      effects: {
+        ...DEFAULT_EFFECTS,
+        blur: 2,
+        shadowEnabled: true,
+        glowEnabled: true,
+      },
+    }
+    const otherImage = createImageLayer('共有素材', 'a1', {
+      x: 0,
+      y: 0,
+      width: 100,
+      height: 100,
+    })
+    const thumbnail: Thumbnail = {
+      ...createThumbnail('サムネイル 1'),
+      layers: [image, otherImage, layer('テキスト')],
+    }
+    thumbnail.background = { ...thumbnail.background, type: 'image', assetId: 'a1' }
+    const otherThumbnail = { ...createThumbnail('サムネイル 2'), layers: [otherImage] }
+    useEditorStore.setState({
+      thumbnails: [thumbnail, otherThumbnail],
+      currentThumbnailId: thumbnail.id,
+      selectedId: image.id,
+      selectedIds: [image.id],
+    })
+
+    useEditorStore.getState().updateLayer(image.id, { assetId: 'a2' })
+
+    const state = useEditorStore.getState()
+    expect(state.thumbnails).toEqual([
+      { ...thumbnail, layers: [{ ...image, assetId: 'a2' }, otherImage, thumbnail.layers[2]] },
+      otherThumbnail,
+    ])
+    expect(state.selectedId).toBe(image.id)
+    expect(state.selectedIds).toEqual([image.id])
   })
 })
 

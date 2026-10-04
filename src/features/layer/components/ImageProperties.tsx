@@ -1,6 +1,6 @@
 import { useEditorStore } from '@/app/store'
 import type { ImageLayer } from '@/domain/layer'
-import { NumberInput, PercentRow, Row } from '@/shared/ui'
+import { NumberInput, PercentRow, Row, Select } from '@/shared/ui'
 import { CropSection } from './CropSection'
 import styles from '../styles.module.css'
 
@@ -12,9 +12,17 @@ import styles from '../styles.module.css'
  */
 export function ImageProperties({ layer }: { layer: ImageLayer }) {
   const updateLayer = useEditorStore((s) => s.updateLayer)
+  const assets = useEditorStore((s) => s.assets)
 
   return (
     <>
+      <Row label="画像">
+        <Select
+          value={layer.assetId}
+          options={assets.map((asset) => ({ label: asset.name, value: asset.id }))}
+          onChange={(assetId) => updateLayer(layer.id, { assetId })}
+        />
+      </Row>
       <div className={styles.pair}>
         <Row label="幅">
           <NumberInput
