@@ -56,6 +56,8 @@ domain  →  shared  →  app/store  →  features  →  app
 
 `shared/ui` は別の React アプリでも意味が通る部品だけにする。`shared/lib` も、1つの feature からしか使わないものはその feature の `lib/` に置く。
 
+表示文言の辞書と純粋な翻訳処理は `domain/messages.ts` に置く。日本語の原文を型付きキーとし、差し込み値は `{0}` などで表現する。UI は `shared/lib/i18n.ts` の `useTranslation()`、React 外は `t()` を使う。言語状態は `app/store` が所有し、共有部品が上位層へ依存しないよう取得・購読口だけを注入する。組み込みの選択肢は描画時に翻訳し、ユーザーの入力内容は翻訳しない。
+
 feature は `components/`、`hooks/`、`lib/` の3分類までにする。存在しない種類のフォルダは作らないが、作る場合は役割ごとの配置を崩さない。
 
 | 置くもの | 場所 |

@@ -1,3 +1,4 @@
+import { t } from '@/shared/lib/i18n'
 import { get, set } from 'idb-keyval'
 import { kv } from './db'
 import type { FontEntry } from '@/domain/font'
@@ -27,7 +28,7 @@ export function canQueryLocalFonts(): boolean {
  */
 export async function queryLocalFonts(): Promise<FontEntry[]> {
   const query = (window as WindowWithLocalFonts).queryLocalFonts
-  if (!query) throw new Error('このブラウザはローカルフォント一覧に対応していません')
+  if (!query) throw new Error(t('このブラウザはローカルフォント一覧に対応していません'))
   let fonts: LocalFontData[]
   try {
     fonts = await query()
@@ -39,8 +40,10 @@ export async function queryLocalFonts(): Promise<FontEntry[]> {
       (error.name === 'NotAllowedError' || error.name === 'SecurityError')
     ) {
       throw new Error(
-        'フォント一覧の取得が許可されていません。\n' +
-          'アドレスバー左のアイコン →「サイトの設定」で「フォント」を「許可」にして、もう一度お試しください。',
+        t('フォント一覧の取得が許可されていません。\n') +
+          t(
+            'アドレスバー左のアイコン →「サイトの設定」で「フォント」を「許可」にして、もう一度お試しください。',
+          ),
       )
     }
     throw error
@@ -83,7 +86,7 @@ export async function loadStoredFonts(): Promise<FontEntry[]> {
       await register(font.label, await blob.arrayBuffer())
       entries.push({ id: font.id, family: font.family, label: font.label, source: 'file' })
     } catch (error) {
-      console.error('フォントの復元に失敗しました', font.label, error)
+      console.error(t('フォントの復元に失敗しました'), font.label, error)
     }
   }
   return entries

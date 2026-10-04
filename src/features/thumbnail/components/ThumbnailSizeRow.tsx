@@ -1,6 +1,8 @@
+import { useTranslation } from '@/shared/lib/i18n'
 import { useState } from 'react'
 import { useCurrentThumbnail, useEditorStore } from '@/app/store'
 import { CANVAS_PRESETS, CUSTOM_PRESET_ID } from '@/domain/thumbnail'
+import { isMessageKey } from '@/domain/messages'
 import { NumberInput, Select } from '@/shared/ui'
 import styles from '../styles.module.css'
 
@@ -10,6 +12,8 @@ import styles from '../styles.module.css'
  * プリセットと一致していてもカスタム入力を開いたままにできるよう、選択状態を自前で持つ。
  */
 export function ThumbnailSizeRow() {
+  const t = useTranslation()
+
   const { canvas } = useCurrentThumbnail()
   const setCanvasSize = useEditorStore((s) => s.setCanvasSize)
   const [customMode, setCustomMode] = useState(false)
@@ -19,15 +23,18 @@ export function ThumbnailSizeRow() {
   const showCustom = presetValue === CUSTOM_PRESET_ID
 
   const options = [
-    ...CANVAS_PRESETS.map((preset) => ({ label: preset.label, value: preset.id })),
-    { label: 'カスタム', value: CUSTOM_PRESET_ID },
+    ...CANVAS_PRESETS.map((preset) => ({
+      label: isMessageKey(preset.label) ? t(preset.label) : preset.label,
+      value: preset.id,
+    })),
+    { label: t('カスタム'), value: CUSTOM_PRESET_ID },
   ]
 
   return (
     // サイドバーは 240px まで縮むので、幅は固定せず余りに追従させる
     <div className={styles.sizeRow}>
       <div className={styles.sizeMain}>
-        <span className={styles.sizeLabel}>サイズ</span>
+        <span className={styles.sizeLabel}>{t('サイズ')}</span>
         <div className={styles.sizeField}>
           <Select
             value={presetValue}

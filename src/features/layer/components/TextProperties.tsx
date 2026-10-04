@@ -1,3 +1,5 @@
+import { useTranslation } from '@/shared/lib/i18n'
+import { isMessageKey } from '@/domain/messages'
 import { PresetRow } from './PresetRow'
 import { extractTextStyle } from '@/domain/layer'
 import { useEditorStore } from '@/app/store'
@@ -25,6 +27,8 @@ import styles from '../styles.module.css'
  * @param props.layer 編集対象のテキストレイヤー
  */
 export function TextProperties({ layer }: { layer: TextLayer }) {
+  const t = useTranslation()
+
   const updateLayer = useEditorStore((s) => s.updateLayer)
   const fonts = useEditorStore((s) => s.fonts)
   const textPresets = useEditorStore((s) => s.textPresets)
@@ -60,7 +64,7 @@ export function TextProperties({ layer }: { layer: TextLayer }) {
   const mixed = (key: keyof InlineTextStyle) =>
     !!partial && selected.some((part) => part[key] !== value[key])
   const label = (name: string, key: keyof InlineTextStyle) =>
-    mixed(key) ? `${name}（混在）` : name
+    mixed(key) ? t('{0}（混在）', name) : name
   const format = (style: InlineTextStyle) => formatText(layer.id, style)
   const patch = (values: Partial<TextLayer>) => {
     if (layer.locked) return
@@ -71,24 +75,24 @@ export function TextProperties({ layer }: { layer: TextLayer }) {
   return (
     <div data-text-properties={layer.id}>
       <div className={styles.pair}>
-        <Row label="幅">
+        <Row label={t('幅')}>
           <NumberInput
             value={layer.width}
             min={1}
             onChange={(width) => patch({ width: Math.max(1, width), autoFit: false })}
           />
         </Row>
-        <Row label="回転">
+        <Row label={t('回転')}>
           <NumberInput value={layer.rotation} onChange={(rotation) => patch({ rotation })} />
         </Row>
       </div>
-      <Row label="自動フィット">
+      <Row label={t('自動フィット')}>
         <Button disabled={layer.locked} onClick={() => patch({ autoFit: !layer.autoFit })}>
-          {layer.autoFit ? 'オン' : 'オフ'}
+          {layer.autoFit ? t('オン') : t('オフ')}
         </Button>
       </Row>
       <PercentRow
-        label="不透明度"
+        label={t('不透明度')}
         value={layer.opacity}
         onChange={(opacity) => patch({ opacity })}
       />
@@ -100,7 +104,7 @@ export function TextProperties({ layer }: { layer: TextLayer }) {
         onSave={(name) => addTextPreset(name, extractTextStyle(layer))}
         onRemove={removeTextPreset}
       />
-      <Row label="テキスト">
+      <Row label={t('テキスト')}>
         <RichTextInput
           value={layer}
           previewStyle={extractTextStyle(layer)}
@@ -118,12 +122,12 @@ export function TextProperties({ layer }: { layer: TextLayer }) {
           onRedo={redo}
         />
       </Row>
-      <Row label="適用先">
+      <Row label={t('適用先')}>
         <SegmentedControl
           value={session?.target ?? 'whole'}
           options={[
-            { label: '全体', value: 'whole' },
-            { label: '選択部分', value: 'selection' },
+            { label: t('全体'), value: 'whole' },
+            { label: t('選択部分'), value: 'selection' },
           ]}
           onChange={(target) => {
             if (!session) beginTextEditing(layer.id, 'properties')
@@ -132,23 +136,26 @@ export function TextProperties({ layer }: { layer: TextLayer }) {
         />
       </Row>
       {partial && session && (
-        <Row label="対象">
+        <Row label={t('対象')}>
           {session.range.start === session.range.end
-            ? '次に入力する文字'
+            ? t('次に入力する文字')
             : `「${layer.text.slice(session.range.start, session.range.end)}」`}
         </Row>
       )}
-      <Row label={label('フォント', 'fontFamily')}>
+      <Row label={label(t('フォント'), 'fontFamily')}>
         <Select
           value={value.fontFamily}
           mixed={mixed('fontFamily')}
-          options={fonts.map((f) => ({ label: f.label, value: f.family }))}
+          options={fonts.map((f) => ({
+            label: f.source === 'builtin' && isMessageKey(f.label) ? t(f.label) : f.label,
+            value: f.family,
+          }))}
           onChange={(fontFamily) => format({ fontFamily })}
         />
       </Row>
       <FontLoader />
       <div className={styles.pair}>
-        <Row label={label('サイズ', 'fontSize')}>
+        <Row label={label(t('サイズ'), 'fontSize')}>
           <NumberInput
             value={value.fontSize}
             mixed={mixed('fontSize')}
@@ -156,7 +163,7 @@ export function TextProperties({ layer }: { layer: TextLayer }) {
             onChange={(fontSize) => format({ fontSize: Math.max(4, fontSize) })}
           />
         </Row>
-        <Row label={label('太さ', 'fontWeight')}>
+        <Row label={label(t('太さ'), 'fontWeight')}>
           <Select
             value={value.fontWeight}
             mixed={mixed('fontWeight')}
@@ -165,26 +172,26 @@ export function TextProperties({ layer }: { layer: TextLayer }) {
           />
         </Row>
       </div>
-      <Row label="揃え">
+      <Row label={t('揃え')}>
         <SegmentedControl<TextAlign>
           value={layer.textAlign}
           options={[
-            { label: '左', value: 'left' },
-            { label: '中央', value: 'center' },
-            { label: '右', value: 'right' },
+            { label: t('左'), value: 'left' },
+            { label: t('中央'), value: 'center' },
+            { label: t('右'), value: 'right' },
           ]}
           onChange={(textAlign) => patch({ textAlign })}
         />
       </Row>
       <div className={styles.pair}>
-        <Row label="字間">
+        <Row label={t('字間')}>
           <NumberInput
             value={layer.letterSpacing}
             step={0.5}
             onChange={(letterSpacing) => patch({ letterSpacing })}
           />
         </Row>
-        <Row label={layer.fixedLineHeight == null ? '行間' : '行の高さ (px)'}>
+        <Row label={layer.fixedLineHeight == null ? t('行間') : t('行の高さ (px)')}>
           <NumberInput
             value={layer.fixedLineHeight ?? layer.lineHeight}
             step={layer.fixedLineHeight == null ? 0.1 : 1}
@@ -199,12 +206,12 @@ export function TextProperties({ layer }: { layer: TextLayer }) {
           />
         </Row>
       </div>
-      <Row label="行の高さ">
+      <Row label={t('行の高さ')}>
         <SegmentedControl
           value={layer.fixedLineHeight == null ? 'auto' : 'fixed'}
           options={[
-            { label: '自動', value: 'auto' },
-            { label: '固定', value: 'fixed' },
+            { label: t('自動'), value: 'auto' },
+            { label: t('固定'), value: 'fixed' },
           ]}
           onChange={(mode) =>
             patch({
@@ -216,24 +223,24 @@ export function TextProperties({ layer }: { layer: TextLayer }) {
           }
         />
       </Row>
-      <Row label={label('斜体', 'fontStyle')}>
+      <Row label={label(t('斜体'), 'fontStyle')}>
         <SegmentedControl
           value={mixed('fontStyle') ? '' : value.fontStyle}
           options={[
-            { label: 'なし', value: 'normal' },
-            { label: '斜体', value: 'italic' },
+            { label: t('なし'), value: 'normal' },
+            { label: t('斜体'), value: 'italic' },
           ]}
           onChange={(fontStyle) => format({ fontStyle: fontStyle as TextLayer['fontStyle'] })}
         />
       </Row>
-      <Row label={label('色', 'color')}>
+      <Row label={label(t('色'), 'color')}>
         <ColorInput
           value={value.color}
           mixed={mixed('color')}
           onChange={(color) => format({ color })}
         />
       </Row>
-      <Row label={label('縁取り1（内側）', 'strokeWidth')}>
+      <Row label={label(t('縁取り1（内側）'), 'strokeWidth')}>
         <NumberInput
           value={value.strokeWidth}
           mixed={mixed('strokeWidth')}
@@ -243,7 +250,7 @@ export function TextProperties({ layer }: { layer: TextLayer }) {
         />
       </Row>
       {(value.strokeWidth > 0 || mixed('strokeWidth')) && (
-        <Row label={label('縁1の色', 'strokeColor')}>
+        <Row label={label(t('縁1の色'), 'strokeColor')}>
           <ColorInput
             value={value.strokeColor}
             mixed={mixed('strokeColor')}
@@ -251,7 +258,7 @@ export function TextProperties({ layer }: { layer: TextLayer }) {
           />
         </Row>
       )}
-      <Row label={label('縁2オフセット (px)', 'outerStrokeWidth')}>
+      <Row label={label(t('縁2オフセット (px)'), 'outerStrokeWidth')}>
         <NumberInput
           value={value.outerStrokeWidth}
           mixed={mixed('outerStrokeWidth')}
@@ -263,7 +270,7 @@ export function TextProperties({ layer }: { layer: TextLayer }) {
         />
       </Row>
       {(value.outerStrokeWidth > 0 || mixed('outerStrokeWidth')) && (
-        <Row label={label('縁2の色', 'outerStrokeColor')}>
+        <Row label={label(t('縁2の色'), 'outerStrokeColor')}>
           <ColorInput
             value={value.outerStrokeColor}
             mixed={mixed('outerStrokeColor')}
@@ -271,23 +278,23 @@ export function TextProperties({ layer }: { layer: TextLayer }) {
           />
         </Row>
       )}
-      <Row label="部分書式">
-        <Button onClick={() => formatText(layer.id, null)}>部分書式を解除</Button>
+      <Row label={t('部分書式')}>
+        <Button onClick={() => formatText(layer.id, null)}>{t('部分書式を解除')}</Button>
       </Row>
       <div className={styles.divider} />
-      <Row label="背景">
+      <Row label={t('背景')}>
         <SegmentedControl
           value={layer.backgroundEnabled ? 'on' : 'off'}
           options={[
-            { label: 'なし', value: 'off' },
-            { label: 'あり', value: 'on' },
+            { label: t('なし'), value: 'off' },
+            { label: t('あり'), value: 'on' },
           ]}
           onChange={(value) => patch({ backgroundEnabled: value === 'on' })}
         />
       </Row>
       {layer.backgroundEnabled && (
         <>
-          <Row label="背景色">
+          <Row label={t('背景色')}>
             <ColorInput
               value={layer.backgroundColor}
               onChange={(backgroundColor) => patch({ backgroundColor })}
@@ -296,7 +303,7 @@ export function TextProperties({ layer }: { layer: TextLayer }) {
           <div className={styles.quad}>
             {(['paddingTop', 'paddingBottom', 'paddingLeft', 'paddingRight'] as const).map(
               (key, index) => (
-                <Row key={key} label={`余白・${['上', '下', '左', '右'][index]}`}>
+                <Row key={key} label={t('余白・{0}', [t('上'), t('下'), t('左'), t('右')][index])}>
                   <NumberInput
                     value={layer[key]}
                     min={0}
@@ -306,12 +313,12 @@ export function TextProperties({ layer }: { layer: TextLayer }) {
               ),
             )}
           </div>
-          <Row label="角丸">
+          <Row label={t('角丸')}>
             <SegmentedControl
               value={layer.backgroundRadiusMode}
               options={[
-                { label: '全体指定', value: 'uniform' },
-                { label: '個別指定', value: 'individual' },
+                { label: t('全体指定'), value: 'uniform' },
+                { label: t('個別指定'), value: 'individual' },
               ]}
               onChange={(backgroundRadiusMode) => patch({ backgroundRadiusMode })}
             />
@@ -326,7 +333,10 @@ export function TextProperties({ layer }: { layer: TextLayer }) {
                   'backgroundRadiusBottomRight',
                 ] as const
               ).map((key, index) => (
-                <Row key={key} label={`角丸・${['左上', '右上', '左下', '右下'][index]}`}>
+                <Row
+                  key={key}
+                  label={t('角丸・{0}', [t('左上'), t('右上'), t('左下'), t('右下')][index])}
+                >
                   <NumberInput
                     value={layer[key]}
                     min={0}
@@ -336,7 +346,7 @@ export function TextProperties({ layer }: { layer: TextLayer }) {
               ))}
             </div>
           ) : (
-            <Row label="角丸 (px)">
+            <Row label={t('角丸 (px)')}>
               <NumberInput
                 value={layer.backgroundRadius}
                 min={0}

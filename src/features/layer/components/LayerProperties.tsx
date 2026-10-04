@@ -1,3 +1,4 @@
+import { useTranslation } from '@/shared/lib/i18n'
 import { EffectsSection } from './EffectsSection'
 import { useEditorStore } from '@/app/store'
 import type { Layer } from '@/domain/layer'
@@ -14,6 +15,8 @@ import styles from '../styles.module.css'
  * @param props.layer 編集対象のレイヤー
  */
 export function LayerProperties({ layer }: { layer: Layer }) {
+  const t = useTranslation()
+
   const updateLayer = useEditorStore((s) => s.updateLayer)
   const updateLayerEffects = useEditorStore((s) => s.updateLayerEffects)
 
@@ -49,18 +52,18 @@ export function LayerProperties({ layer }: { layer: Layer }) {
                   checked={layer.overlayEnabled}
                   onChange={(e) => updateLayer(layer.id, { overlayEnabled: e.target.checked })}
                 />
-                オーバーレイマスク
+                {t('オーバーレイマスク')}
               </label>
               {layer.overlayEnabled && (
                 <>
-                  <Row label="マスクの色">
+                  <Row label={t('マスクの色')}>
                     <ColorInput
                       value={layer.overlayColor}
                       onChange={(overlayColor) => updateLayer(layer.id, { overlayColor })}
                     />
                   </Row>
                   <PercentRow
-                    label="不透明度"
+                    label={t('不透明度')}
                     value={layer.overlayOpacity}
                     onChange={(overlayOpacity) => updateLayer(layer.id, { overlayOpacity })}
                   />

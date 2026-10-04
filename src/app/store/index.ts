@@ -1,4 +1,5 @@
 import { create, type StateCreator } from 'zustand'
+import { connectLocale } from '@/shared/lib/i18n'
 import { subscribeWithSelector } from 'zustand/middleware'
 import { BACKGROUND_ID } from '@/domain/background'
 import type { Layer } from '@/domain/layer'
@@ -56,6 +57,11 @@ export const useEditorStore = create<EditorState>()(
     ...createTextSlice(...a),
   })),
 )
+
+connectLocale({
+  getLocale: () => useEditorStore.getState().locale,
+  subscribe: (listener) => useEditorStore.subscribe((state) => state.locale, listener),
+})
 
 // 別の編集対象に切り替わった場合、古い文字範囲が新しい項目へ適用されないようにする。
 useEditorStore.subscribe(

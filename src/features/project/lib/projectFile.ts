@@ -1,3 +1,4 @@
+import { t } from '@/shared/lib/i18n'
 import { strFromU8, strToU8, unzipSync, zipSync } from 'fflate'
 import {
   ASSETS_DIR,
@@ -68,14 +69,14 @@ export async function exportProjectFile() {
 export async function importProjectFile(file: File) {
   const buffer = new Uint8Array(await file.arrayBuffer())
   if (buffer[0] !== 0x50 || buffer[1] !== 0x4b)
-    throw new Error('サムネぽんのプロジェクトファイルではありません')
+    throw new Error(t('サムネぽんのプロジェクトファイルではありません'))
 
   const unzipped = unzipSync(buffer)
   const found = findManifestEntry(Object.keys(unzipped))
-  if (!found) throw new Error('サムネぽんのプロジェクトファイルではありません')
+  if (!found) throw new Error(t('サムネぽんのプロジェクトファイルではありません'))
 
   const parsed: unknown = JSON.parse(strFromU8(unzipped[found.path]))
-  if (!isProjectFile(parsed)) throw new Error('サムネぽんのプロジェクトファイルではありません')
+  if (!isProjectFile(parsed)) throw new Error(t('サムネぽんのプロジェクトファイルではありません'))
 
   /*
    * 書かれていたパスで引けなかったときの拾い直し用に、入っている素材を id で引けるようにする。

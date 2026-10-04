@@ -1,3 +1,4 @@
+import { useTranslation } from '@/shared/lib/i18n'
 import { useRef, useState } from 'react'
 import type { PointerEvent, ReactNode } from 'react'
 import type { AssetFolder } from '@/domain/asset'
@@ -21,6 +22,8 @@ const FOLDER_DRAG_THRESHOLD = 6
  * フォルダ分けはプロジェクトを書き出したときの assets/ 配下の構成にもなる。
  */
 export function AssetPanel() {
+  const t = useTranslation()
+
   const assets = useEditorStore((s) => s.assets)
   const folders = useEditorStore((s) => s.assetFolders)
   const addAssetFolder = useEditorStore((s) => s.addAssetFolder)
@@ -162,7 +165,7 @@ export function AssetPanel() {
         >
           <button
             type="button"
-            title={folder.collapsed ? 'フォルダを開く' : 'フォルダを閉じる'}
+            title={folder.collapsed ? t('フォルダを開く') : t('フォルダを閉じる')}
             aria-expanded={!folder.collapsed}
             onClick={() => void toggleAssetFolder(folder.id)}
             className={styles.folderToggle}
@@ -182,7 +185,7 @@ export function AssetPanel() {
             <span
               data-folder-name
               className={styles.folderName}
-              title="ダブルクリックで名前を変更。ドラッグで並べ替え・フォルダ内へ移動"
+              title={t('ダブルクリックで名前を変更。ドラッグで並べ替え・フォルダ内へ移動')}
               onDoubleClick={() => setEditingFolderId(folder.id)}
             >
               {folder.name}
@@ -190,22 +193,25 @@ export function AssetPanel() {
           )}
           <span className={styles.folderCount}>{children.length}</span>
           <div className={styles.folderActions}>
-            <IconButton title="このフォルダに素材を追加" onClick={() => openPicker(folder.id)}>
+            <IconButton title={t('このフォルダに素材を追加')} onClick={() => openPicker(folder.id)}>
               ＋
             </IconButton>
-            <IconButton title="子フォルダを追加" onClick={() => void addAssetFolder(folder.id)}>
+            <IconButton
+              title={t('子フォルダを追加')}
+              onClick={() => void addAssetFolder(folder.id)}
+            >
               📁
             </IconButton>
             {folder.parentId && (
               <IconButton
-                title="最上位へ移動"
+                title={t('最上位へ移動')}
                 onClick={() => void moveAssetFolder(folder.id, null)}
               >
                 ↑
               </IconButton>
             )}
             <IconButton
-              title="フォルダと子フォルダを削除（素材は未分類へ）"
+              title={t('フォルダと子フォルダを削除（素材は未分類へ）')}
               onClick={() => void removeAssetFolder(folder.id)}
             >
               🗑
@@ -223,7 +229,7 @@ export function AssetPanel() {
             )}
             {childFolders.map(renderFolder)}
             {children.length === 0 && childFolders.length === 0 && (
-              <p className={styles.folderEmpty}>ここにドラッグして移動できます</p>
+              <p className={styles.folderEmpty}>{t('ここにドラッグして移動できます')}</p>
             )}
           </div>
         )}
@@ -233,15 +239,15 @@ export function AssetPanel() {
 
   return (
     <Panel
-      title="素材"
+      title={t('素材')}
       section={{ ...dropProps, className: cx(over && styles.dropping) }}
       actions={
         <>
-          <span className={styles.count}>{assets.length}件</span>
-          <IconButton title="素材を追加" onClick={() => openPicker(null)}>
+          <span className={styles.count}>{t('{0}件', assets.length)}</span>
+          <IconButton title={t('素材を追加')} onClick={() => openPicker(null)}>
             ＋
           </IconButton>
-          <IconButton title="フォルダを追加" onClick={() => void addAssetFolder()}>
+          <IconButton title={t('フォルダを追加')} onClick={() => void addAssetFolder()}>
             📁
           </IconButton>
         </>
@@ -253,7 +259,7 @@ export function AssetPanel() {
             <AssetTile key={asset.id} asset={asset} />
           ))}
           <button type="button" onClick={() => openPicker(null)} className={styles.add}>
-            ＋ 追加
+            {t('＋ 追加')}
           </button>
         </div>
       </AssetFolderZone>
@@ -261,7 +267,7 @@ export function AssetPanel() {
       {folders.filter((folder) => folder.parentId == null).map(renderFolder)}
 
       {assets.length === 0 && (
-        <p className={styles.empty}>画像をここにドロップしても追加できます</p>
+        <p className={styles.empty}>{t('画像をここにドロップしても追加できます')}</p>
       )}
 
       {picker.element}

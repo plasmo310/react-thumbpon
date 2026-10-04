@@ -1,3 +1,4 @@
+import { useTranslation } from '@/shared/lib/i18n'
 import { useState } from 'react'
 import type { DragEvent } from 'react'
 import { cx } from '@/shared/lib/cx'
@@ -12,6 +13,8 @@ import styles from '../styles.module.css'
 
 /** レイヤーの一覧。配列順に上から並べるので、一覧の下にあるものが前面になる */
 export function LayerPanel() {
+  const t = useTranslation()
+
   const { layers } = useCurrentThumbnail()
   const selectedId = useEditorStore((s) => s.selectedId)
   const propertiesOpen = useEditorStore((s) => s.propertiesOpen)
@@ -52,12 +55,12 @@ export function LayerPanel() {
 
   return (
     <Panel
-      title="レイヤー"
+      title={t('レイヤー')}
       divider
       actions={
         <>
-          <Button onClick={() => addShapeLayer('rectangle')}>＋ 図形</Button>
-          <Button onClick={addTextLayer}>＋ テキスト</Button>
+          <Button onClick={() => addShapeLayer('rectangle')}>{t('＋ 図形')}</Button>
+          <Button onClick={addTextLayer}>{t('＋ テキスト')}</Button>
         </>
       }
       body={{
@@ -75,7 +78,7 @@ export function LayerPanel() {
           className={styles.backgroundButton}
         >
           <span className={cx(styles.badge, styles.backgroundBadge)}>BG</span>
-          <span className={styles.name}>背景</span>
+          <span className={styles.name}>{t('背景')}</span>
         </button>
         {backgroundOpen && <BackgroundProperties />}
       </div>

@@ -1,3 +1,4 @@
+import { useTranslation } from '@/shared/lib/i18n'
 import { DEFAULT_CROP, MAX_CROP, croppedRatio, isCropped } from '@/domain/crop'
 import type { ImageLayer } from '@/domain/layer'
 import { useEditorStore } from '@/app/store'
@@ -12,6 +13,8 @@ import styles from '../styles.module.css'
  * @param props.layer 編集対象の画像レイヤー
  */
 export function CropSection({ layer }: { layer: ImageLayer }) {
+  const t = useTranslation()
+
   const cropping = useEditorStore((s) => s.cropping)
   const setCropping = useEditorStore((s) => s.setCropping)
   const updateLayer = useEditorStore((s) => s.updateLayer)
@@ -32,45 +35,49 @@ export function CropSection({ layer }: { layer: ImageLayer }) {
     <>
       <div className={styles.divider} />
       <div className={styles.sectionHeader}>
-        <span className={styles.sectionTitle}>クロップ</span>
+        <span className={styles.sectionTitle}>{t('クロップ')}</span>
         <Button
           onClick={() => setCropping(!cropping)}
-          title="キャンバス上の枠を掴んで表示範囲を詰める"
+          title={t('キャンバス上の枠を掴んで表示範囲を詰める')}
         >
-          {cropping ? '調整を終える' : '枠で調整'}
+          {cropping ? t('調整を終える') : t('枠で調整')}
         </Button>
-        <Button onClick={fitToRatio} disabled={!asset} title="枠の高さを表示範囲の比率に合わせる">
-          比率
+        <Button
+          onClick={fitToRatio}
+          disabled={!asset}
+          title={t('枠の高さを表示範囲の比率に合わせる')}
+        >
+          {t('比率')}
         </Button>
         <Button
           onClick={() => updateLayerCrop(layer.id, DEFAULT_CROP)}
           disabled={!isCropped(crop)}
-          title="画像全体を表示する"
+          title={t('画像全体を表示する')}
         >
-          解除
+          {t('解除')}
         </Button>
       </div>
 
       <PercentRow
-        label="上を切る"
+        label={t('上を切る')}
         value={crop.top}
         max={MAX_CROP - crop.bottom}
         onChange={(top) => updateLayerCrop(layer.id, { top })}
       />
       <PercentRow
-        label="下を切る"
+        label={t('下を切る')}
         value={crop.bottom}
         max={MAX_CROP - crop.top}
         onChange={(bottom) => updateLayerCrop(layer.id, { bottom })}
       />
       <PercentRow
-        label="左を切る"
+        label={t('左を切る')}
         value={crop.left}
         max={MAX_CROP - crop.right}
         onChange={(left) => updateLayerCrop(layer.id, { left })}
       />
       <PercentRow
-        label="右を切る"
+        label={t('右を切る')}
         value={crop.right}
         max={MAX_CROP - crop.left}
         onChange={(right) => updateLayerCrop(layer.id, { right })}

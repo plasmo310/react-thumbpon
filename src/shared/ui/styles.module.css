@@ -14,6 +14,7 @@
 .rowLabel {
   flex-shrink: 0;
   width: var(--label-col);
+  overflow-wrap: anywhere;
   font-size: var(--font-label);
   color: var(--color-ink-sub);
 }

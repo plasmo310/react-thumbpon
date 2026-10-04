@@ -36,6 +36,7 @@ function baseline(): Partial<EditorState> {
     textPresets: sampleTextPresets(),
     backgroundPresets: sampleBackgroundPresets(),
     // ui
+    locale: 'ja',
     ready: true,
     snapEnabled: true,
     guides: { x: [], y: [] },

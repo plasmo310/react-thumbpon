@@ -1,3 +1,4 @@
+import { t } from '@/shared/lib/i18n'
 import { toPng } from 'html-to-image'
 import { sanitizePathName } from '@/domain/project'
 import { downloadDataUrl } from './download'
@@ -27,7 +28,7 @@ export async function exportPng(canvas: CanvasSize, name: string) {
   useEditorStore.getState().refreshTextLayout()
   await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()))
   const surface = getSurface(thumbnailId)
-  if (!surface) throw new Error('キャンバスが準備できていません')
+  if (!surface) throw new Error(t('キャンバスが準備できていません'))
 
   const options = {
     width: canvas.width,

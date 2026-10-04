@@ -28,11 +28,28 @@ beforeEach(() => {
 afterEach(() => {
   stop?.()
   stop = undefined
+  useEditorStore.setState({ locale: 'ja' })
   vi.useRealTimers()
   vi.unstubAllGlobals()
 })
 
 describe('ブラウザ専用のCanvas表示設定', () => {
+  it('言語切替だけでは自動保存や未保存フラグを変更せず、プロジェクト復元でも言語を保持する', async () => {
+    state().setReady(true)
+    stop = startAutoSave()
+    state().setLocale('en')
+    await vi.advanceTimersByTimeAsync(400)
+    expect(store.has('project:current')).toBe(false)
+    expect(store.has('view:canvas')).toBe(false)
+    expect(state().workspaceDirty).toBe(false)
+    expect(buildProjectFile([])).not.toHaveProperty('locale')
+
+    store.set('project:current', pickDocument(state()))
+    await restoreWorkspace()
+    expect(state().locale).toBe('en')
+    expect(state().thumbnails.map((thumbnail) => thumbnail.name)).toEqual(['a', 'b'])
+  })
+
   it('チェックと配置を別キーへ保存し、プロジェクト未保存扱いにはしない', async () => {
     state().setReady(true)
     stop = startAutoSave()

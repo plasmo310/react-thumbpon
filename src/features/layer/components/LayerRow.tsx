@@ -1,3 +1,4 @@
+import { useTranslation } from '@/shared/lib/i18n'
 import { useEffect, useRef, useState, type DragEvent } from 'react'
 import type { Layer } from '@/domain/layer'
 import { useEditorStore } from '@/app/store'
@@ -42,6 +43,8 @@ export function LayerRow({
   onDragOver: (index: number, event: DragEvent) => void
   onDrop: () => void
 }) {
+  const t = useTranslation()
+
   const selectedId = useEditorStore((s) => s.selectedId)
   const selectedIds = useEditorStore((s) => s.selectedIds)
   const propertiesOpen = useEditorStore((s) => s.propertiesOpen)
@@ -151,14 +154,14 @@ export function LayerRow({
           </span>
         )}
         <IconButton
-          title={layer.visible ? '非表示にする' : '表示する'}
+          title={layer.visible ? t('非表示にする') : t('表示する')}
           onClick={() => updateLayer(layer.id, { visible: !layer.visible })}
           active={!layer.visible}
         >
           {layer.visible ? <EyeIcon /> : <EyeOffIcon />}
         </IconButton>
         <IconButton
-          title={layer.locked ? 'ロック解除' : 'ロック'}
+          title={layer.locked ? t('ロック解除') : t('ロック')}
           onClick={() => updateLayer(layer.id, { locked: !layer.locked })}
           active={layer.locked}
         >
@@ -170,24 +173,24 @@ export function LayerRow({
         <>
           <div className={styles.actions}>
             <IconButton
-              title="背面へ（右クリックで最背面まで送れる）"
+              title={t('背面へ（右クリックで最背面まで送れる）')}
               onClick={() => moveLayer(layer.id, 'backward')}
               active={!isBack}
             >
               ↑
             </IconButton>
             <IconButton
-              title="前面へ（右クリックで最前面まで送れる）"
+              title={t('前面へ（右クリックで最前面まで送れる）')}
               onClick={() => moveLayer(layer.id, 'forward')}
               active={!isFront}
             >
               ↓
             </IconButton>
-            <IconButton title="複製" onClick={() => duplicateLayer(layer.id)}>
+            <IconButton title={t('複製')} onClick={() => duplicateLayer(layer.id)}>
               ⧉
             </IconButton>
             <div className={styles.spacer} />
-            <IconButton title="削除" onClick={() => removeLayer(layer.id)}>
+            <IconButton title={t('削除')} onClick={() => removeLayer(layer.id)}>
               🗑
             </IconButton>
           </div>

@@ -1,3 +1,4 @@
+import { useTranslation } from '@/shared/lib/i18n'
 import { PresetRow } from './PresetRow'
 import { EffectsSection } from './EffectsSection'
 import { useCurrentThumbnail, useEditorStore } from '@/app/store'
@@ -6,24 +7,30 @@ import { ColorInput, NumberInput, PercentRow, Row, Select, SliderRow } from '@/s
 import styles from '../styles.module.css'
 
 /** 背景の種別。4つあり「グラデーション」も入るため、横並びではなくドロップダウンで出す */
-const TYPE_OPTIONS: { label: string; value: BackgroundType }[] = [
-  { label: '単色', value: 'color' },
-  { label: 'グラデーション', value: 'gradient' },
-  { label: '画像', value: 'image' },
-  { label: 'パターン', value: 'pattern' },
+const typeOptions = (
+  t: ReturnType<typeof useTranslation>,
+): { label: string; value: BackgroundType }[] => [
+  { label: t('単色'), value: 'color' },
+  { label: t('グラデーション'), value: 'gradient' },
+  { label: t('画像'), value: 'image' },
+  { label: t('パターン'), value: 'pattern' },
 ]
 
 /** 画像の敷き方。240px まで縮むサイドバーでは横並びだと文字が入りきらないので Select にする */
-const FIT_OPTIONS: { label: string; value: BackgroundFit }[] = [
-  { label: 'cover（全体を覆う）', value: 'cover' },
-  { label: 'contain（全体を収める）', value: 'contain' },
-  { label: 'タイル（繰り返す）', value: 'tile' },
+const fitOptions = (
+  t: ReturnType<typeof useTranslation>,
+): { label: string; value: BackgroundFit }[] => [
+  { label: t('cover（全体を覆う）'), value: 'cover' },
+  { label: t('contain（全体を収める）'), value: 'contain' },
+  { label: t('タイル（繰り返す）'), value: 'tile' },
 ]
 
-const PATTERN_OPTIONS: { label: string; value: PatternType }[] = [
-  { label: '水玉', value: 'dots' },
-  { label: 'ライン', value: 'lines' },
-  { label: 'チェック', value: 'checker' },
+const patternOptions = (
+  t: ReturnType<typeof useTranslation>,
+): { label: string; value: PatternType }[] => [
+  { label: t('水玉'), value: 'dots' },
+  { label: t('ライン'), value: 'lines' },
+  { label: t('チェック'), value: 'checker' },
 ]
 
 /**
@@ -33,6 +40,8 @@ const PATTERN_OPTIONS: { label: string; value: PatternType }[] = [
  * 絵柄を持たない単色のときだけ欄を出さない。
  */
 export function BackgroundProperties() {
+  const t = useTranslation()
+
   const { background } = useCurrentThumbnail()
   const setBackground = useEditorStore((s) => s.setBackground)
   const setBackgroundEffects = useEditorStore((s) => s.setBackgroundEffects)
@@ -50,36 +59,36 @@ export function BackgroundProperties() {
         onSave={addBackgroundPreset}
         onRemove={removeBackgroundPreset}
       />
-      <Row label="種類">
+      <Row label={t('種類')}>
         <Select<BackgroundType>
           value={background.type}
-          options={TYPE_OPTIONS}
+          options={typeOptions(t)}
           onChange={(type) => setBackground({ type })}
         />
       </Row>
 
       {background.type === 'color' && (
-        <Row label="色">
+        <Row label={t('色')}>
           <ColorInput value={background.color} onChange={(color) => setBackground({ color })} />
         </Row>
       )}
 
       {background.type === 'gradient' && (
         <>
-          <Row label="開始色">
+          <Row label={t('開始色')}>
             <ColorInput
               value={background.gradientFrom}
               onChange={(gradientFrom) => setBackground({ gradientFrom })}
             />
           </Row>
-          <Row label="終了色">
+          <Row label={t('終了色')}>
             <ColorInput
               value={background.gradientTo}
               onChange={(gradientTo) => setBackground({ gradientTo })}
             />
           </Row>
           <SliderRow
-            label="角度"
+            label={t('角度')}
             value={background.gradientAngle}
             min={0}
             max={360}
@@ -91,25 +100,25 @@ export function BackgroundProperties() {
 
       {background.type === 'image' && (
         <>
-          <Row label="画像">
+          <Row label={t('画像')}>
             <Select
               value={background.assetId ?? ''}
               options={[
-                { label: '未選択', value: '' },
+                { label: t('未選択'), value: '' },
                 ...assets.map((a) => ({ label: a.name, value: a.id })),
               ]}
               onChange={(assetId) => setBackground({ assetId: assetId === '' ? null : assetId })}
             />
           </Row>
-          <Row label="敷き方">
+          <Row label={t('敷き方')}>
             <Select<BackgroundFit>
               value={background.fit}
-              options={FIT_OPTIONS}
+              options={fitOptions(t)}
               onChange={(fit) => setBackground({ fit })}
             />
           </Row>
           {background.fit === 'tile' ? (
-            <Row label="タイル幅">
+            <Row label={t('タイル幅')}>
               <NumberInput
                 value={background.tileWidth}
                 min={2}
@@ -117,21 +126,21 @@ export function BackgroundProperties() {
               />
             </Row>
           ) : (
-            <Row label="位置">
+            <Row label={t('位置')}>
               <Select
                 value={background.position}
                 options={[
-                  { label: '中央', value: 'center' },
-                  { label: '上', value: 'top' },
-                  { label: '下', value: 'bottom' },
-                  { label: '左', value: 'left' },
-                  { label: '右', value: 'right' },
+                  { label: t('中央'), value: 'center' },
+                  { label: t('上'), value: 'top' },
+                  { label: t('下'), value: 'bottom' },
+                  { label: t('左'), value: 'left' },
+                  { label: t('右'), value: 'right' },
                 ]}
                 onChange={(position) => setBackground({ position })}
               />
             </Row>
           )}
-          <Row label="下地色">
+          <Row label={t('下地色')}>
             <ColorInput value={background.color} onChange={(color) => setBackground({ color })} />
           </Row>
         </>
@@ -139,15 +148,15 @@ export function BackgroundProperties() {
 
       {background.type === 'pattern' && (
         <>
-          <Row label="模様">
+          <Row label={t('模様')}>
             <Select<PatternType>
               value={background.pattern}
-              options={PATTERN_OPTIONS}
+              options={patternOptions(t)}
               onChange={(pattern) => setBackground({ pattern })}
             />
           </Row>
 
-          <Row label="間隔">
+          <Row label={t('間隔')}>
             <NumberInput
               value={background.patternSize}
               min={2}
@@ -155,7 +164,7 @@ export function BackgroundProperties() {
             />
           </Row>
 
-          <Row label="模様の色">
+          <Row label={t('模様の色')}>
             <ColorInput
               value={background.patternColor}
               onChange={(patternColor) => setBackground({ patternColor })}
@@ -164,7 +173,7 @@ export function BackgroundProperties() {
 
           {background.pattern !== 'checker' && (
             <PercentRow
-              label="太さ"
+              label={t('太さ')}
               value={background.patternWeight}
               min={0.05}
               max={0.95}
@@ -175,7 +184,7 @@ export function BackgroundProperties() {
 
           {background.pattern === 'lines' && (
             <SliderRow
-              label="角度"
+              label={t('角度')}
               value={background.patternAngle}
               min={0}
               max={180}
@@ -184,7 +193,7 @@ export function BackgroundProperties() {
             />
           )}
 
-          <Row label="下地色">
+          <Row label={t('下地色')}>
             <ColorInput value={background.color} onChange={(color) => setBackground({ color })} />
           </Row>
         </>

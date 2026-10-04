@@ -1,3 +1,4 @@
+import { t } from '@/shared/lib/i18n'
 import { useEditorStore } from '@/app/store'
 import { notifyError } from '@/shared/lib/notify'
 
@@ -17,10 +18,10 @@ export function useAssetImport() {
     try {
       const added = await addAssetFiles(list, folderId)
       if (added.length === 0) {
-        window.alert('画像ファイル（PNG / JPEG / WebP / SVG）を選んでください')
+        window.alert(t('画像ファイル（PNG / JPEG / WebP / SVG）を選んでください'))
       }
     } catch (error) {
-      notifyError('素材の追加に失敗しました', error)
+      notifyError(t('素材の追加に失敗しました'), error)
     }
   }
 

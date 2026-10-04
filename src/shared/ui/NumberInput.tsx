@@ -1,3 +1,4 @@
+import { useTranslation } from '@/shared/lib/i18n'
 import { useState } from 'react'
 import styles from './styles.module.css'
 
@@ -28,6 +29,8 @@ export function NumberInput({
   max?: number
   mixed?: boolean
 }) {
+  const t = useTranslation()
+
   const [draft, setDraft] = useState<string | null>(null)
   const safeValue = Number.isFinite(value) ? value : 0
 
@@ -36,7 +39,7 @@ export function NumberInput({
       type="number"
       className={styles.input}
       value={draft ?? (mixed ? '' : String(safeValue))}
-      placeholder={mixed ? '混在' : undefined}
+      placeholder={mixed ? t('混在') : undefined}
       step={step}
       min={min}
       max={max}

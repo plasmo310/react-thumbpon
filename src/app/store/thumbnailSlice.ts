@@ -1,3 +1,4 @@
+import { t } from '@/shared/lib/i18n'
 import { createId } from '@/domain/id'
 import { DEFAULT_CANVAS, cloneThumbnail, createThumbnail } from '@/domain/thumbnail'
 import { normalizeThumbnails } from '@/domain/project'
@@ -41,10 +42,9 @@ export type ThumbnailSlice = {
   }) => void
 }
 
-const firstThumbnail = createThumbnail('サムネイル 1')
-
 /** サムネイルとフォルダの管理。プロジェクト全体の読み込みもここで行う */
 export const createThumbnailSlice: SliceCreator<ThumbnailSlice> = (set, get) => {
+  const firstThumbnail = createThumbnail(t('サムネイル 1'))
   const { current, patchCurrent } = createPatchers(set, get)
 
   return {
@@ -80,7 +80,7 @@ export const createThumbnailSlice: SliceCreator<ThumbnailSlice> = (set, get) => 
       const { thumbnails } = get()
       // 今のキャンバスサイズを引き継ぐ方が、続けて作るときの手間が少ない
       const thumbnail = createThumbnail(
-        `サムネイル ${thumbnails.length + 1}`,
+        t('サムネイル {0}', thumbnails.length + 1),
         folderId ?? null,
         current()?.canvas ?? DEFAULT_CANVAS,
       )
@@ -110,7 +110,7 @@ export const createThumbnailSlice: SliceCreator<ThumbnailSlice> = (set, get) => 
       const { thumbnails } = get()
       const index = thumbnails.findIndex((t) => t.id === id)
       if (index < 0) return
-      const copy = cloneThumbnail(thumbnails[index], `${thumbnails[index].name} のコピー`)
+      const copy = cloneThumbnail(thumbnails[index], t('{0} のコピー', thumbnails[index].name))
       const next = [...thumbnails]
       next.splice(index + 1, 0, copy)
       set({ thumbnails: next, currentThumbnailId: copy.id, selectedId: null, selectedIds: [] })
@@ -159,7 +159,7 @@ export const createThumbnailSlice: SliceCreator<ThumbnailSlice> = (set, get) => 
     pasteThumbnail: (folderId) => {
       const { clipboard, thumbnails } = get()
       if (!clipboard) return
-      const copy = cloneThumbnail(clipboard, `${clipboard.name} のコピー`)
+      const copy = cloneThumbnail(clipboard, t('{0} のコピー', clipboard.name))
       copy.folderId = folderId
       set({
         thumbnails: [...thumbnails, copy],
@@ -213,7 +213,7 @@ export const createThumbnailSlice: SliceCreator<ThumbnailSlice> = (set, get) => 
       set((s) => ({
         folders: [
           ...s.folders,
-          { id: createId(), name: `フォルダ ${s.folders.length + 1}`, collapsed: false },
+          { id: createId(), name: t('フォルダ {0}', s.folders.length + 1), collapsed: false },
         ],
       })),
 
@@ -277,7 +277,9 @@ export const createThumbnailSlice: SliceCreator<ThumbnailSlice> = (set, get) => 
      */
     loadProject: ({ folders, thumbnails, currentThumbnailId, textPresets, backgroundPresets }) => {
       const list =
-        thumbnails.length > 0 ? normalizeThumbnails(thumbnails) : [createThumbnail('サムネイル 1')]
+        thumbnails.length > 0
+          ? normalizeThumbnails(thumbnails)
+          : [createThumbnail(t('サムネイル 1'))]
       const wanted = list.find((t) => t.id === currentThumbnailId)
       set((s) => ({
         folders,

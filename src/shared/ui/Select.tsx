@@ -1,3 +1,4 @@
+import { useTranslation } from '@/shared/lib/i18n'
 import styles from './styles.module.css'
 
 /**
@@ -20,6 +21,8 @@ export function Select<T extends string | number>({
   options: { label: string; value: T }[]
   mixed?: boolean
 }) {
+  const t = useTranslation()
+
   return (
     <select
       className={styles.select}
@@ -32,7 +35,7 @@ export function Select<T extends string | number>({
     >
       {mixed && (
         <option value="" disabled>
-          混在
+          {t('混在')}
         </option>
       )}
       {options.map((o) => (

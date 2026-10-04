@@ -1,3 +1,4 @@
+import { useTranslation } from '@/shared/lib/i18n'
 import { canUseFileSystemAccess } from '@/shared/lib/storage/fsAccess'
 import { useEditorStore } from '@/app/store'
 import styles from '../styles.module.css'
@@ -7,6 +8,8 @@ import styles from '../styles.module.css'
  * 操作ではなく状態なので、ファイル操作の段ではなくヘッダー1段目に置く。
  */
 export function WorkspaceStatus() {
+  const t = useTranslation()
+
   const status = useEditorStore((s) => s.workspaceStatus)
   const folderName = useEditorStore((s) => s.workspaceFolderName)
   const dirty = useEditorStore((s) => s.workspaceDirty)
@@ -18,8 +21,8 @@ export function WorkspaceStatus() {
       className={styles.workspace}
       title={
         dirty
-          ? `ワークスペース: ${folderName}（未保存の変更があります）`
-          : `ワークスペース: ${folderName}`
+          ? t('ワークスペース: {0}（未保存の変更があります）', folderName)
+          : t('ワークスペース: {0}', folderName)
       }
     >
       {dirty ? '● ' : ''}

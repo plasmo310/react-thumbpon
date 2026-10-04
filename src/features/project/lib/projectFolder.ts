@@ -1,3 +1,4 @@
+import { t } from '@/shared/lib/i18n'
 import {
   canUseFileSystemAccess,
   clearHandle,
@@ -75,7 +76,7 @@ async function readAt(root: Directory, path: string): Promise<File | null> {
  */
 async function writeAt(root: Directory, path: string, data: Blob | string): Promise<void> {
   const target = await resolvePath(root, path, true)
-  if (!target) throw new Error(`${path} を作成できませんでした`)
+  if (!target) throw new Error(t('{0} を作成できませんでした', path))
   await writeFile(target.dir, target.name, data)
 }
 
@@ -169,7 +170,7 @@ async function loadFrom(dir: Directory, preferred?: string): Promise<string | nu
   if (!file) return null
 
   const parsed: unknown = JSON.parse(await file.text())
-  if (!isProjectFile(parsed)) throw new Error(`${manifest} がサムネぽんの形式ではありません`)
+  if (!isProjectFile(parsed)) throw new Error(t('{0} がサムネぽんの形式ではありません', manifest))
 
   const assetsDir = await getSubDirectory(dir, ASSETS_DIR, false)
   const byId = await indexAssetFiles(assetsDir)
@@ -198,7 +199,7 @@ async function loadFrom(dir: Directory, preferred?: string): Promise<string | nu
 async function saveTo(dir: Directory, manifest: string) {
   const payloads = await collectAssetPayloads()
   const assetsDir = await getSubDirectory(dir, ASSETS_DIR, true)
-  if (!assetsDir) throw new Error(`${ASSETS_DIR}/ を作成できませんでした`)
+  if (!assetsDir) throw new Error(t('{0}/ を作成できませんでした', ASSETS_DIR))
 
   /** assets/<...> から assets/ を除いた、assets/ の中での相対パス */
   const relative = (path: string) => path.slice(ASSETS_DIR.length + 1)
@@ -259,7 +260,7 @@ async function chooseWorkspaceFolder(confirmOverwrite: ConfirmOverwrite): Promis
   const dir = await pickDirectory()
   if (!dir) return false
   if (!(await verifyPermission(dir, true)))
-    throw new Error('フォルダへの書き込みが許可されませんでした')
+    throw new Error(t('フォルダへの書き込みが許可されませんでした'))
 
   const existing = findManifestName(await listFileNames(dir))
   if (existing && !confirmOverwrite(dir.name)) return false
@@ -287,10 +288,10 @@ export async function openProjectFolder(): Promise<boolean> {
   const dir = await pickDirectory()
   if (!dir) return false
   if (!(await verifyPermission(dir, true)))
-    throw new Error('フォルダへの書き込みが許可されませんでした')
+    throw new Error(t('フォルダへの書き込みが許可されませんでした'))
 
   const manifest = findManifestName(await listFileNames(dir))
-  if (!manifest) throw new Error(`「${dir.name}」にサムネぽんのプロジェクトがありません`)
+  if (!manifest) throw new Error(t('「{0}」にサムネぽんのプロジェクトがありません', dir.name))
 
   setCurrentDirectory(dir)
   await saveHandle(dir)
@@ -366,7 +367,7 @@ export async function reloadProjectFolder(): Promise<boolean> {
 
   setCurrentDirectory(dir)
   const manifest = await loadFrom(dir, workspaceFileName ?? undefined)
-  if (!manifest) throw new Error(`「${dir.name}」にサムネぽんのプロジェクトがありません`)
+  if (!manifest) throw new Error(t('「{0}」にサムネぽんのプロジェクトがありません', dir.name))
 
   const store = useEditorStore.getState()
   store.setWorkspace('connected', dir.name, manifest)
@@ -389,7 +390,7 @@ export async function saveProjectFolder(confirmOverwrite: ConfirmOverwrite) {
   const { workspaceFileName } = useEditorStore.getState()
   if (!(await verifyPermission(dir, true))) {
     useEditorStore.getState().setWorkspace('needs-permission', dir.name, workspaceFileName)
-    throw new Error('フォルダへの書き込みが許可されませんでした')
+    throw new Error(t('フォルダへの書き込みが許可されませんでした'))
   }
   await saveTo(dir, await resolveManifestName(dir, workspaceFileName))
 }

@@ -1,10 +1,14 @@
 import type { SliceCreator } from './index'
+import type { Locale } from '@/domain/messages'
+import { loadLocale, saveLocale } from '@/shared/lib/storage/locale'
 import { DEFAULT_GRID, normalizeGrid, type GridSettings } from '@/domain/canvasLayout'
 
 /** 右クリックメニューを出す対象と位置。位置は画面座標(clientX / clientY) */
 export type LayerMenu = { layerId: string; x: number; y: number }
 
 export type UiSlice = {
+  locale: Locale
+  setLocale: (locale: Locale) => void
   pinnedThumbnailIds: string[]
   gridSettings: GridSettings
   toggleThumbnailPinned: (id: string) => void
@@ -37,6 +41,12 @@ export type UiSlice = {
 
 /** スナップの設定やガイド線など、編集内容ではない画面まわりの状態 */
 export const createUiSlice: SliceCreator<UiSlice> = (set, get) => ({
+  locale: loadLocale(),
+  /** @param locale 画面の表示言語。プロジェクトや履歴には含めない */
+  setLocale: (locale) => {
+    saveLocale(locale)
+    set({ locale })
+  },
   pinnedThumbnailIds: [],
   gridSettings: DEFAULT_GRID,
 

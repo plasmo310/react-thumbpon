@@ -1,3 +1,4 @@
+import { t } from '@/shared/lib/i18n'
 import { del, get, set } from 'idb-keyval'
 import { kv } from './db'
 
@@ -53,7 +54,7 @@ export function setCurrentDirectory(handle: DirectoryHandle | null): void {
  */
 export async function pickDirectory(): Promise<DirectoryHandle | null> {
   const picker = (window as WindowWithPicker).showDirectoryPicker
-  if (!picker) throw new Error('このブラウザはフォルダの読み書きに対応していません')
+  if (!picker) throw new Error(t('このブラウザはフォルダの読み書きに対応していません'))
   try {
     // Window のメソッドは呼び出し元を失うと Illegal invocation になるため、window を渡す。
     return await picker.call(window, {

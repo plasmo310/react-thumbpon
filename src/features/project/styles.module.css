@@ -74,6 +74,21 @@
   gap: var(--space-3);
 }
 
+.language {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--font-label);
+}
+
+.language select {
+  padding: var(--space-1) var(--space-2);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius);
+  background: var(--color-panel);
+  color: var(--color-ink);
+}
+
 /* 接続中のフォルダ名。長い名前でもツールバーを押し広げない */
 .workspace {
   max-width: 200px;

@@ -1,3 +1,4 @@
+import { t } from '@/shared/lib/i18n'
 import { useEffect } from 'react'
 import { notifyError } from '@/shared/lib/notify'
 import { canUseFileSystemAccess } from '@/shared/lib/storage/fsAccess'
@@ -35,7 +36,7 @@ export function useKeyboardShortcuts() {
       ) {
         event.preventDefault()
         void saveProjectFolder(confirmFolderOverwrite).catch((error) =>
-          notifyError('保存に失敗しました', error),
+          notifyError(t('保存に失敗しました'), error),
         )
         return
       }

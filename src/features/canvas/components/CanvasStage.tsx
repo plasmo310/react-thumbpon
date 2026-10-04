@@ -1,3 +1,4 @@
+import { useTranslation } from '@/shared/lib/i18n'
 import { useEffect, useRef, useState } from 'react'
 import { useCurrentThumbnail, useEditorStore } from '@/app/store'
 import { canvasLayout, visibleThumbnails } from '@/domain/canvasLayout'
@@ -17,6 +18,8 @@ import styles from '../styles.module.css'
  * 表示倍率と位置の面倒は useCanvasView が見る。
  */
 export function CanvasStage() {
+  const t = useTranslation()
+
   const { canvas } = useCurrentThumbnail()
   const thumbnails = useEditorStore((s) => s.thumbnails)
   const folders = useEditorStore((s) => s.folders)
@@ -113,7 +116,7 @@ export function CanvasStage() {
         ),
       )
     } catch (error) {
-      notifyError('画像の追加に失敗しました', error)
+      notifyError(t('画像の追加に失敗しました'), error)
     }
   }
 
@@ -220,12 +223,12 @@ export function CanvasStage() {
             value={grid.axis}
             onChange={(axis) => setGridSettings({ ...grid, axis })}
             options={[
-              { value: 'columns', label: '列数を指定' },
-              { value: 'rows', label: '行数を指定' },
+              { value: 'columns', label: t('列数を指定') },
+              { value: 'rows', label: t('行数を指定') },
             ]}
           />
           <label className={styles.gridCount}>
-            <span>{grid.axis === 'columns' ? '列数' : '行数'}</span>
+            <span>{grid.axis === 'columns' ? t('列数') : t('行数')}</span>
             <NumberInput
               value={grid.count}
               min={1}
@@ -234,7 +237,7 @@ export function CanvasStage() {
             />
           </label>
           <span>
-            {layout.cells.length}枚 ・ {layout.rows}行 × {layout.columns}列
+            {t('{0}枚 ・ {1}行 × {2}列', layout.cells.length, layout.rows, layout.columns)}
           </span>
         </div>
       )}
@@ -243,19 +246,21 @@ export function CanvasStage() {
         <button
           type="button"
           onClick={() => setSnapEnabled(!snapEnabled)}
-          title="他のレイヤーやキャンバス中央に吸着する（Altを押しながらドラッグで一時的に無効）"
+          title={t(
+            '他のレイヤーやキャンバス中央に吸着する（Altを押しながらドラッグで一時的に無効）',
+          )}
           className={cx(styles.control, snapEnabled && styles.controlOn)}
         >
-          スナップ {snapEnabled ? 'ON' : 'OFF'}
+          {t('スナップ')} {snapEnabled ? 'ON' : 'OFF'}
         </button>
         <button
           type="button"
           onClick={view.resetView}
-          title="表示を画面に合わせ直す（ホイールでズーム / 中ボタンドラッグで移動）"
+          title={t('表示を画面に合わせ直す（ホイールでズーム / 中ボタンドラッグで移動）')}
           className={cx(styles.control, view.adjusted && styles.controlAdjusted)}
         >
           {multiple
-            ? `${layout.cells.length}枚 ・ 全体を画面に合わせる`
+            ? t('{0}枚 ・ 全体を画面に合わせる', layout.cells.length)
             : `${canvas.width} × ${canvas.height}`}{' '}
           ・ {Math.round(view.scale * 100)}%
         </button>

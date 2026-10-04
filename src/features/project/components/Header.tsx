@@ -1,3 +1,4 @@
+import { useTranslation } from '@/shared/lib/i18n'
 import { useEditorStore } from '@/app/store'
 import { useAsyncAction } from '@/shared/lib/useAsyncAction'
 import { IconButton, RefreshIcon } from '@/shared/ui'
@@ -23,6 +24,10 @@ const TITLE_OFFSET_Y = -1
  * 常用する PNG書き出しだけが一番右に出る。
  */
 export function Header() {
+  const t = useTranslation()
+  const locale = useEditorStore((s) => s.locale)
+  const setLocale = useEditorStore((s) => s.setLocale)
+
   const canUndo = useEditorStore((s) => s.historyPast.length > 0)
   const canRedo = useEditorStore((s) => s.historyFuture.length > 0)
   const workspaceStatus = useEditorStore((s) => s.workspaceStatus)
@@ -35,11 +40,13 @@ export function Header() {
   const handleReload = () => {
     if (
       workspaceDirty &&
-      !window.confirm('未保存の変更を破棄して、プロジェクトを読み込みなおします。よろしいですか？')
+      !window.confirm(
+        t('未保存の変更を破棄して、プロジェクトを読み込みなおします。よろしいですか？'),
+      )
     ) {
       return
     }
-    void run('プロジェクトを読み込みなおせませんでした', reloadProjectFolder)
+    void run(t('プロジェクトを読み込みなおせませんでした'), reloadProjectFolder)
   }
 
   return (
@@ -54,22 +61,36 @@ export function Header() {
         <div className={styles.brand}>
           <img className={styles.logo} src={logoUrl} alt="" />
           <h1 className={styles.title} style={{ transform: `translateY(${TITLE_OFFSET_Y}px)` }}>
-            サムネぽん！
+            {t('サムネぽん！')}
           </h1>
           <span className={styles.sub}>ThumbPon v{__APP_VERSION__}</span>
           <div className={styles.separator} />
-          <span className={styles.lead}>サムネイルをサクッと作るツール</span>
+          <span className={styles.lead}>{t('サムネイルをサクッと作るツール')}</span>
         </div>
 
         <div className={styles.tools}>
-          <IconButton title="元に戻す (Ctrl+Z)" onClick={undo} disabled={!canUndo}>
+          <label className={styles.language}>
+            <span>{t('言語')}</span>
+            <select
+              value={locale}
+              onChange={(event) => setLocale(event.target.value === 'en' ? 'en' : 'ja')}
+            >
+              <option value="ja" lang="ja">
+                日本語
+              </option>
+              <option value="en" lang="en">
+                English
+              </option>
+            </select>
+          </label>
+          <IconButton title={t('元に戻す (Ctrl+Z)')} onClick={undo} disabled={!canUndo}>
             ↶
           </IconButton>
-          <IconButton title="やり直す (Ctrl+Shift+Z)" onClick={redo} disabled={!canRedo}>
+          <IconButton title={t('やり直す (Ctrl+Shift+Z)')} onClick={redo} disabled={!canRedo}>
             ↷
           </IconButton>
           <IconButton
-            title="プロジェクトデータを読み込みなおす"
+            title={t('プロジェクトデータを読み込みなおす')}
             onClick={handleReload}
             disabled={workspaceStatus !== 'connected' || busy}
           >
@@ -84,7 +105,9 @@ export function Header() {
       {/* 操作が1段目に収まったので、2段目は案内だけの細い帯にする */}
       <div className={styles.subBar}>
         <span className={styles.lead}>
-          素材を配置した後、「PNG書き出し」ボタンから画像を書き出せます。画像やフォントはブラウザ内だけで処理され、どこにも送信されません。
+          {t(
+            '素材を配置した後、「PNG書き出し」ボタンから画像を書き出せます。画像やフォントはブラウザ内だけで処理され、どこにも送信されません。',
+          )}
         </span>
       </div>
     </header>

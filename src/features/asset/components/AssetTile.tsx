@@ -1,3 +1,4 @@
+import { useTranslation } from '@/shared/lib/i18n'
 import { useState } from 'react'
 import type { AssetMeta } from '@/domain/asset'
 import { useEditorStore } from '@/app/store'
@@ -13,6 +14,8 @@ import styles from '../styles.module.css'
  * @param props.asset 表示する素材のメタ情報
  */
 export function AssetTile({ asset }: { asset: AssetMeta }) {
+  const t = useTranslation()
+
   const addImageLayer = useEditorStore((s) => s.addImageLayer)
   const removeAsset = useEditorStore((s) => s.removeAsset)
   const reorderAsset = useEditorStore((s) => s.reorderAsset)
@@ -29,7 +32,7 @@ export function AssetTile({ asset }: { asset: AssetMeta }) {
     >
       <button
         type="button"
-        title={`${asset.name}（クリックで中央に配置 / キャンバスかフォルダへドラッグ）`}
+        title={t('{0}（クリックで中央に配置 / キャンバスかフォルダへドラッグ）', asset.name)}
         onClick={() => addImageLayer(asset.id)}
         draggable
         onDragStart={(event) => {
@@ -63,7 +66,7 @@ export function AssetTile({ asset }: { asset: AssetMeta }) {
       </button>
       <button
         type="button"
-        title="素材を削除"
+        title={t('素材を削除')}
         onClick={() => void removeAsset(asset.id)}
         className={styles.remove}
       >

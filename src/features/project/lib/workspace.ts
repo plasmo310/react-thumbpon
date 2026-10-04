@@ -1,3 +1,4 @@
+import { t } from '@/shared/lib/i18n'
 import { get, set } from 'idb-keyval'
 import { shallow } from 'zustand/shallow'
 import { kv } from '@/shared/lib/storage/db'
@@ -30,7 +31,7 @@ export async function restoreWorkspace() {
     const fonts = await loadStoredFonts()
     if (fonts.length > 0) store.addFonts(fonts)
   } catch (error) {
-    console.error('フォントの復元に失敗しました', error)
+    console.error(t('フォントの復元に失敗しました'), error)
   }
 
   const saved = await get<SavedDocument>(WORKSPACE_KEY, kv)
@@ -42,14 +43,14 @@ export async function restoreWorkspace() {
   try {
     await restoreProjectFolder()
   } catch (error) {
-    console.error('ワークスペースフォルダの復元に失敗しました', error)
+    console.error(t('ワークスペースフォルダの復元に失敗しました'), error)
   }
 
   try {
     const display = await get<CanvasDisplay>(CANVAS_DISPLAY_KEY, kv)
     useEditorStore.getState().restoreCanvasDisplay(display ?? {})
   } catch (error) {
-    console.error('Canvasの表示設定の復元に失敗しました', error)
+    console.error(t('Canvasの表示設定の復元に失敗しました'), error)
   }
   useEditorStore.getState().setReady(true)
 }
@@ -100,7 +101,7 @@ export function startAutoSave() {
       window.clearTimeout(displayTimer)
       displayTimer = window.setTimeout(() => {
         void set(CANVAS_DISPLAY_KEY, display, kv).catch((error) =>
-          console.error('Canvasの表示設定の保存に失敗しました', error),
+          console.error(t('Canvasの表示設定の保存に失敗しました'), error),
         )
       }, 400)
     },
@@ -116,7 +117,7 @@ export function startAutoSave() {
       window.clearTimeout(timer)
       timer = window.setTimeout(() => {
         void set(WORKSPACE_KEY, document, kv).catch((error) =>
-          console.error('自動保存に失敗しました', error),
+          console.error(t('自動保存に失敗しました'), error),
         )
       }, 400)
     },

@@ -1,3 +1,4 @@
+import { useTranslation } from '@/shared/lib/i18n'
 import { useState } from 'react'
 import type { Thumbnail } from '@/domain/thumbnail'
 import { useEditorStore } from '@/app/store'
@@ -16,6 +17,8 @@ import styles from '../styles.module.css'
  * @param props.depth     入れ子の深さ。フォルダ内なら 1。左の余白に使う
  */
 export function ThumbnailRow({ thumbnail, depth }: { thumbnail: Thumbnail; depth: number }) {
+  const t = useTranslation()
+
   const currentId = useEditorStore((s) => s.currentThumbnailId)
   const pinned = useEditorStore((s) => s.pinnedThumbnailIds.includes(thumbnail.id))
   const togglePinned = useEditorStore((s) => s.toggleThumbnailPinned)
@@ -72,8 +75,8 @@ export function ThumbnailRow({ thumbnail, depth }: { thumbnail: Thumbnail; depth
         <input
           type="checkbox"
           checked={pinned}
-          aria-label={`「${thumbnail.name}」を常時表示`}
-          title="チェックするとCanvasに常時表示します"
+          aria-label={t('「{0}」を常時表示', thumbnail.name)}
+          title={t('チェックするとCanvasに常時表示します')}
           className={styles.checkbox}
           onPointerDown={(event) => event.stopPropagation()}
           onClick={(event) => event.stopPropagation()}
@@ -102,14 +105,14 @@ export function ThumbnailRow({ thumbnail, depth }: { thumbnail: Thumbnail; depth
           </span>
         )}
         <div className={styles.actions}>
-          <IconButton title="複製" onClick={() => duplicateThumbnail(thumbnail.id)}>
+          <IconButton title={t('複製')} onClick={() => duplicateThumbnail(thumbnail.id)}>
             ⧉
           </IconButton>
-          <IconButton title="コピー" onClick={() => copyThumbnail(thumbnail.id)}>
+          <IconButton title={t('コピー')} onClick={() => copyThumbnail(thumbnail.id)}>
             📋
           </IconButton>
           {canRemove && (
-            <IconButton title="削除" onClick={() => removeThumbnail(thumbnail.id)}>
+            <IconButton title={t('削除')} onClick={() => removeThumbnail(thumbnail.id)}>
               🗑
             </IconButton>
           )}

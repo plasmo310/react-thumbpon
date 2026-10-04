@@ -1,3 +1,4 @@
+import { useTranslation } from '@/shared/lib/i18n'
 import { useEffect, useRef, useState } from 'react'
 import { AssetPanel } from '@/features/asset'
 import { CanvasStage } from '@/features/canvas'
@@ -21,6 +22,13 @@ const MIN_PANEL = 80
 const MIN_LAYER_PANEL = 120
 
 export function App() {
+  const t = useTranslation()
+  const locale = useEditorStore((s) => s.locale)
+  useEffect(() => {
+    document.documentElement.lang = locale
+    document.title = locale === 'ja' ? 'サムネぽん！ / ThumbPon' : 'ThumbPon — Thumbnail editor'
+  }, [locale])
+
   const unsupportedDevice = isUnsupportedDevice(navigator)
   useKeyboardShortcuts()
   const sidebarRef = useRef<HTMLElement>(null)
@@ -73,7 +81,7 @@ export function App() {
             <Splitter
               axis="y"
               size={layout.thumbnailHeight}
-              title="ドラッグでサムネイルの高さを変える"
+              title={t('ドラッグでサムネイルの高さを変える')}
               onResize={(height) =>
                 setLayout((current) => ({
                   ...current,
@@ -88,7 +96,7 @@ export function App() {
               axis="y"
               size={layout.assetHeight}
               invert
-              title="ドラッグで素材の高さを変える"
+              title={t('ドラッグで素材の高さを変える')}
               onResize={(height) =>
                 setLayout((current) => ({
                   ...current,
@@ -104,7 +112,7 @@ export function App() {
           <Splitter
             axis="x"
             size={layout.sidebarWidth}
-            title="ドラッグで左パネルの幅を変える"
+            title={t('ドラッグで左パネルの幅を変える')}
             onResize={(width) =>
               setLayout((current) => ({
                 ...current,
@@ -120,8 +128,8 @@ export function App() {
         <LayerMenu />
       </div>
       <main className={styles.mobileUnsupported}>
-        <p>ThumbPon はモバイル端末に対応していません。</p>
-        <p>PC からアクセスしてください。</p>
+        <p>{t('ThumbPon はモバイル端末に対応していません。')}</p>
+        <p>{t('PC からアクセスしてください。')}</p>
       </main>
     </div>
   )

@@ -1,3 +1,4 @@
+import { useTranslation } from '@/shared/lib/i18n'
 import { useCurrentThumbnail, useEditorStore } from '@/app/store'
 import { ContextMenu, type ContextMenuItem } from '@/shared/ui'
 
@@ -10,6 +11,8 @@ import { ContextMenu, type ContextMenuItem } from '@/shared/ui'
  * canvas からこの feature を import せずに済む。描くのは App が1つだけ。
  */
 export function LayerMenu() {
+  const t = useTranslation()
+
   const { layers } = useCurrentThumbnail()
   const menu = useEditorStore((s) => s.layerMenu)
   const closeLayerMenu = useEditorStore((s) => s.closeLayerMenu)
@@ -32,10 +35,10 @@ export function LayerMenu() {
     layer.type === 'image'
       ? [
           {
-            label: layer.flipX ? '左右反転を戻す' : '左右反転',
+            label: layer.flipX ? t('左右反転を戻す') : t('左右反転'),
             onSelect: () => updateLayer(layer.id, { flipX: !layer.flipX }),
           },
-          { label: 'クロップを調整', onSelect: () => setCropping(true) },
+          { label: t('クロップを調整'), onSelect: () => setCropping(true) },
         ]
       : []
 
@@ -44,21 +47,21 @@ export function LayerMenu() {
    * 「前面へ」は一覧では下に動くため、矢印ではなく言葉で出す。
    */
   const items: ContextMenuItem[] = [
-    { label: '最前面へ移動', onSelect: () => moveLayer(layer.id, 'front'), disabled: isFront },
-    { label: '前面へ移動', onSelect: () => moveLayer(layer.id, 'forward'), disabled: isFront },
-    { label: '背面へ移動', onSelect: () => moveLayer(layer.id, 'backward'), disabled: isBack },
-    { label: '最背面へ移動', onSelect: () => moveLayer(layer.id, 'back'), disabled: isBack },
-    { label: '複製', onSelect: () => duplicateLayer(layer.id), separated: true },
+    { label: t('最前面へ移動'), onSelect: () => moveLayer(layer.id, 'front'), disabled: isFront },
+    { label: t('前面へ移動'), onSelect: () => moveLayer(layer.id, 'forward'), disabled: isFront },
+    { label: t('背面へ移動'), onSelect: () => moveLayer(layer.id, 'backward'), disabled: isBack },
+    { label: t('最背面へ移動'), onSelect: () => moveLayer(layer.id, 'back'), disabled: isBack },
+    { label: t('複製'), onSelect: () => duplicateLayer(layer.id), separated: true },
     {
-      label: layer.visible ? '非表示にする' : '表示する',
+      label: layer.visible ? t('非表示にする') : t('表示する'),
       onSelect: () => updateLayer(layer.id, { visible: !layer.visible }),
     },
     {
-      label: layer.locked ? 'ロックを解除' : 'ロック',
+      label: layer.locked ? t('ロックを解除') : t('ロック'),
       onSelect: () => updateLayer(layer.id, { locked: !layer.locked }),
     },
     ...imageItems,
-    { label: '削除', onSelect: () => removeLayer(layer.id), separated: true },
+    { label: t('削除'), onSelect: () => removeLayer(layer.id), separated: true },
   ]
 
   return <ContextMenu items={items} x={menu.x} y={menu.y} onClose={closeLayerMenu} />

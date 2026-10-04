@@ -1,3 +1,4 @@
+import { t } from '@/shared/lib/i18n'
 import { del, get, set } from 'idb-keyval'
 import { kv } from './db'
 import type { AssetFolder, AssetMeta } from '@/domain/asset'
@@ -158,7 +159,7 @@ export async function readImageSize(file: Blob): Promise<{ width: number; height
       const img = new Image()
       img.onload = () =>
         resolve({ width: img.naturalWidth || 300, height: img.naturalHeight || 300 })
-      img.onerror = () => reject(new Error('画像を読み込めませんでした'))
+      img.onerror = () => reject(new Error(t('画像を読み込めませんでした')))
       img.src = url
     })
   } finally {

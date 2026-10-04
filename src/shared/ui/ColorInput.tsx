@@ -1,3 +1,4 @@
+import { useTranslation } from '@/shared/lib/i18n'
 import { useEffect, useState } from 'react'
 import styles from './styles.module.css'
 
@@ -31,6 +32,8 @@ export function ColorInput({
   onChange: (value: string) => void
   mixed?: boolean
 }) {
+  const t = useTranslation()
+
   const [code, setCode] = useState(mixed ? '' : value)
 
   useEffect(() => {
@@ -59,10 +62,10 @@ export function ColorInput({
         type="text"
         className={styles.input}
         value={code}
-        placeholder={mixed ? '混在' : undefined}
+        placeholder={mixed ? t('混在') : undefined}
         inputMode="text"
         pattern="#[0-9A-Fa-f]{3}([0-9A-Fa-f]{3})?"
-        aria-label="HTMLカラーコード"
+        aria-label={t('HTMLカラーコード')}
         onChange={(e) => setCode(e.target.value)}
         onBlur={commitCode}
         onKeyDown={(e) => {

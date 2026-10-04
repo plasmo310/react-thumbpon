@@ -1,5 +1,6 @@
 import { BACKGROUND_ID } from '@/domain/background'
 import { cloneLayer, createImageLayer, createShapeLayer, createTextLayer } from '@/domain/layer'
+import { t } from '@/shared/lib/i18n'
 import { fitInto, type Rect } from '@/domain/geometry'
 import { createPatchers } from './patch'
 import { mergeCrop, type Crop } from '@/domain/crop'
@@ -111,7 +112,11 @@ export const createLayerSlice: SliceCreator<LayerSlice> = (set, get) => {
       const thumbnail = current()
       if (!thumbnail) return
       get().recordHistory()
-      const layer = fitTextLayer(createTextLayer(thumbnail.canvas))
+      const layer = fitTextLayer({
+        ...createTextLayer(thumbnail.canvas),
+        name: t('テキスト'),
+        text: t('テキストを入力'),
+      })
       layer.x = Math.round((thumbnail.canvas.width - layer.width) / 2)
       patchLayers((layers) => [...layers, layer])
       set({ selectedId: layer.id, selectedIds: [layer.id], propertiesOpen: true, cropping: false })
@@ -123,6 +128,7 @@ export const createLayerSlice: SliceCreator<LayerSlice> = (set, get) => {
       if (!thumbnail) return
       get().recordHistory()
       const layer = createShapeLayer(thumbnail.canvas, shape)
+      layer.name = t(shape === 'ellipse' ? '円' : '四角形')
       patchLayers((layers) => [...layers, layer])
       set({ selectedId: layer.id, selectedIds: [layer.id], propertiesOpen: true, cropping: false })
     },

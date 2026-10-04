@@ -1,3 +1,4 @@
+import { t } from '@/shared/lib/i18n'
 /**
  * 保存先に選んだフォルダに別のプロジェクトがあるとき、上書きしてよいかを聞く。
  *
@@ -9,6 +10,6 @@
  */
 export const confirmFolderOverwrite = (folderName: string): boolean =>
   window.confirm(
-    `「${folderName}」には別のプロジェクトがあります。今のプロジェクトで置き換えますか？\n` +
-      '（今のプロジェクトが使っていない素材ファイルは削除されます）',
+    t('「{0}」には別のプロジェクトがあります。今のプロジェクトで置き換えますか？\n', folderName) +
+      t('（今のプロジェクトが使っていない素材ファイルは削除されます）'),
   )

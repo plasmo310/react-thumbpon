@@ -1,3 +1,4 @@
+import { useTranslation } from '@/shared/lib/i18n'
 import { useEditorStore } from '@/app/store'
 import type { ShapeFillType, ShapeKind, ShapeLayer, ShapePattern } from '@/domain/layer'
 import { ColorInput, NumberInput, PercentRow, Row, Select, SliderRow } from '@/shared/ui'
@@ -6,6 +7,8 @@ import styles from '../styles.module.css'
 
 /** 図形レイヤー固有のプロパティ。 */
 export function ShapeProperties({ layer }: { layer: ShapeLayer }) {
+  const t = useTranslation()
+
   const updateLayer = useEditorStore((s) => s.updateLayer)
   const updateLayerEffects = useEditorStore((s) => s.updateLayerEffects)
   const patch = (values: Partial<ShapeLayer>) => updateLayer(layer.id, values)
@@ -14,26 +17,26 @@ export function ShapeProperties({ layer }: { layer: ShapeLayer }) {
   return (
     <>
       <div className={styles.pair}>
-        <Row label="幅">
+        <Row label={t('幅')}>
           <NumberInput value={layer.width} min={1} onChange={(width) => patch({ width })} />
         </Row>
-        <Row label="高さ">
+        <Row label={t('高さ')}>
           <NumberInput value={layer.height} min={1} onChange={(height) => patch({ height })} />
         </Row>
       </div>
-      <Row label="形状">
+      <Row label={t('形状')}>
         <Select<ShapeKind>
           value={layer.shape}
           options={[
-            { label: '四角形', value: 'rectangle' },
-            { label: '円', value: 'ellipse' },
+            { label: t('四角形'), value: 'rectangle' },
+            { label: t('円'), value: 'ellipse' },
           ]}
           onChange={(shape) => patch({ shape })}
         />
       </Row>
       {layer.shape === 'rectangle' && (
         <SliderRow
-          label="角丸"
+          label={t('角丸')}
           value={Math.min(layer.cornerRadius, radiusMax)}
           min={0}
           max={radiusMax}
@@ -41,35 +44,35 @@ export function ShapeProperties({ layer }: { layer: ShapeLayer }) {
           onChange={(cornerRadius) => patch({ cornerRadius })}
         />
       )}
-      <Row label="塗り">
+      <Row label={t('塗り')}>
         <Select<ShapeFillType>
           value={layer.fillType}
           options={[
-            { label: '単色', value: 'color' },
-            { label: 'グラデーション', value: 'gradient' },
-            { label: 'パターン', value: 'pattern' },
+            { label: t('単色'), value: 'color' },
+            { label: t('グラデーション'), value: 'gradient' },
+            { label: t('パターン'), value: 'pattern' },
           ]}
           onChange={(fillType) => patch({ fillType })}
         />
       </Row>
       {layer.fillType === 'color' && (
-        <Row label="色">
+        <Row label={t('色')}>
           <ColorInput value={layer.color} onChange={(color) => patch({ color })} />
         </Row>
       )}
       {layer.fillType === 'gradient' && (
         <>
-          <Row label="開始色">
+          <Row label={t('開始色')}>
             <ColorInput
               value={layer.gradientFrom}
               onChange={(gradientFrom) => patch({ gradientFrom })}
             />
           </Row>
-          <Row label="終了色">
+          <Row label={t('終了色')}>
             <ColorInput value={layer.gradientTo} onChange={(gradientTo) => patch({ gradientTo })} />
           </Row>
           <SliderRow
-            label="角度"
+            label={t('角度')}
             value={layer.gradientAngle}
             min={0}
             max={360}
@@ -80,27 +83,27 @@ export function ShapeProperties({ layer }: { layer: ShapeLayer }) {
       )}
       {layer.fillType === 'pattern' && (
         <>
-          <Row label="模様">
+          <Row label={t('模様')}>
             <Select<ShapePattern>
               value={layer.pattern}
               options={[
-                { label: '水玉', value: 'dots' },
-                { label: 'ライン', value: 'lines' },
-                { label: 'チェック', value: 'checker' },
+                { label: t('水玉'), value: 'dots' },
+                { label: t('ライン'), value: 'lines' },
+                { label: t('チェック'), value: 'checker' },
               ]}
               onChange={(pattern) => patch({ pattern })}
             />
           </Row>
-          <Row label="下地色">
+          <Row label={t('下地色')}>
             <ColorInput value={layer.color} onChange={(color) => patch({ color })} />
           </Row>
-          <Row label="模様の色">
+          <Row label={t('模様の色')}>
             <ColorInput
               value={layer.patternColor}
               onChange={(patternColor) => patch({ patternColor })}
             />
           </Row>
-          <Row label="間隔">
+          <Row label={t('間隔')}>
             <NumberInput
               value={layer.patternSize}
               min={2}
@@ -109,7 +112,7 @@ export function ShapeProperties({ layer }: { layer: ShapeLayer }) {
           </Row>
           {layer.pattern !== 'checker' && (
             <PercentRow
-              label="太さ"
+              label={t('太さ')}
               value={layer.patternWeight}
               min={0.05}
               max={0.95}
@@ -119,7 +122,7 @@ export function ShapeProperties({ layer }: { layer: ShapeLayer }) {
           )}
           {layer.pattern === 'lines' && (
             <SliderRow
-              label="角度"
+              label={t('角度')}
               value={layer.patternAngle}
               min={0}
               max={180}
@@ -129,11 +132,11 @@ export function ShapeProperties({ layer }: { layer: ShapeLayer }) {
           )}
         </>
       )}
-      <Row label="回転">
+      <Row label={t('回転')}>
         <NumberInput value={layer.rotation} onChange={(rotation) => patch({ rotation })} />
       </Row>
       <PercentRow
-        label="不透明度"
+        label={t('不透明度')}
         value={layer.opacity}
         onChange={(opacity) => patch({ opacity })}
       />

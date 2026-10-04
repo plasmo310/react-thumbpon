@@ -1,3 +1,4 @@
+import { useTranslation } from '@/shared/lib/i18n'
 import { useState } from 'react'
 import { IconButton, Row, Select } from '@/shared/ui'
 
@@ -21,14 +22,16 @@ export function PresetRow({
   onSave: (name: string) => void
   onRemove: (id: string) => void
 }) {
+  const t = useTranslation()
+
   const [selected, setSelected] = useState('')
 
   return (
-    <Row label="プリセット">
+    <Row label={t('プリセット')}>
       <Select
         value={selected}
         options={[
-          { label: '選択…', value: '' },
+          { label: t('選択…'), value: '' },
           ...presets.map((preset) => ({ label: preset.name, value: preset.id })),
         ]}
         onChange={(id) => {
@@ -37,9 +40,9 @@ export function PresetRow({
         }}
       />
       <IconButton
-        title="今の設定をプリセットとして保存"
+        title={t('今の設定をプリセットとして保存')}
         onClick={() => {
-          const name = window.prompt('プリセット名')?.trim()
+          const name = window.prompt(t('プリセット名'))?.trim()
           if (name) onSave(name)
         }}
       >
@@ -47,7 +50,7 @@ export function PresetRow({
       </IconButton>
       {selected && (
         <IconButton
-          title="このプリセットを削除"
+          title={t('このプリセットを削除')}
           onClick={() => {
             onRemove(selected)
             setSelected('')

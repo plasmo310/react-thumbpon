@@ -1,3 +1,4 @@
+import { useTranslation } from '@/shared/lib/i18n'
 import { notifyError } from '@/shared/lib/notify'
 import { reconnectProjectFolder } from '../lib/projectFolder'
 import { useEditorStore } from '@/app/store'
@@ -8,6 +9,8 @@ import styles from '../styles.module.css'
  * 出す内容が無ければ何も描画しないので、通常は高さを取らない。
  */
 export function WorkspaceNotice() {
+  const t = useTranslation()
+
   const status = useEditorStore((s) => s.workspaceStatus)
   const folderName = useEditorStore((s) => s.workspaceFolderName)
   const missingFonts = useEditorStore((s) => s.missingFontLabels)
@@ -22,43 +25,47 @@ export function WorkspaceNotice() {
     <div className={styles.notice}>
       {needsPermission && (
         <span className={styles.noticeItem}>
-          前回のフォルダ「{folderName}」への権限が切れています。
+          {t('前回のフォルダ「{0}」への権限が切れています。', folderName ?? '')}
           <button
             type="button"
             className={styles.noticeButton}
             onClick={() =>
               void reconnectProjectFolder().catch((error) =>
-                notifyError('再接続に失敗しました', error),
+                notifyError(t('再接続に失敗しました'), error),
               )
             }
           >
-            再接続
+            {t('再接続')}
           </button>
         </span>
       )}
       {missingFonts.length > 0 && (
         <span className={styles.noticeItem}>
-          フォント「{missingFonts.join('」「')}」が見つかりません。
-          フォントファイルを追加すると元の見た目に戻ります。
+          {t(
+            'フォント「{0}」が見つかりません。フォントファイルを追加すると元の見た目に戻ります。',
+            missingFonts.join(', '),
+          )}
           <button
             type="button"
             className={styles.noticeButton}
             onClick={() => setMissingFontLabels([])}
           >
-            閉じる
+            {t('閉じる')}
           </button>
         </span>
       )}
       {missingAssets.length > 0 && (
         <span className={styles.noticeItem}>
-          素材「{missingAssets.join('」「')}」の画像が見つかりません。
-          それを使っていたレイヤーは枠だけで表示されます。
+          {t(
+            '素材「{0}」の画像が見つかりません。それを使っていたレイヤーは枠だけで表示されます。',
+            missingAssets.join(', '),
+          )}
           <button
             type="button"
             className={styles.noticeButton}
             onClick={() => setMissingAssetNames([])}
           >
-            閉じる
+            {t('閉じる')}
           </button>
         </span>
       )}

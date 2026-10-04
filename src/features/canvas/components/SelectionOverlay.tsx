@@ -1,3 +1,4 @@
+import { useTranslation } from '@/shared/lib/i18n'
 import { useRef } from 'react'
 import type { CSSProperties, PointerEvent as ReactPointerEvent } from 'react'
 import {
@@ -62,6 +63,8 @@ const TEXT_HANDLES: Handle[] = ['nw', 'ne', 'se', 'sw', 'e', 'w']
  * @param props.scale 表示倍率。枠やハンドルが倍率によらず同じ太さに見えるよう実寸に割り戻す
  */
 export function SelectionOverlay({ scale }: { scale: number }) {
+  const t = useTranslation()
+
   const layer = useSelectedLayer()
   const selectedIds = useEditorStore((s) => s.selectedIds)
   const { layers } = useCurrentThumbnail()
@@ -271,7 +274,7 @@ export function SelectionOverlay({ scale }: { scale: number }) {
           />
           <div
             onPointerDown={startRotate}
-            title="回転（Shiftで15度スナップ）"
+            title={t('回転（Shiftで15度スナップ）')}
             style={{
               position: 'absolute',
               left: '50%',
@@ -294,7 +297,7 @@ export function SelectionOverlay({ scale }: { scale: number }) {
       {handles.map((handle) => (
         <div
           key={handle}
-          title={image ? 'ドラッグで表示範囲を詰める' : undefined}
+          title={image ? t('ドラッグで表示範囲を詰める') : undefined}
           onPointerDown={image ? startCrop(handle) : startResize(handle)}
           style={handleStyle(handle)}
         />

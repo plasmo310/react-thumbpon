@@ -1,3 +1,4 @@
+import { useTranslation } from '@/shared/lib/i18n'
 import { useEffect, useId, useLayoutEffect, useRef } from 'react'
 import type { CSSProperties } from 'react'
 import { normalizeTextRange, reconcileText, replaceTextRange } from '@/domain/text'
@@ -47,6 +48,8 @@ type Props = {
  * @param props.baseStyle キャンバスの全体書式。背面の縁取りの継承に使う
  */
 export function RichTextInput(props: Props) {
+  const t = useTranslation()
+
   const rootRef = useRef<HTMLDivElement>(null)
   const outlineRef = useRef<HTMLDivElement>(null)
   const outlineId = useId().replace(/:/g, '')
@@ -251,7 +254,7 @@ export function RichTextInput(props: Props) {
           contentEditable={!!props.editable && !props.disabled}
           suppressContentEditableWarning
           role={props.editable ? 'textbox' : undefined}
-          aria-label={props.editable ? 'テキスト編集' : undefined}
+          aria-label={props.editable ? t('テキスト編集') : undefined}
           aria-multiline={props.editable ? true : undefined}
           spellCheck={false}
           tabIndex={props.editable && !props.disabled ? 0 : undefined}

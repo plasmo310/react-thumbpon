@@ -1,3 +1,4 @@
+import { useTranslation } from '@/shared/lib/i18n'
 import { DEFAULT_EFFECTS, type Effects } from '@/domain/effects'
 import type { ReactNode } from 'react'
 import styles from '../styles.module.css'
@@ -49,15 +50,17 @@ export function EffectsSection({
   onChange: (patch: Partial<Effects>) => void
   children?: ReactNode
 }) {
+  const t = useTranslation()
+
   const value: Effects = { ...DEFAULT_EFFECTS, ...effects }
 
   return (
     <>
       <div className={styles.divider} />
-      <span className={styles.sectionTitle}>エフェクト</span>
+      <span className={styles.sectionTitle}>{t('エフェクト')}</span>
 
       <SliderRow
-        label="ブラー"
+        label={t('ブラー')}
         value={value.blur}
         min={0}
         max={40}
@@ -67,36 +70,36 @@ export function EffectsSection({
       />
 
       <EffectToggle
-        label="シャドウ"
+        label={t('シャドウ')}
         enabled={value.shadowEnabled}
         onToggle={(shadowEnabled) => onChange({ shadowEnabled })}
       />
       {value.shadowEnabled && (
         <>
           <div className={styles.pair}>
-            <Row label="ずらしX">
+            <Row label={t('ずらしX')}>
               <NumberInput value={value.shadowX} onChange={(shadowX) => onChange({ shadowX })} />
             </Row>
-            <Row label="ずらしY">
+            <Row label={t('ずらしY')}>
               <NumberInput value={value.shadowY} onChange={(shadowY) => onChange({ shadowY })} />
             </Row>
           </div>
           <SliderRow
-            label="ぼかし"
+            label={t('ぼかし')}
             value={value.shadowBlur}
             min={0}
             max={60}
             unit="px"
             onChange={(shadowBlur) => onChange({ shadowBlur })}
           />
-          <Row label="影の色">
+          <Row label={t('影の色')}>
             <ColorInput
               value={value.shadowColor}
               onChange={(shadowColor) => onChange({ shadowColor })}
             />
           </Row>
           <PercentRow
-            label="濃さ"
+            label={t('濃さ')}
             value={value.shadowOpacity}
             onChange={(shadowOpacity) => onChange({ shadowOpacity })}
           />
@@ -104,25 +107,25 @@ export function EffectsSection({
       )}
 
       <EffectToggle
-        label="光彩"
+        label={t('光彩')}
         enabled={value.glowEnabled}
         onToggle={(glowEnabled) => onChange({ glowEnabled })}
       />
       {value.glowEnabled && (
         <>
           <SliderRow
-            label="広がり"
+            label={t('広がり')}
             value={value.glowBlur}
             min={1}
             max={60}
             unit="px"
             onChange={(glowBlur) => onChange({ glowBlur })}
           />
-          <Row label="光の色">
+          <Row label={t('光の色')}>
             <ColorInput value={value.glowColor} onChange={(glowColor) => onChange({ glowColor })} />
           </Row>
           <PercentRow
-            label="濃さ"
+            label={t('濃さ')}
             value={value.glowOpacity}
             onChange={(glowOpacity) => onChange({ glowOpacity })}
           />

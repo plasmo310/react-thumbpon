@@ -1,3 +1,4 @@
+import { useTranslation } from '@/shared/lib/i18n'
 import { useEditorStore } from '@/app/store'
 import type { ImageLayer } from '@/domain/layer'
 import { NumberInput, PercentRow, Row, Select } from '@/shared/ui'
@@ -11,12 +12,14 @@ import styles from '../styles.module.css'
  * @param props.layer 編集対象の画像レイヤー
  */
 export function ImageProperties({ layer }: { layer: ImageLayer }) {
+  const t = useTranslation()
+
   const updateLayer = useEditorStore((s) => s.updateLayer)
   const assets = useEditorStore((s) => s.assets)
 
   return (
     <>
-      <Row label="画像">
+      <Row label={t('画像')}>
         <Select
           value={layer.assetId}
           options={assets.map((asset) => ({ label: asset.name, value: asset.id }))}
@@ -24,14 +27,14 @@ export function ImageProperties({ layer }: { layer: ImageLayer }) {
         />
       </Row>
       <div className={styles.pair}>
-        <Row label="幅">
+        <Row label={t('幅')}>
           <NumberInput
             value={layer.width}
             min={1}
             onChange={(width) => updateLayer(layer.id, { width })}
           />
         </Row>
-        <Row label="高さ">
+        <Row label={t('高さ')}>
           <NumberInput
             value={layer.height}
             min={1}
@@ -39,13 +42,13 @@ export function ImageProperties({ layer }: { layer: ImageLayer }) {
           />
         </Row>
       </div>
-      <Row label="回転">
+      <Row label={t('回転')}>
         <NumberInput
           value={layer.rotation}
           onChange={(rotation) => updateLayer(layer.id, { rotation })}
         />
       </Row>
-      <Row label="反転">
+      <Row label={t('反転')}>
         <label className={styles.toggle}>
           <input
             type="checkbox"
@@ -53,11 +56,11 @@ export function ImageProperties({ layer }: { layer: ImageLayer }) {
             checked={layer.flipX}
             onChange={(e) => updateLayer(layer.id, { flipX: e.target.checked })}
           />
-          左右
+          {t('左右')}
         </label>
       </Row>
       <PercentRow
-        label="不透明度"
+        label={t('不透明度')}
         value={layer.opacity}
         onChange={(opacity) => updateLayer(layer.id, { opacity })}
       />

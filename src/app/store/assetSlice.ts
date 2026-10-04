@@ -1,3 +1,4 @@
+import { t } from '@/shared/lib/i18n'
 import {
   assetFolderAncestors,
   createAssetFolder,
@@ -159,7 +160,7 @@ export const createAssetSlice: SliceCreator<AssetSlice> = (set, get) => {
         ...assetFolders.map((folder) =>
           folder.id === parentId ? { ...folder, collapsed: false } : folder,
         ),
-        createAssetFolder(`素材 ${assetFolders.length + 1}`, parentId),
+        createAssetFolder(t('素材 {0}', assetFolders.length + 1), parentId),
       ])
     },
 
