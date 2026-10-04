@@ -294,6 +294,7 @@ export const createThumbnailSlice: SliceCreator<ThumbnailSlice> = (set, get) => 
           ...preset,
           style: {
             ...preset.style,
+            fixedLineHeight: preset.style.fixedLineHeight ?? null,
             ...normalizeTextBackground(preset.style),
             ...normalizeOuterStroke(preset.style),
           },

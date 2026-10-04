@@ -57,6 +57,7 @@ export const createPresetSlice: SliceCreator<PresetSlice> = (set, get) => {
                 ...extractTextStyle({
                   ...l,
                   ...preset.style,
+                  fixedLineHeight: preset.style.fixedLineHeight ?? null,
                   ...normalizeTextBackground(preset.style),
                   ...normalizeOuterStroke(preset.style),
                 }),

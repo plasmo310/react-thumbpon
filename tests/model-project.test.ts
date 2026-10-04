@@ -60,6 +60,7 @@ const textLayer = (fontFamily: string): TextLayer => ({
   textAlign: 'left',
   letterSpacing: 0,
   lineHeight: 1.2,
+  fixedLineHeight: null,
   color: '#000',
   strokeWidth: 0,
   strokeColor: '#fff',

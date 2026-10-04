@@ -184,15 +184,38 @@ export function TextProperties({ layer }: { layer: TextLayer }) {
             onChange={(letterSpacing) => patch({ letterSpacing })}
           />
         </Row>
-        <Row label="行間">
+        <Row label={layer.fixedLineHeight == null ? '行間' : '行の高さ (px)'}>
           <NumberInput
-            value={layer.lineHeight}
-            step={0.1}
-            min={0.5}
-            onChange={(lineHeight) => patch({ lineHeight })}
+            value={layer.fixedLineHeight ?? layer.lineHeight}
+            step={layer.fixedLineHeight == null ? 0.1 : 1}
+            min={layer.fixedLineHeight == null ? 0.5 : 1}
+            onChange={(height) =>
+              patch(
+                layer.fixedLineHeight == null
+                  ? { lineHeight: Math.max(0.5, height) }
+                  : { fixedLineHeight: Math.max(1, height) },
+              )
+            }
           />
         </Row>
       </div>
+      <Row label="行の高さ">
+        <SegmentedControl
+          value={layer.fixedLineHeight == null ? 'auto' : 'fixed'}
+          options={[
+            { label: '自動', value: 'auto' },
+            { label: '固定', value: 'fixed' },
+          ]}
+          onChange={(mode) =>
+            patch({
+              fixedLineHeight:
+                mode === 'fixed'
+                  ? Math.max(1, Math.round(layer.fontSize * layer.lineHeight))
+                  : null,
+            })
+          }
+        />
+      </Row>
       <Row label={label('斜体', 'fontStyle')}>
         <SegmentedControl
           value={mixed('fontStyle') ? '' : value.fontStyle}

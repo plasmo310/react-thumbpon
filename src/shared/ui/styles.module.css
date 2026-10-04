@@ -382,6 +382,20 @@
   min-height: 1em;
 }
 
+/* 固定時は行の上下も指定値に含め、部分的な文字サイズで行送りを広げない。 */
+.richTextFixed {
+  text-box-trim: none;
+}
+
+.richTextFixed > span {
+  line-height: 0;
+}
+
+.richTextCanvas.richTextFixed:has(> [data-text-sentinel]:only-child) {
+  line-height: inherit;
+  min-height: 0;
+}
+
 .richText[contenteditable='true'] {
   user-select: text;
   -webkit-user-select: text;

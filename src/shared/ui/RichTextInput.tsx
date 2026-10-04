@@ -75,7 +75,12 @@ export function RichTextInput(props: Props) {
       root,
       outline,
       outlineId,
-      cx(styles.richText, props.canvas && styles.richTextCanvas),
+      cx(
+        styles.richText,
+        props.canvas && styles.richTextCanvas,
+        (current.previewStyle ?? current.baseStyle)?.fixedLineHeight != null &&
+          styles.richTextFixed,
+      ),
       current.previewStyle?.fontSize,
     )
   }
@@ -221,6 +226,8 @@ export function RichTextInput(props: Props) {
           className={cx(
             styles.richText,
             props.canvas && styles.richTextCanvas,
+            (props.previewStyle ?? props.baseStyle)?.fixedLineHeight != null &&
+              styles.richTextFixed,
             styles.richTextFront,
             props.active && props.canvas && styles.richTextEditing,
           )}
@@ -231,7 +238,10 @@ export function RichTextInput(props: Props) {
                   fontFamily: props.previewStyle.fontFamily,
                   fontWeight: props.previewStyle.fontWeight,
                   fontStyle: props.previewStyle.fontStyle,
-                  lineHeight: props.previewStyle.lineHeight,
+                  lineHeight:
+                    props.previewStyle.fixedLineHeight == null
+                      ? props.previewStyle.lineHeight
+                      : `${props.previewStyle.fixedLineHeight / props.previewStyle.fontSize}em`,
                   paintOrder: 'stroke fill',
                   WebkitTextStrokeWidth: `${props.previewStyle.strokeWidth / props.previewStyle.fontSize}em`,
                   WebkitTextStrokeColor: props.previewStyle.strokeColor,

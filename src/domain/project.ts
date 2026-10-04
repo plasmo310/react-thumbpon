@@ -248,6 +248,7 @@ export function normalizeThumbnails(thumbnails: Thumbnail[]): Thumbnail[] {
           ...normalizeTextBackground(normalized),
           ...normalizeOuterStroke(normalized),
           autoFit: normalized.autoFit ?? false,
+          fixedLineHeight: normalized.fixedLineHeight ?? null,
           inlineStyles: normalizeInlineStyles(normalized.text, normalized.inlineStyles),
         }
       if (normalized.type !== 'image') return normalized

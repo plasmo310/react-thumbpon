@@ -30,6 +30,53 @@ beforeEach(() => {
 })
 
 describe('テキストの自動フィットと背景', () => {
+  it('固定行高はプリセット・複製・Undoで保持し、旧プリセットでは自動に戻す', () => {
+    const store = useEditorStore.getState(),
+      id = current().id
+    store.updateLayer(id, { fixedLineHeight: 100 })
+    store.addTextPreset('固定行高', extractTextStyle(current()))
+    store.updateLayer(id, { fixedLineHeight: null })
+    store.applyTextPreset(useEditorStore.getState().textPresets[0].id, id)
+    expect(current().fixedLineHeight).toBe(100)
+    store.undo()
+    expect(current().fixedLineHeight).toBeNull()
+    store.redo()
+    store.duplicateLayer(id)
+    expect(useEditorStore.getState().thumbnails[0].layers[1]).toMatchObject({
+      fixedLineHeight: 100,
+    })
+    const { fixedLineHeight, ...legacy } = extractTextStyle(current())
+    store.addTextPreset('旧プリセット', legacy as ReturnType<typeof extractTextStyle>)
+    store.applyTextPreset(useEditorStore.getState().textPresets[1].id, id)
+    expect(current().fixedLineHeight).toBeNull()
+  })
+
+  it('旧レイヤーと旧プリセットの行高は自動で復元する', () => {
+    const store = useEditorStore.getState()
+    const { fixedLineHeight, ...legacy } = current()
+    const { fixedLineHeight: presetHeight, ...legacyStyle } = extractTextStyle(current())
+    store.loadProject({
+      folders: [],
+      thumbnails: [{ ...store.thumbnails[0], layers: [legacy as TextLayer] }],
+      textPresets: [
+        { id: 'legacy', name: '旧形式', style: legacyStyle as ReturnType<typeof extractTextStyle> },
+      ],
+    })
+    expect(current().fixedLineHeight).toBeNull()
+    expect(useEditorStore.getState().textPresets[0].style.fixedLineHeight).toBeNull()
+  })
+
+  it('固定行高は全体の文字サイズ変更から独立し、CSSにはpxで渡す', () => {
+    const store = useEditorStore.getState(),
+      id = current().id
+    expect(current().fixedLineHeight).toBeNull()
+    expect(textStyle(current()).lineHeight).toBe(1.3)
+    store.updateLayer(id, { fixedLineHeight: 100 })
+    store.formatText(id, { fontSize: 120 })
+    expect(textStyle(current()).lineHeight).toBe('100px')
+    expect(extractTextStyle(current()).fixedLineHeight).toBe(100)
+  })
+
   it('角丸のモード切替は個別値を保持し、プリセットとUndoでも復元できる', () => {
     const store = useEditorStore.getState(),
       id = current().id

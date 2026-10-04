@@ -141,6 +141,8 @@ export function SelectionOverlay({ scale }: { scale: number }) {
         updateLayer(layer.id, {
           ...common,
           autoFit: layer.autoFit,
+          fixedLineHeight:
+            layer.fixedLineHeight == null ? null : Math.max(1, layer.fixedLineHeight * factor),
           paddingTop: layer.paddingTop * factor,
           paddingRight: layer.paddingRight * factor,
           paddingBottom: layer.paddingBottom * factor,

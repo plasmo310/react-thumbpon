@@ -142,6 +142,63 @@ function LineSpacingExample() {
 
 export const LineSpacing: Story = { render: () => <LineSpacingExample /> }
 
+function FixedLineHeightExample() {
+  const [fixedLineHeight, setFixedLineHeight] = useState(80)
+  const [fixed, setFixed] = useState(true)
+  const [value, setValue] = useState<TextContent>({
+    text: '一行目 Ag\n大きな文字 pq\n三行目 Ag\n',
+    inlineStyles: [{ start: 7, end: 12, style: { fontSize: 72 } }],
+  })
+  const preview = {
+    ...layer,
+    fontSize: 32,
+    textAlign: 'left' as const,
+    fixedLineHeight: fixed ? fixedLineHeight : null,
+    backgroundEnabled: true,
+    backgroundColor: '#FFD8C6',
+    autoFit: false,
+  }
+  return (
+    <>
+      <p>部分的な大きな文字、改行、折り返し、末尾の空行を含む固定の行高を確認できます。</p>
+      <label>
+        <input
+          type="checkbox"
+          checked={fixed}
+          onChange={(event) => setFixed(event.target.checked)}
+        />
+        固定の行高
+      </label>
+      <label>
+        行の高さ(px)
+        <input
+          type="number"
+          min="1"
+          value={fixedLineHeight}
+          onChange={(event) => setFixedLineHeight(Math.max(1, Number(event.target.value)))}
+        />
+      </label>
+      <div style={{ ...textStyle(preview), ...textFrameStyle(preview), width: 320 }}>
+        <RichTextInput
+          canvas
+          editable
+          baseStyle={extractTextStyle(preview)}
+          value={value}
+          onChange={setValue}
+        />
+      </div>
+      <RichTextInput
+        editable
+        previewStyle={extractTextStyle(preview)}
+        value={value}
+        onChange={setValue}
+      />
+    </>
+  )
+}
+
+export const FixedLineHeight: Story = { render: () => <FixedLineHeightExample /> }
+
 function DoubleOutlineExample() {
   const [value, setValue] = useState<TextContent>({
     text: 'プログラムって動く？\n部分書式にも対応 Ag',

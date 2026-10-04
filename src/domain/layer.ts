@@ -112,6 +112,8 @@ export type TextLayer = LayerBase &
     textAlign: TextAlign
     letterSpacing: number
     lineHeight: number
+    /** 固定の行高(px)。null は文字サイズに応じた従来の行間 */
+    fixedLineHeight: number | null
     color: string
     /** 縁取り。0で無効 */
     strokeWidth: number
@@ -149,6 +151,7 @@ export type TextStyle = Pick<
   | 'textAlign'
   | 'letterSpacing'
   | 'lineHeight'
+  | 'fixedLineHeight'
   | 'color'
   | 'strokeWidth'
   | 'strokeColor'
@@ -166,6 +169,7 @@ export const TEXT_STYLE_KEYS: (keyof TextStyle)[] = [
   'textAlign',
   'letterSpacing',
   'lineHeight',
+  'fixedLineHeight',
   'color',
   'strokeWidth',
   'strokeColor',
@@ -242,6 +246,7 @@ export function createTextLayer(canvas: CanvasSize): TextLayer {
     textAlign: 'center',
     letterSpacing: 0,
     lineHeight: 1.3,
+    fixedLineHeight: null,
     color: '#25282D',
     strokeWidth: 0,
     strokeColor: '#FFFFFF',
@@ -435,7 +440,7 @@ export function textStyle(layer: TextLayer): CSSProperties {
     fontStyle: layer.fontStyle,
     textAlign: layer.textAlign,
     letterSpacing: `${layer.letterSpacing}px`,
-    lineHeight: layer.lineHeight,
+    lineHeight: layer.fixedLineHeight == null ? layer.lineHeight : `${layer.fixedLineHeight}px`,
     whiteSpace: layer.autoFit ? 'pre' : 'pre-wrap',
     wordBreak: layer.autoFit ? 'normal' : 'break-word',
     // 縁取り。paint-order で文字の外側に描かせる
