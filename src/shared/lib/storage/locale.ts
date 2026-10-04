@@ -2,8 +2,15 @@
 
 const LOCALE_KEY = 'thumbpon.locale'
 
-/** 既存ユーザーの表示を保つため、未設定・不正値の場合は日本語にする。 */
+/** URL指定を優先して保存し、指定がなければ保存設定・日本語の順に復元する。 */
 export function loadLocale(): Locale {
+  const requested = new URLSearchParams(typeof location === 'undefined' ? '' : location.search).get(
+    'lang',
+  )
+  if (requested === 'ja' || requested === 'en') {
+    saveLocale(requested)
+    return requested
+  }
   try {
     return localStorage.getItem(LOCALE_KEY) === 'en' ? 'en' : 'ja'
   } catch {
