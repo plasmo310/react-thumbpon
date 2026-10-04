@@ -1,4 +1,5 @@
 import type { AssetFolder, AssetMeta } from './asset'
+import { assetFolderAncestors } from './asset'
 import { DEFAULT_BACKGROUND } from './background'
 import { DEFAULT_CROP } from './crop'
 import { DEFAULT_EFFECTS } from './effects'
@@ -105,8 +106,8 @@ export function assetFolderDirName(folder: AssetFolder): string {
  * @param folders 素材フォルダの一覧。meta.folderId をディレクトリ名に直すのに使う
  */
 export function assetPath(meta: AssetMeta, folders: AssetFolder[] = []): string {
-  const folder = folders.find((f) => f.id === meta.folderId)
-  const dir = folder ? `${assetFolderDirName(folder)}/` : ''
+  const path = assetFolderAncestors(meta.folderId, folders).reverse().map(assetFolderDirName)
+  const dir = path.length > 0 ? `${path.join('/')}/` : ''
   return `${ASSETS_DIR}/${dir}${meta.id}${extensionFor(meta)}`
 }
 

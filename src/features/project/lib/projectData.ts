@@ -1,4 +1,4 @@
-import { normalizeAssets } from '@/domain/asset'
+import { normalizeAssetFolders, normalizeAssets } from '@/domain/asset'
 import { assetPath, collectUsedFonts, findMissingFonts } from '@/domain/project'
 import { getAssetBlob, replaceAssets } from '@/shared/lib/storage/assetRepo'
 import { useEditorStore } from '@/app/store'
@@ -76,7 +76,7 @@ export function isProjectFile(value: unknown): value is ProjectFile {
  * @param blobs   素材の実体。素材の id で引ける形で渡す
  */
 export async function applyProjectFile(project: ProjectFile, blobs: Map<string, Blob>) {
-  const assetFolders = project.assetFolders ?? []
+  const assetFolders = normalizeAssetFolders(project.assetFolders ?? [])
   const entries: { meta: AssetMeta; blob: Blob }[] = []
   const lost: string[] = []
 

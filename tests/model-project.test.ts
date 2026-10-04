@@ -120,6 +120,14 @@ describe('assetFolderDirName', () => {
 })
 
 describe('assetPath', () => {
+  it('子孫フォルダの階層を格納先に反映する', () => {
+    const folders = [
+      folder('f1', '風景'),
+      { ...folder('f2', '日本'), parentId: 'f1' },
+      { ...folder('f3', '海'), parentId: 'f2' },
+    ]
+    expect(assetPath(meta({ folderId: 'f3' }), folders)).toBe('assets/風景/日本/海/a1.png')
+  })
   it('未分類は assets/ 直下に id + 拡張子で置く', () => {
     expect(assetPath(meta({ id: 'abc' }))).toBe('assets/abc.png')
   })

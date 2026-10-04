@@ -227,22 +227,26 @@ describe('往復', () => {
 
   it('素材フォルダは ZIP の中でもフォルダ分けされ、そのまま戻る', async () => {
     useEditorStore.setState({
-      assets: [meta('a1', 'f1')],
-      assetFolders: [{ id: 'f1', name: '風景', collapsed: false }],
+      assets: [meta('a1', 'f2')],
+      assetFolders: [
+        { id: 'f1', name: '風景', collapsed: false },
+        { id: 'f2', name: '海', collapsed: true, parentId: 'f1' },
+      ],
     })
     seedAsset('a1', new Blob(['image-bytes']))
 
     const file = await exported()
     const entries = unzipSync(new Uint8Array(await file.arrayBuffer()))
-    expect(Object.keys(entries)).toContain('assets/風景/a1.png')
+    expect(Object.keys(entries)).toContain('assets/風景/海/a1.png')
 
     useEditorStore.setState({ assets: [], assetFolders: [] })
     resetAssets()
     await importProjectFile(file)
 
     const state = useEditorStore.getState()
-    expect(state.assetFolders.map((f) => f.name)).toEqual(['風景'])
-    expect(state.assets[0].folderId).toBe('f1')
+    expect(state.assetFolders.map((f) => f.name)).toEqual(['風景', '海'])
+    expect(state.assetFolders[1]).toMatchObject({ parentId: 'f1', collapsed: true })
+    expect(state.assets[0].folderId).toBe('f2')
     expect(await (blobs.get('a1') as Blob).text()).toBe('image-bytes')
   })
 

@@ -1,4 +1,9 @@
-import { createAssetFolder, normalizeAssets } from '@/domain/asset'
+import {
+  assetFolderAncestors,
+  createAssetFolder,
+  normalizeAssetFolders,
+  normalizeAssets,
+} from '@/domain/asset'
 import { createId } from '@/domain/id'
 import {
   deleteAsset,
@@ -23,7 +28,8 @@ export type AssetSlice = {
   moveAssetToFolder: (id: string, folderId: string | null) => Promise<void>
   reorderAsset: (id: string, targetId: string, position: 'before' | 'after') => Promise<void>
 
-  addAssetFolder: () => Promise<void>
+  addAssetFolder: (parentId?: string | null) => Promise<void>
+  moveAssetFolder: (id: string, parentId: string | null) => Promise<void>
   renameAssetFolder: (id: string, name: string) => Promise<void>
   reorderAssetFolder: (id: string, targetId: string, position: 'before' | 'after') => Promise<void>
   toggleAssetFolder: (id: string) => Promise<void>
@@ -53,7 +59,8 @@ export const createAssetSlice: SliceCreator<AssetSlice> = (set, get) => {
      */
     initAssets: async () => {
       const { assets, folders } = await loadAssetLibrary()
-      set({ assets: normalizeAssets(assets, folders), assetFolders: folders })
+      const normalized = normalizeAssetFolders(folders)
+      set({ assets: normalizeAssets(assets, normalized), assetFolders: normalized })
     },
 
     /**
@@ -141,10 +148,37 @@ export const createAssetSlice: SliceCreator<AssetSlice> = (set, get) => {
       await saveAssetMetas(next)
     },
 
-    /** 素材フォルダを追加する */
-    addAssetFolder: async () => {
+    /**
+     * 素材フォルダを追加する。
+     * @param parentId 親フォルダ。null / 省略で最上位
+     */
+    addAssetFolder: async (parentId = null) => {
       const { assetFolders } = get()
-      await commitFolders([...assetFolders, createAssetFolder(`素材 ${assetFolders.length + 1}`)])
+      if (parentId !== null && !assetFolders.some((folder) => folder.id === parentId)) return
+      await commitFolders([
+        ...assetFolders.map((folder) =>
+          folder.id === parentId ? { ...folder, collapsed: false } : folder,
+        ),
+        createAssetFolder(`素材 ${assetFolders.length + 1}`, parentId),
+      ])
+    },
+
+    /**
+     * フォルダを子孫ごと移す。自分自身や子孫への移動は循環になるため受け付けない。
+     * @param id 移動するフォルダ
+     * @param parentId 移動先の親。null で最上位
+     */
+    moveAssetFolder: async (id, parentId) => {
+      const folders = get().assetFolders
+      if (!folders.some((folder) => folder.id === id)) return
+      if (parentId !== null && !folders.some((folder) => folder.id === parentId)) return
+      if (assetFolderAncestors(parentId, folders).some((folder) => folder.id === id)) return
+      await commitFolders(
+        folders.map((folder) => {
+          if (folder.id === id) return { ...folder, parentId }
+          return folder.id === parentId ? { ...folder, collapsed: false } : folder
+        }),
+      )
     },
 
     /**
@@ -158,7 +192,7 @@ export const createAssetSlice: SliceCreator<AssetSlice> = (set, get) => {
     },
 
     /**
-     * 素材フォルダを別のフォルダの前後へ移し、並び順を保存する。
+     * 素材フォルダを別のフォルダの前後へ移し、移動先の親と並び順を保存する。
      *
      * @param id       移動するフォルダの id
      * @param targetId 移動先の基準になるフォルダの id
@@ -172,9 +206,11 @@ export const createAssetSlice: SliceCreator<AssetSlice> = (set, get) => {
       if (sourceIndex < 0 || targetIndex < 0) return
 
       const next = [...folders]
+      const parentId = folders[targetIndex].parentId ?? null
+      if (assetFolderAncestors(parentId, folders).some((folder) => folder.id === id)) return
       const [source] = next.splice(sourceIndex, 1)
       const adjustedTargetIndex = targetIndex > sourceIndex ? targetIndex - 1 : targetIndex
-      next.splice(adjustedTargetIndex + (position === 'after' ? 1 : 0), 0, source)
+      next.splice(adjustedTargetIndex + (position === 'after' ? 1 : 0), 0, { ...source, parentId })
       await commitFolders(next)
     },
 
@@ -190,15 +226,24 @@ export const createAssetSlice: SliceCreator<AssetSlice> = (set, get) => {
     },
 
     /**
-     * 素材フォルダを削除する。中の素材は消さず未分類へ移す。
+     * 素材フォルダと子フォルダを削除する。中の素材は消さず未分類へ移す。
      *
      * @param id 削除するフォルダの id
      */
     removeAssetFolder: async (id) => {
-      const assets = get().assets.map((a) => (a.folderId === id ? { ...a, folderId: null } : a))
+      const removed = new Set(
+        get()
+          .assetFolders.filter((folder) =>
+            assetFolderAncestors(folder.id, get().assetFolders).some((parent) => parent.id === id),
+          )
+          .map((folder) => folder.id),
+      )
+      const assets = get().assets.map((a) =>
+        a.folderId && removed.has(a.folderId) ? { ...a, folderId: null } : a,
+      )
       set({ assets })
       await saveAssetMetas(assets)
-      await commitFolders(get().assetFolders.filter((f) => f.id !== id))
+      await commitFolders(get().assetFolders.filter((f) => !removed.has(f.id)))
     },
   }
 }

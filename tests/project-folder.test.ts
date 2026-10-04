@@ -268,19 +268,24 @@ describe('saveProjectFolder', () => {
     const dir = makeDir('work')
     fake.picked = dir
     useEditorStore.setState({
-      assets: [meta('a1', 'f1')],
-      assetFolders: [{ id: 'f1', name: '風景', collapsed: false }],
+      assets: [meta('a1', 'f2')],
+      assetFolders: [
+        { id: 'f1', name: '風景', collapsed: false },
+        { id: 'f2', name: '海', collapsed: true, parentId: 'f1' },
+      ],
     })
     seedAsset('a1', new Blob(['a1']))
     await saveProjectFolder(agree)
+    expect(assetPathsOf(dir)).toEqual(['風景/海/a1.png'])
 
     useEditorStore.setState({ assets: [], assetFolders: [] })
     fake.current = null
     await restoreProjectFolder()
 
     const state = useEditorStore.getState()
-    expect(state.assetFolders.map((f) => f.name)).toEqual(['風景'])
-    expect(state.assets[0].folderId).toBe('f1')
+    expect(state.assetFolders.map((f) => f.name)).toEqual(['風景', '海'])
+    expect(state.assetFolders[1]).toMatchObject({ parentId: 'f1', collapsed: true })
+    expect(state.assets[0].folderId).toBe('f2')
     expect(await (blobs.get('a1') as Blob).text()).toBe('a1')
   })
 
