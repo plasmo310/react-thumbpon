@@ -51,8 +51,8 @@ export const englishMessages = {
     'Choose image files (PNG / JPEG / WebP / SVG)',
   素材の追加に失敗しました: 'Failed to add assets',
   画像の追加に失敗しました: 'Failed to add images',
-  列数を指定: 'Set columns',
-  行数を指定: 'Set rows',
+  列数を指定: 'Columns',
+  行数を指定: 'Rows',
   列数: 'Columns',
   行数: 'Rows',
   '他のレイヤーやキャンバス中央に吸着する（Altを押しながらドラッグで一時的に無効）':
