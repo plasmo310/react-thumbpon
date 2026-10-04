@@ -5,6 +5,8 @@ import { createPatchers } from './patch'
 import type { BackgroundPreset, TextPreset } from '@/domain/preset'
 import type { CanvasSize, Folder, Thumbnail } from '@/domain/thumbnail'
 import type { SliceCreator } from './index'
+import { DEFAULT_TEXT_BACKGROUND } from '@/domain/layer'
+import { fitTextLayer } from './textLayout'
 
 export type ThumbnailSlice = {
   folders: Folder[]
@@ -260,12 +262,18 @@ export const createThumbnailSlice: SliceCreator<ThumbnailSlice> = (set, get) => 
       const wanted = list.find((t) => t.id === currentThumbnailId)
       set((s) => ({
         folders,
-        thumbnails: list,
+        thumbnails: list.map((thumbnail) => ({
+          ...thumbnail,
+          layers: thumbnail.layers.map((layer) => fitTextLayer(layer)),
+        })),
         currentThumbnailId: (wanted ?? list[0]).id,
         selectedId: null,
         selectedIds: [],
         cropping: false,
-        textPresets: textPresets ?? s.textPresets,
+        textPresets: (textPresets ?? s.textPresets).map((preset) => ({
+          ...preset,
+          style: { ...DEFAULT_TEXT_BACKGROUND, ...preset.style },
+        })),
         textEditing: null,
         textInputGroup: null,
         backgroundPresets: backgroundPresets ?? s.backgroundPresets,

@@ -2,6 +2,7 @@ import type { StoreApi } from 'zustand'
 import type { Layer } from '@/domain/layer'
 import type { Thumbnail } from '@/domain/thumbnail'
 import type { EditorState } from './index'
+import { fitTextLayer } from './textLayout'
 
 type Set = StoreApi<EditorState>['setState']
 type Get = StoreApi<EditorState>['getState']
@@ -39,7 +40,15 @@ export function createPatchers(set: Set, get: Get) {
    * @param updater 現在のレイヤー配列を受け取り、新しい配列を返す。index 0 が最背面
    */
   const patchLayers = (updater: (layers: Layer[]) => Layer[]) =>
-    patchCurrent((t) => ({ ...t, layers: updater(t.layers) }))
+    patchCurrent((t) => ({
+      ...t,
+      layers: updater(t.layers).map((layer) =>
+        fitTextLayer(
+          layer,
+          t.layers.find((previous) => previous.id === layer.id),
+        ),
+      ),
+    }))
 
   return { current, patchCurrent, patchLayers }
 }

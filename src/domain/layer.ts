@@ -38,24 +38,37 @@ export type ImageLayer = LayerBase & {
   flipX: boolean
 }
 
-/** テキストは height を持たず内容に応じて伸びる */
-export type TextLayer = LayerBase & {
-  type: 'text'
-  text: string
-  /** 文字範囲ごとの上書き。旧データでは省略される。 */
-  inlineStyles?: InlineStyleRange[]
-  fontFamily: string
-  fontSize: number
-  fontWeight: number
-  fontStyle: 'normal' | 'italic'
-  textAlign: TextAlign
-  letterSpacing: number
-  lineHeight: number
-  color: string
-  /** 縁取り。0で無効 */
-  strokeWidth: number
-  strokeColor: string
+/** テキスト背景の既定値。余白と角丸はキャンバス実寸px。 */
+export const DEFAULT_TEXT_BACKGROUND = {
+  backgroundEnabled: false,
+  backgroundColor: '#FFFFFF',
+  paddingTop: 0,
+  paddingRight: 0,
+  paddingBottom: 0,
+  paddingLeft: 0,
+  backgroundRadius: 0,
 }
+
+/** テキストは height を持たず内容に応じて伸びる */
+export type TextLayer = LayerBase &
+  typeof DEFAULT_TEXT_BACKGROUND & {
+    type: 'text'
+    autoFit: boolean
+    text: string
+    /** 文字範囲ごとの上書き。旧データでは省略される。 */
+    inlineStyles?: InlineStyleRange[]
+    fontFamily: string
+    fontSize: number
+    fontWeight: number
+    fontStyle: 'normal' | 'italic'
+    textAlign: TextAlign
+    letterSpacing: number
+    lineHeight: number
+    color: string
+    /** 縁取り。0で無効 */
+    strokeWidth: number
+    strokeColor: string
+  }
 
 /** 配置できる図形。ellipse は通常のリサイズで楕円にもなる「円」の実体。 */
 export type ShapeLayer = LayerBase & {
@@ -91,6 +104,7 @@ export type TextStyle = Pick<
   | 'color'
   | 'strokeWidth'
   | 'strokeColor'
+  | keyof typeof DEFAULT_TEXT_BACKGROUND
 >
 
 /** TextStyle のキー一覧。型から実行時の配列は作れないので手で持つ */
@@ -105,6 +119,7 @@ export const TEXT_STYLE_KEYS: (keyof TextStyle)[] = [
   'color',
   'strokeWidth',
   'strokeColor',
+  ...(Object.keys(DEFAULT_TEXT_BACKGROUND) as (keyof typeof DEFAULT_TEXT_BACKGROUND)[]),
 ]
 
 /**
@@ -160,6 +175,8 @@ export function createTextLayer(canvas: CanvasSize): TextLayer {
   return {
     ...createLayerBase('テキスト'),
     type: 'text',
+    autoFit: true,
+    ...DEFAULT_TEXT_BACKGROUND,
     text: 'テキストを入力',
     width,
     x: Math.round((canvas.width - width) / 2),
@@ -351,11 +368,27 @@ export function textStyle(layer: TextLayer): CSSProperties {
     textAlign: layer.textAlign,
     letterSpacing: `${layer.letterSpacing}px`,
     lineHeight: layer.lineHeight,
-    whiteSpace: 'pre-wrap',
-    wordBreak: 'break-word',
+    whiteSpace: layer.autoFit ? 'pre' : 'pre-wrap',
+    wordBreak: layer.autoFit ? 'normal' : 'break-word',
     // 縁取り。paint-order で文字の外側に描かせる
     WebkitTextStrokeWidth: layer.strokeWidth > 0 ? `${layer.strokeWidth}px` : undefined,
     WebkitTextStrokeColor: layer.strokeColor,
     paintOrder: 'stroke fill',
+  }
+}
+
+/**
+ * 背景と余白をテキスト外枠へ適用する。
+ * @param layer 対象のテキストレイヤー
+ */
+export function textFrameStyle(layer: TextLayer): CSSProperties {
+  return {
+    boxSizing: 'border-box',
+    minWidth: layer.backgroundEnabled ? layer.paddingLeft + layer.paddingRight + 1 : 1,
+    backgroundColor: layer.backgroundEnabled ? layer.backgroundColor : undefined,
+    padding: layer.backgroundEnabled
+      ? `${layer.paddingTop}px ${layer.paddingRight}px ${layer.paddingBottom}px ${layer.paddingLeft}px`
+      : undefined,
+    borderRadius: layer.backgroundEnabled ? layer.backgroundRadius : undefined,
   }
 }

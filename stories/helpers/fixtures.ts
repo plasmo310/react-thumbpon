@@ -2,7 +2,7 @@ import { DEFAULT_BACKGROUND, type Background } from '@/domain/background'
 import { DEFAULT_CROP } from '@/domain/crop'
 import { DEFAULT_EFFECTS, type Effects } from '@/domain/effects'
 import { BUILTIN_FONTS } from '@/domain/font'
-import type { ImageLayer, TextLayer } from '@/domain/layer'
+import { DEFAULT_TEXT_BACKGROUND, type ImageLayer, type TextLayer } from '@/domain/layer'
 import type { BackgroundPreset, TextPreset } from '@/domain/preset'
 import type { Folder, Thumbnail } from '@/domain/thumbnail'
 import { SAMPLE_LOGO_ID, SAMPLE_PHOTO_ID } from './sampleAssets'
@@ -48,6 +48,8 @@ export function sampleTextLayer(overrides: Partial<TextLayer> = {}): TextLayer {
   return {
     id: SAMPLE_TEXT_LAYER_ID,
     type: 'text',
+    autoFit: false,
+    ...DEFAULT_TEXT_BACKGROUND,
     name: '見出し',
     x: 160,
     y: 620,
@@ -149,6 +151,7 @@ export function sampleTextPresets(): TextPreset[] {
       id: 'preset-title',
       name: '太字タイトル',
       style: {
+        ...DEFAULT_TEXT_BACKGROUND,
         fontFamily: BUILTIN_FONTS[0].family,
         fontSize: 140,
         fontWeight: 900,
@@ -165,6 +168,7 @@ export function sampleTextPresets(): TextPreset[] {
       id: 'preset-caption',
       name: '細めのキャプション',
       style: {
+        ...DEFAULT_TEXT_BACKGROUND,
         fontFamily: BUILTIN_FONTS[2].family,
         fontSize: 64,
         fontWeight: 400,

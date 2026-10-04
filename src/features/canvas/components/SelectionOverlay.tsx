@@ -140,10 +140,16 @@ export function SelectionOverlay({ scale }: { scale: number }) {
         const factor = rect.width / start.width
         updateLayer(layer.id, {
           ...common,
+          autoFit: layer.autoFit,
+          paddingTop: layer.paddingTop * factor,
+          paddingRight: layer.paddingRight * factor,
+          paddingBottom: layer.paddingBottom * factor,
+          paddingLeft: layer.paddingLeft * factor,
+          backgroundRadius: layer.backgroundRadius * factor,
           ...formatWholeText(layer, { fontSize: Math.max(4, startFontSize * factor) }),
         })
-      } else {
-        updateLayer(layer.id, { x: common.x, y: common.y, width: common.width })
+      } else if (handle === 'e' || handle === 'w') {
+        updateLayer(layer.id, { x: common.x, y: common.y, width: common.width, autoFit: false })
       }
     })
   }

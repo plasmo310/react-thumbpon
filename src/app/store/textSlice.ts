@@ -8,6 +8,7 @@ import {
 import type { InlineTextStyle, TextContent, TextRange } from '@/domain/text'
 import type { TextLayer } from '@/domain/layer'
 import type { SliceCreator } from './index'
+import { fitTextLayer } from './textLayout'
 
 /** 入力欄をまたいで保持する編集情報。DOM参照と保存対象データは含めない。 */
 export type TextEditingSession = {
@@ -33,6 +34,7 @@ export type TextSlice = {
     kind?: 'typing' | 'composition' | 'replace',
   ) => void
   formatText: (layerId: string, style: InlineTextStyle | null) => void
+  refreshTextLayout: () => void
 }
 
 /**
@@ -49,6 +51,18 @@ export const createTextSlice: SliceCreator<TextSlice> = (set, get) => {
   return {
     textEditing: null,
     textInputGroup: null,
+    refreshTextLayout: () =>
+      set((state) => {
+        const thumbnails = state.thumbnails.map((thumbnail) => {
+          const layers = thumbnail.layers.map((layer) => fitTextLayer(layer))
+          return layers.every((layer, index) => layer === thumbnail.layers[index])
+            ? thumbnail
+            : { ...thumbnail, layers }
+        })
+        return thumbnails.every((thumbnail, index) => thumbnail === state.thumbnails[index])
+          ? state
+          : { thumbnails }
+      }),
     beginTextEditing: (layerId, surface) => {
       const layer = find(layerId)
       if (!layer || layer.locked || !layer.visible) return

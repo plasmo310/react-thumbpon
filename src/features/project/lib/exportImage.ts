@@ -3,6 +3,7 @@ import { sanitizePathName } from '@/domain/project'
 import { downloadDataUrl } from './download'
 import { getSurface } from '@/shared/lib/surfaceRef'
 import type { CanvasSize } from '@/domain/thumbnail'
+import { useEditorStore } from '@/app/store'
 
 /**
  * サムネイル名をファイル名として使えるようにする。
@@ -20,6 +21,10 @@ function toFileName(name: string): string {
  * @param name   ファイル名のもと。サムネイル名をそのまま渡す
  */
 export async function exportPng(canvas: CanvasSize, name: string) {
+  // 書き出しにも最終フォントの計測値を使い、描画の反映を待つ。
+  await document.fonts.ready
+  useEditorStore.getState().refreshTextLayout()
+  await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()))
   const surface = getSurface()
   if (!surface) throw new Error('キャンバスが準備できていません')
 

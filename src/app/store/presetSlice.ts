@@ -1,7 +1,7 @@
 import { createId } from '@/domain/id'
 import { createPatchers } from './patch'
 import { DEFAULT_BACKGROUND } from '@/domain/background'
-import type { TextStyle } from '@/domain/layer'
+import { DEFAULT_TEXT_BACKGROUND, extractTextStyle, type TextStyle } from '@/domain/layer'
 import type { BackgroundPreset, TextPreset } from '@/domain/preset'
 import type { SliceCreator } from './index'
 
@@ -35,7 +35,7 @@ export const createPresetSlice: SliceCreator<PresetSlice> = (set, get) => {
       set((s) => ({ textPresets: [...s.textPresets, { id: createId(), name, style }] })),
 
     /**
-     * プリセットの見た目をテキストレイヤーに適用する。位置やサイズは変えない。
+     * プリセットの見た目を適用する。自動フィット時の幅は新しい書式で計測する。
      *
      * @param presetId 適用するプリセットの id
      * @param layerId  適用先のレイヤーの id。テキスト以外なら何もしない
@@ -46,7 +46,13 @@ export const createPresetSlice: SliceCreator<PresetSlice> = (set, get) => {
       get().recordHistory()
       patchLayers((layers) =>
         layers.map((l) =>
-          l.id === layerId && l.type === 'text' ? { ...l, ...preset.style, inlineStyles: [] } : l,
+          l.id === layerId && l.type === 'text'
+            ? {
+                ...l,
+                ...extractTextStyle({ ...l, ...DEFAULT_TEXT_BACKGROUND, ...preset.style }),
+                inlineStyles: [],
+              }
+            : l,
         ),
       )
       set({ textInputGroup: null })

@@ -41,7 +41,7 @@ export function buildProjectFile(payloads: AssetReference[]): ProjectFile {
 
   return {
     format: 'thumbpon-project',
-    version: 5,
+    version: 6,
     folders,
     thumbnails,
     currentThumbnailId,

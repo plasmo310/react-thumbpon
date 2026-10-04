@@ -4,7 +4,7 @@ import { DEFAULT_CROP } from './crop'
 import { DEFAULT_EFFECTS } from './effects'
 import type { FontEntry } from './font'
 import type { BackgroundPreset, TextPreset } from './preset'
-import type { Layer } from './layer'
+import { DEFAULT_TEXT_BACKGROUND, type Layer } from './layer'
 import { normalizeInlineStyles } from './text'
 import type { Folder, Thumbnail } from './thumbnail'
 
@@ -39,11 +39,12 @@ export type ProjectFontRef = {
  * version 1 は fonts を、version 2 までは背景の模様設定とレイヤーのエフェクトを、
  * version 3 までは素材フォルダと画像のクロップ・左右反転を持たない。
  * version 4 までは文字範囲ごとの部分書式を持たない。
+ * version 5 まではテキストの自動フィットと背景設定を持たない。
  * 読み込み側は無い前提で扱うこと（欠けは normalizeThumbnails が既定値で補う）。
  */
 export type ProjectFile = {
   format: 'thumbpon-project'
-  version: 1 | 2 | 3 | 4 | 5
+  version: 1 | 2 | 3 | 4 | 5 | 6
   folders: Folder[]
   thumbnails: Thumbnail[]
   currentThumbnailId: string | null
@@ -236,7 +237,9 @@ export function normalizeThumbnails(thumbnails: Thumbnail[]): Thumbnail[] {
       const normalized = { ...layer, effects: { ...DEFAULT_EFFECTS, ...layer.effects } } as Layer
       if (normalized.type === 'text')
         return {
+          ...DEFAULT_TEXT_BACKGROUND,
           ...normalized,
+          autoFit: normalized.autoFit ?? false,
           inlineStyles: normalizeInlineStyles(normalized.text, normalized.inlineStyles),
         }
       if (normalized.type !== 'image') return normalized

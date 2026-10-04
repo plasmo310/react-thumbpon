@@ -12,6 +12,7 @@ import { isUnsupportedDevice } from '@/app/config/deviceSupport'
 import { loadPanelLayout, savePanelLayout } from '@/app/layout/panelLayout'
 import { useKeyboardShortcuts } from '@/app/config/shortcuts'
 import { restoreWorkspace, startAutoSave } from '@/features/project'
+import { useEditorStore } from '@/app/store'
 
 const MIN_SIDEBAR = 240
 const MAX_SIDEBAR = 640
@@ -32,6 +33,21 @@ export function App() {
   }, [])
 
   useEffect(() => savePanelLayout(layout), [layout])
+
+  useEffect(() => {
+    let active = true
+    const refresh = () => {
+      if (active) useEditorStore.getState().refreshTextLayout()
+    }
+    void document.fonts.ready.then(refresh)
+    document.fonts.addEventListener('loadingdone', refresh)
+    const unsubscribe = useEditorStore.subscribe((state) => state.fonts, refresh)
+    return () => {
+      active = false
+      document.fonts.removeEventListener('loadingdone', refresh)
+      unsubscribe()
+    }
+  }, [])
 
   /**
    * サイドバー内のパネルの高さを、レイヤーパネルを潰さない範囲に収める。

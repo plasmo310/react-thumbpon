@@ -63,6 +63,7 @@ export function TextProperties({ layer }: { layer: TextLayer }) {
     mixed(key) ? `${name}（混在）` : name
   const format = (style: InlineTextStyle) => formatText(layer.id, style)
   const patch = (values: Partial<TextLayer>) => {
+    if (layer.locked) return
     recordHistory()
     updateLayer(layer.id, values)
   }
@@ -71,12 +72,21 @@ export function TextProperties({ layer }: { layer: TextLayer }) {
     <div data-text-properties={layer.id}>
       <div className={styles.pair}>
         <Row label="幅">
-          <NumberInput value={layer.width} min={1} onChange={(width) => patch({ width })} />
+          <NumberInput
+            value={layer.width}
+            min={1}
+            onChange={(width) => patch({ width: Math.max(1, width), autoFit: false })}
+          />
         </Row>
         <Row label="回転">
           <NumberInput value={layer.rotation} onChange={(rotation) => patch({ rotation })} />
         </Row>
       </div>
+      <Row label="自動フィット">
+        <Button disabled={layer.locked} onClick={() => patch({ autoFit: !layer.autoFit })}>
+          {layer.autoFit ? 'オン' : 'オフ'}
+        </Button>
+      </Row>
       <PercentRow
         label="不透明度"
         value={layer.opacity}
@@ -221,6 +231,45 @@ export function TextProperties({ layer }: { layer: TextLayer }) {
       <Row label="部分書式">
         <Button onClick={() => formatText(layer.id, null)}>部分書式を解除</Button>
       </Row>
+      <div className={styles.divider} />
+      <Row label="背景">
+        <SegmentedControl
+          value={layer.backgroundEnabled ? 'on' : 'off'}
+          options={[
+            { label: 'なし', value: 'off' },
+            { label: 'あり', value: 'on' },
+          ]}
+          onChange={(value) => patch({ backgroundEnabled: value === 'on' })}
+        />
+      </Row>
+      {layer.backgroundEnabled && (
+        <>
+          <Row label="背景色">
+            <ColorInput
+              value={layer.backgroundColor}
+              onChange={(backgroundColor) => patch({ backgroundColor })}
+            />
+          </Row>
+          {(['paddingTop', 'paddingRight', 'paddingBottom', 'paddingLeft'] as const).map(
+            (key, index) => (
+              <Row key={key} label={`余白・${['上', '右', '下', '左'][index]}`}>
+                <NumberInput
+                  value={layer[key]}
+                  min={0}
+                  onChange={(value) => patch({ [key]: Math.max(0, value) })}
+                />
+              </Row>
+            ),
+          )}
+          <Row label="角丸 (px)">
+            <NumberInput
+              value={layer.backgroundRadius}
+              min={0}
+              onChange={(value) => patch({ backgroundRadius: Math.max(0, value) })}
+            />
+          </Row>
+        </>
+      )}
     </div>
   )
 }

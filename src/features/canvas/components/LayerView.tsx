@@ -7,6 +7,7 @@ import {
   shapeFillStyle,
   shapeFrameStyle,
   textStyle,
+  textFrameStyle,
 } from '@/domain/layer'
 import type { Layer } from '@/domain/layer'
 import { getAssetUrl } from '@/shared/lib/storage/assetRepo'
@@ -221,7 +222,7 @@ export function LayerView({ layer, scale }: { layer: Layer; scale: number }) {
     <div
       data-layer-id={layer.id}
       data-text-layer={layer.id}
-      style={{ ...base, ...textStyle(layer) }}
+      style={{ ...base, ...textStyle(layer), ...textFrameStyle(layer) }}
       onPointerDown={handlePointerDown}
       onContextMenu={handleContextMenu}
       onDoubleClick={(event) => {
@@ -231,6 +232,11 @@ export function LayerView({ layer, scale }: { layer: Layer; scale: number }) {
     >
       <RichTextInput
         canvas
+        style={{
+          whiteSpace: layer.autoFit ? 'pre' : 'pre-wrap',
+          overflowWrap: layer.autoFit ? 'normal' : 'anywhere',
+          wordBreak: layer.autoFit ? 'normal' : 'break-word',
+        }}
         value={layer}
         editable={editing?.layerId === layer.id && editing.surface === 'canvas'}
         active={editing?.layerId === layer.id && editing.surface === 'canvas'}

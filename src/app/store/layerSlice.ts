@@ -6,6 +6,7 @@ import { mergeCrop, type Crop } from '@/domain/crop'
 import { DEFAULT_EFFECTS, type Effects } from '@/domain/effects'
 import type { Layer, ShapeKind } from '@/domain/layer'
 import type { SliceCreator } from './index'
+import { fitTextLayer } from './textLayout'
 
 /** 重なり順の動かし方。配列順がそのまま重なり順なので、端の1つ隣か端そのものになる */
 export type LayerOrder = 'front' | 'forward' | 'backward' | 'back'
@@ -110,7 +111,8 @@ export const createLayerSlice: SliceCreator<LayerSlice> = (set, get) => {
       const thumbnail = current()
       if (!thumbnail) return
       get().recordHistory()
-      const layer = createTextLayer(thumbnail.canvas)
+      const layer = fitTextLayer(createTextLayer(thumbnail.canvas))
+      layer.x = Math.round((thumbnail.canvas.width - layer.width) / 2)
       patchLayers((layers) => [...layers, layer])
       set({ selectedId: layer.id, selectedIds: [layer.id], propertiesOpen: true, cropping: false })
     },
@@ -132,7 +134,14 @@ export const createLayerSlice: SliceCreator<LayerSlice> = (set, get) => {
      * @param patch 変更したい項目だけ
      */
     updateLayer: (id, patch) => {
-      patchLayers((layers) => layers.map((l) => (l.id === id ? ({ ...l, ...patch } as Layer) : l)))
+      patchLayers((layers) =>
+        layers.map((l) => {
+          if (l.id !== id) return l
+          const manualWidth =
+            l.type === 'text' && patch.width !== undefined && !('autoFit' in patch)
+          return { ...l, ...patch, ...(manualWidth ? { autoFit: false } : {}) } as Layer
+        }),
+      )
       if (get().textEditing?.layerId === id && (patch.locked || patch.visible === false))
         get().endTextEditing()
     },

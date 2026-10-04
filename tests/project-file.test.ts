@@ -19,7 +19,7 @@ import type { AssetMeta } from '@/domain/asset'
 import { DEFAULT_BACKGROUND } from '@/domain/background'
 import { DEFAULT_EFFECTS } from '@/domain/effects'
 import { BUILTIN_FONTS } from '@/domain/font'
-import type { TextLayer } from '@/domain/layer'
+import { DEFAULT_TEXT_BACKGROUND, type TextLayer } from '@/domain/layer'
 import type { Thumbnail } from '@/domain/thumbnail'
 
 let downloaded: { blob: Blob; filename: string } | null = null
@@ -38,6 +38,8 @@ const textLayer = (fontFamily: string): TextLayer => ({
   id: 'tx1',
   name: 'text',
   type: 'text',
+  autoFit: false,
+  ...DEFAULT_TEXT_BACKGROUND,
   x: 0,
   y: 0,
   width: 100,
@@ -127,9 +129,17 @@ describe('exportProjectFile', () => {
 })
 
 describe('往復', () => {
-  it('version 5の部分書式と部分指定フォントをZIPで往復できる', async () => {
+  it('version 6の部分書式・背景・自動フィットをZIPで往復できる', async () => {
     const layer = {
       ...textLayer(BUILTIN_FONTS[0].family),
+      autoFit: true,
+      backgroundEnabled: true,
+      backgroundColor: '#FF8A5B',
+      paddingTop: 8,
+      paddingRight: 12,
+      paddingBottom: 16,
+      paddingLeft: 20,
+      backgroundRadius: 10,
       text: 'これが最強の方法',
       inlineStyles: [
         {
@@ -159,13 +169,21 @@ describe('往復', () => {
         Object.entries(entries).find(([name]) => name.endsWith('.thumbpon'))![1],
       ),
     )
-    expect(manifest.version).toBe(5)
+    expect(manifest.version).toBe(6)
     expect(manifest.fonts).toEqual([{ family: 'Custom', label: 'Custom', source: 'file' }])
     useEditorStore.setState({ thumbnails: [thumbnail([])] })
     await importProjectFile(file)
     expect(useEditorStore.getState().thumbnails[0].layers[0]).toMatchObject({
       text: layer.text,
       inlineStyles: layer.inlineStyles,
+      autoFit: true,
+      backgroundEnabled: true,
+      backgroundColor: '#FF8A5B',
+      paddingTop: 8,
+      paddingRight: 12,
+      paddingBottom: 16,
+      paddingLeft: 20,
+      backgroundRadius: 10,
     })
   })
   it('サムネイルと素材が書き出し前の状態に戻る', async () => {
