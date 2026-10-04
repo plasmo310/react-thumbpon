@@ -9,6 +9,7 @@ import { createStore } from 'idb-keyval'
  *   font:<id>        フォントファイル
  *   font:list        フォントメタ一覧
  *   project:current  作業中プロジェクト
+ *   view:canvas      ブラウザ専用の常時表示とグリッド設定
  *   handle:workspace 接続中のワークスペースフォルダのハンドル
  */
 export const kv = createStore('thumbpon-assets', 'kv')

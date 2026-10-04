@@ -21,11 +21,12 @@ function toFileName(name: string): string {
  * @param name   ファイル名のもと。サムネイル名をそのまま渡す
  */
 export async function exportPng(canvas: CanvasSize, name: string) {
+  const thumbnailId = useEditorStore.getState().currentThumbnailId
   // 書き出しにも最終フォントの計測値を使い、描画の反映を待つ。
   await document.fonts.ready
   useEditorStore.getState().refreshTextLayout()
   await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()))
-  const surface = getSurface()
+  const surface = getSurface(thumbnailId)
   if (!surface) throw new Error('キャンバスが準備できていません')
 
   const options = {

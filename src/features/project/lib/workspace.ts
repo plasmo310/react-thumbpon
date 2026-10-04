@@ -5,8 +5,11 @@ import { replaceAssets } from '@/shared/lib/storage/assetRepo'
 import { loadStoredFonts } from '@/shared/lib/storage/fontRepo'
 import { pickDocument, useEditorStore, type SavedDocument } from '@/app/store'
 import { disconnectProjectFolder, restoreProjectFolder } from './projectFolder'
+import type { GridSettings } from '@/domain/canvasLayout'
 
 const WORKSPACE_KEY = 'project:current'
+const CANVAS_DISPLAY_KEY = 'view:canvas'
+type CanvasDisplay = { pinnedThumbnailIds: string[]; gridSettings: GridSettings }
 
 /**
  * 起動時の復元。素材 → フォント → 作業中プロジェクト → ワークスペースフォルダの順に読み込む。
@@ -42,6 +45,12 @@ export async function restoreWorkspace() {
     console.error('ワークスペースフォルダの復元に失敗しました', error)
   }
 
+  try {
+    const display = await get<CanvasDisplay>(CANVAS_DISPLAY_KEY, kv)
+    useEditorStore.getState().restoreCanvasDisplay(display ?? {})
+  } catch (error) {
+    console.error('Canvasの表示設定の復元に失敗しました', error)
+  }
   useEditorStore.getState().setReady(true)
 }
 
@@ -78,8 +87,27 @@ export async function newProject() {
  */
 export function startAutoSave() {
   let timer: number | undefined
+  let displayTimer: number | undefined
 
-  return useEditorStore.subscribe(
+  const stopDisplay = useEditorStore.subscribe(
+    (s) => ({
+      pinnedThumbnailIds: s.pinnedThumbnailIds,
+      gridSettings: s.gridSettings,
+      ready: s.ready,
+    }),
+    ({ ready, ...display }) => {
+      if (!ready) return
+      window.clearTimeout(displayTimer)
+      displayTimer = window.setTimeout(() => {
+        void set(CANVAS_DISPLAY_KEY, display, kv).catch((error) =>
+          console.error('Canvasの表示設定の保存に失敗しました', error),
+        )
+      }, 400)
+    },
+    { equalityFn: shallow },
+  )
+
+  const stopDocument = useEditorStore.subscribe(
     pickDocument,
     (document) => {
       const store = useEditorStore.getState()
@@ -94,4 +122,10 @@ export function startAutoSave() {
     },
     { equalityFn: shallow },
   )
+  return () => {
+    stopDisplay()
+    stopDocument()
+    window.clearTimeout(displayTimer)
+    window.clearTimeout(timer)
+  }
 }

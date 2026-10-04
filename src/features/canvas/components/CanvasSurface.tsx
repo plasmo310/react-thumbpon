@@ -3,7 +3,8 @@ import { backgroundArtStyle, backgroundBaseStyle } from '@/domain/background'
 import { effectsBleed, effectsFilter } from '@/domain/effects'
 import { getAssetUrl } from '@/shared/lib/storage/assetRepo'
 import { setSurface } from '@/shared/lib/surfaceRef'
-import { useCurrentThumbnail, useEditorStore } from '@/app/store'
+import { useEditorStore } from '@/app/store'
+import type { Thumbnail } from '@/domain/thumbnail'
 import { BACKGROUND_ID } from '@/domain/background'
 import { LayerView } from './LayerView'
 import styles from '../styles.module.css'
@@ -16,38 +17,20 @@ const GUIDE_COLOR = '#FF3B8B'
  * PNG 書き出しは transform: none を渡すだけで実寸になる。
  *
  * @param props.scale 表示倍率
+ * @param props.thumbnail 描画するサムネイル
  */
-export function CanvasSurface({ scale }: { scale: number }) {
+export function CanvasSurface({ scale, thumbnail }: { scale: number; thumbnail: Thumbnail }) {
   const surfaceRef = useRef<HTMLDivElement>(null)
-  const { canvas, background, layers } = useCurrentThumbnail()
+  const { canvas, background, layers } = thumbnail
+  const active = useEditorStore((s) => s.currentThumbnailId === thumbnail.id)
   const select = useEditorStore((s) => s.select)
   const guides = useEditorStore((s) => s.guides)
   const bleed = effectsBleed(background.effects)
 
   useEffect(() => {
-    setSurface(surfaceRef.current)
-    return () => setSurface(null)
-  }, [])
-
-  useEffect(() => {
-    const finishOutside = (event: PointerEvent) => {
-      const session = useEditorStore.getState().textEditing
-      if (!session || !(event.target instanceof Element)) return
-      const owner = event.target.closest('[data-text-layer], [data-text-properties]')
-      if (
-        owner?.getAttribute('data-text-layer') === session.layerId ||
-        owner?.getAttribute('data-text-properties') === session.layerId
-      )
-        return
-      // ポインタによるフォーカス移動でIMEが確定してから編集を終了する。
-      window.setTimeout(() => {
-        if (useEditorStore.getState().textEditing?.layerId === session.layerId)
-          useEditorStore.getState().endTextEditing()
-      }, 0)
-    }
-    document.addEventListener('pointerdown', finishOutside, true)
-    return () => document.removeEventListener('pointerdown', finishOutside, true)
-  }, [])
+    setSurface(thumbnail.id, surfaceRef.current)
+    return () => setSurface(thumbnail.id, null)
+  }, [thumbnail.id])
 
   return (
     <>
@@ -62,7 +45,10 @@ export function CanvasSurface({ scale }: { scale: number }) {
           ...backgroundBaseStyle(background),
         }}
         onPointerDown={(event) => {
-          if (event.target === event.currentTarget) select(BACKGROUND_ID)
+          if (event.button === 0 && event.target === event.currentTarget) {
+            useEditorStore.getState().selectThumbnail(thumbnail.id)
+            select(BACKGROUND_ID)
+          }
         }}
       >
         {/*
@@ -85,39 +71,41 @@ export function CanvasSurface({ scale }: { scale: number }) {
         />
 
         {layers.map((layer) => (
-          <LayerView key={layer.id} layer={layer} scale={scale} />
+          <LayerView key={layer.id} layer={layer} scale={scale} thumbnail={thumbnail} />
         ))}
 
-        {guides.x.map((x) => (
-          <div
-            key={`gx-${x}`}
-            data-export-ignore="true"
-            style={{
-              position: 'absolute',
-              left: x,
-              top: 0,
-              height: canvas.height,
-              width: Math.max(1, 1 / scale),
-              background: GUIDE_COLOR,
-              pointerEvents: 'none',
-            }}
-          />
-        ))}
-        {guides.y.map((y) => (
-          <div
-            key={`gy-${y}`}
-            data-export-ignore="true"
-            style={{
-              position: 'absolute',
-              top: y,
-              left: 0,
-              width: canvas.width,
-              height: Math.max(1, 1 / scale),
-              background: GUIDE_COLOR,
-              pointerEvents: 'none',
-            }}
-          />
-        ))}
+        {active &&
+          guides.x.map((x) => (
+            <div
+              key={`gx-${x}`}
+              data-export-ignore="true"
+              style={{
+                position: 'absolute',
+                left: x,
+                top: 0,
+                height: canvas.height,
+                width: Math.max(1, 1 / scale),
+                background: GUIDE_COLOR,
+                pointerEvents: 'none',
+              }}
+            />
+          ))}
+        {active &&
+          guides.y.map((y) => (
+            <div
+              key={`gy-${y}`}
+              data-export-ignore="true"
+              style={{
+                position: 'absolute',
+                top: y,
+                left: 0,
+                width: canvas.width,
+                height: Math.max(1, 1 / scale),
+                background: GUIDE_COLOR,
+                pointerEvents: 'none',
+              }}
+            />
+          ))}
       </div>
 
       {/*
@@ -126,17 +114,19 @@ export function CanvasSurface({ scale }: { scale: number }) {
       サーフェスと同じ実寸座標・同じ倍率にそろえてあるので、枠の座標計算はそのまま使える。
       書き出しの対象はサーフェスだけなので、枠が出力に混ざることもない。
     */}
-      <div
-        className={styles.overlay}
-        style={{
-          width: canvas.width,
-          height: canvas.height,
-          transform: `scale(${scale})`,
-          transformOrigin: 'top left',
-        }}
-      >
-        <SelectionOverlay scale={scale} />
-      </div>
+      {active && (
+        <div
+          className={styles.overlay}
+          style={{
+            width: canvas.width,
+            height: canvas.height,
+            transform: `scale(${scale})`,
+            transformOrigin: 'top left',
+          }}
+        >
+          <SelectionOverlay scale={scale} />
+        </div>
+      )}
     </>
   )
 }

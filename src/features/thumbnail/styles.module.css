@@ -1,5 +1,12 @@
 /* --- 一覧の行（サムネイル / フォルダで共通の見た目） --- */
 
+.checkbox {
+  flex-shrink: 0;
+  margin: 0;
+  accent-color: var(--color-accent);
+  cursor: pointer;
+}
+
 .row {
   display: flex;
   flex-direction: column;

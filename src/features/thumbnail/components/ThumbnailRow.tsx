@@ -17,6 +17,8 @@ import styles from '../styles.module.css'
  */
 export function ThumbnailRow({ thumbnail, depth }: { thumbnail: Thumbnail; depth: number }) {
   const currentId = useEditorStore((s) => s.currentThumbnailId)
+  const pinned = useEditorStore((s) => s.pinnedThumbnailIds.includes(thumbnail.id))
+  const togglePinned = useEditorStore((s) => s.toggleThumbnailPinned)
   const selectThumbnail = useEditorStore((s) => s.selectThumbnail)
   const renameThumbnail = useEditorStore((s) => s.renameThumbnail)
   const duplicateThumbnail = useEditorStore((s) => s.duplicateThumbnail)
@@ -67,6 +69,17 @@ export function ThumbnailRow({ thumbnail, depth }: { thumbnail: Thumbnail; depth
           dropPosition === 'after' && styles.dropAfter,
         )}
       >
+        <input
+          type="checkbox"
+          checked={pinned}
+          aria-label={`「${thumbnail.name}」を常時表示`}
+          title="チェックするとCanvasに常時表示します"
+          className={styles.checkbox}
+          onPointerDown={(event) => event.stopPropagation()}
+          onClick={(event) => event.stopPropagation()}
+          onDoubleClick={(event) => event.stopPropagation()}
+          onChange={() => togglePinned(thumbnail.id)}
+        />
         <span className={styles.icon}>▦</span>
         {editing ? (
           <InlineName

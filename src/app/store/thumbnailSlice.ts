@@ -58,8 +58,18 @@ export const createThumbnailSlice: SliceCreator<ThumbnailSlice> = (set, get) => 
      *
      * @param id 切り替え先のサムネイルの id
      */
-    selectThumbnail: (id) =>
-      set({ currentThumbnailId: id, selectedId: null, selectedIds: [], cropping: false }),
+    selectThumbnail: (id) => {
+      const state = get()
+      if (state.currentThumbnailId === id || !state.thumbnails.some((t) => t.id === id)) return
+      set({
+        currentThumbnailId: id,
+        selectedId: null,
+        selectedIds: [],
+        cropping: false,
+        guides: { x: [], y: [] },
+        layerMenu: null,
+      })
+    },
 
     /**
      * サムネイルを追加して、そのまま編集対象にする。
@@ -119,7 +129,16 @@ export const createThumbnailSlice: SliceCreator<ThumbnailSlice> = (set, get) => 
       // 削除したら「ひとつ上」のサムネイルへ移る
       const nextCurrent =
         currentThumbnailId === id ? next[Math.max(0, index - 1)].id : currentThumbnailId
-      set({ thumbnails: next, currentThumbnailId: nextCurrent, selectedId: null, selectedIds: [] })
+      set({
+        thumbnails: next,
+        currentThumbnailId: nextCurrent,
+        selectedId: null,
+        selectedIds: [],
+        pinnedThumbnailIds: get().pinnedThumbnailIds.filter((value) => value !== id),
+        cropping: false,
+        guides: { x: [], y: [] },
+        layerMenu: null,
+      })
     },
 
     /**
@@ -262,6 +281,7 @@ export const createThumbnailSlice: SliceCreator<ThumbnailSlice> = (set, get) => 
       const wanted = list.find((t) => t.id === currentThumbnailId)
       set((s) => ({
         folders,
+        pinnedThumbnailIds: [],
         thumbnails: list.map((thumbnail) => ({
           ...thumbnail,
           layers: thumbnail.layers.map((layer) => fitTextLayer(layer)),

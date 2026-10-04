@@ -11,8 +11,9 @@ import {
   extractTextStyle,
 } from '@/domain/layer'
 import type { Layer } from '@/domain/layer'
+import type { Thumbnail } from '@/domain/thumbnail'
 import { getAssetUrl } from '@/shared/lib/storage/assetRepo'
-import { useCurrentThumbnail, useEditorStore } from '@/app/store'
+import { useEditorStore } from '@/app/store'
 import { collectLayerRects, measureLayerHeight } from '../lib/layerRect'
 import { startPointerDrag } from '@/shared/lib/pointerDrag'
 import { RichTextInput } from '@/shared/ui'
@@ -32,9 +33,18 @@ const MISSING_FILL = '#FFF1EB'
  * 右クリックではレイヤー一覧と同じメニューを出す（中身は layer の `LayerMenu` が持つ）。
  *
  * @param props.layer 描画するレイヤー
+ * @param props.thumbnail このレイヤーを含むサムネイル
  * @param props.scale 表示倍率。ポインタの移動量を実寸に直すのと、スナップ距離の換算に使う
  */
-export function LayerView({ layer, scale }: { layer: Layer; scale: number }) {
+export function LayerView({
+  layer,
+  scale,
+  thumbnail,
+}: {
+  layer: Layer
+  scale: number
+  thumbnail: Thumbnail
+}) {
   const select = useEditorStore((s) => s.select)
   const openLayerMenu = useEditorStore((s) => s.openLayerMenu)
   const updateLayer = useEditorStore((s) => s.updateLayer)
@@ -47,11 +57,13 @@ export function LayerView({ layer, scale }: { layer: Layer; scale: number }) {
   const updateTextContent = useEditorStore((s) => s.updateTextContent)
   const undo = useEditorStore((s) => s.undo)
   const redo = useEditorStore((s) => s.redo)
-  const { canvas, layers } = useCurrentThumbnail()
+  const { canvas, layers } = thumbnail
+  const activate = () => useEditorStore.getState().selectThumbnail(thumbnail.id)
 
   if (!layer.visible) return null
 
   const handlePointerDown = (event: ReactPointerEvent) => {
+    if (event.button === 0) activate()
     if (layer.locked || event.button !== 0) return
     if (editing?.layerId === layer.id) return
     event.stopPropagation()
@@ -163,6 +175,7 @@ export function LayerView({ layer, scale }: { layer: Layer; scale: number }) {
   const handleContextMenu = (event: ReactMouseEvent) => {
     event.preventDefault()
     event.stopPropagation()
+    activate()
     openLayerMenu(layer.id, event.clientX, event.clientY)
   }
 
@@ -228,6 +241,7 @@ export function LayerView({ layer, scale }: { layer: Layer; scale: number }) {
       onContextMenu={handleContextMenu}
       onDoubleClick={(event) => {
         event.stopPropagation()
+        activate()
         beginTextEditing(layer.id, 'canvas')
       }}
     >

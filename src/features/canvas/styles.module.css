@@ -19,9 +19,67 @@
   cursor: grabbing;
 }
 
+.board {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.cell {
+  position: absolute;
+}
+
+.cellName {
+  position: absolute;
+  top: 0;
+  width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--font-body);
+  color: var(--color-ink-sub);
+  text-align: left;
+}
+
+.cellNameActive {
+  color: var(--color-accent-hover);
+  font-weight: bold;
+}
+
+.surfaceActive {
+  outline: 2px solid var(--color-accent);
+  outline-offset: var(--space-1);
+}
+
+.layoutControls {
+  position: absolute;
+  top: var(--space-3);
+  right: var(--space-3);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  max-width: calc(100% - var(--space-3) * 2);
+  padding: var(--space-2);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius);
+  background: var(--color-panel);
+  font-size: var(--font-label);
+  color: var(--color-ink-sub);
+}
+
+.gridCount {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.gridCount input {
+  width: var(--label-col);
+}
+
 /* 実寸のキャンバスを載せる枠。影で白いサムネイルでも縁が分かるようにする */
 .surfaceWrap {
-  position: relative;
+  position: absolute;
   box-shadow: 0 4px 24px rgb(0 0 0 / 0.12);
 }
 

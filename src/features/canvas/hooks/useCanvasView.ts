@@ -19,8 +19,9 @@ type View = { scale: number; x: number; y: number }
  * ホイールでズーム、中ボタンドラッグで移動すると手動の状態に切り替わる。
  *
  * @param canvas キャンバスの実寸。これが変わったら手動の状態は捨てて合わせ直す
+ * @param resetKey 表示対象や配置が変わったことを示すキー
  */
-export function useCanvasView(canvas: CanvasSize) {
+export function useCanvasView(canvas: CanvasSize, resetKey = '') {
   const stageRef = useRef<HTMLDivElement>(null)
   const surfaceWrapRef = useRef<HTMLDivElement>(null)
   const [fitScale, setFitScale] = useState(1)
@@ -40,13 +41,13 @@ export function useCanvasView(canvas: CanvasSize) {
         (element.clientHeight - STAGE_PADDING) / canvas.height,
         1,
       )
-      setFitScale(Math.max(MIN_SCALE, next))
+      setFitScale(Math.max(0.001, next))
     }
     update()
     const observer = new ResizeObserver(update)
     observer.observe(element)
     return () => observer.disconnect()
-  }, [canvas.width, canvas.height])
+  }, [canvas.width, canvas.height, resetKey])
 
   /**
    * カーソルの下にある実寸座標を動かさずに倍率だけ変える。
@@ -60,7 +61,7 @@ export function useCanvasView(canvas: CanvasSize) {
       const stage = stageRef.current
       const wrap = surfaceWrapRef.current
       if (!stage || !wrap) return
-      const next = clamp(scale * factor, MIN_SCALE, MAX_SCALE)
+      const next = clamp(scale * factor, Math.min(MIN_SCALE, fitScale), MAX_SCALE)
       if (next === scale) return
 
       const rect = wrap.getBoundingClientRect()
@@ -76,7 +77,7 @@ export function useCanvasView(canvas: CanvasSize) {
         y: clientY - pointY * next - centeredTop,
       })
     },
-    [canvas.height, canvas.width, scale],
+    [canvas.height, canvas.width, scale, fitScale],
   )
 
   // React の onWheel は passive で登録されて preventDefault が効かないため、自前で登録する
@@ -84,6 +85,7 @@ export function useCanvasView(canvas: CanvasSize) {
     const element = stageRef.current
     if (!element) return
     const handleWheel = (event: WheelEvent) => {
+      if (event.target instanceof Element && event.target.closest('[data-canvas-controls]')) return
       event.preventDefault()
       // 行単位・ページ単位で来るブラウザがあるので px に揃える
       const unit = event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? 400 : 1
@@ -106,23 +108,6 @@ export function useCanvasView(canvas: CanvasSize) {
     )
   }
 
-  /**
-   * 画面上の位置をキャンバス実寸座標に直す。
-   *
-   * @param clientX 画面X座標
-   * @param clientY 画面Y座標
-   * @returns まだ描かれていなければ undefined
-   */
-  const toCanvasPoint = useCallback(
-    (clientX: number, clientY: number) => {
-      const wrap = surfaceWrapRef.current
-      if (!wrap) return undefined
-      const rect = wrap.getBoundingClientRect()
-      return { x: (clientX - rect.left) / scale, y: (clientY - rect.top) / scale }
-    },
-    [scale],
-  )
-
   return {
     stageRef,
     surfaceWrapRef,
@@ -134,6 +119,5 @@ export function useCanvasView(canvas: CanvasSize) {
     adjusted: view !== null,
     resetView: () => setView(null),
     startPan,
-    toCanvasPoint,
   }
 }

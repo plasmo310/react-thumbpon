@@ -13,6 +13,8 @@ const FOLDER_DRAG_THRESHOLD = 6
 export function ThumbnailPanel() {
   const folders = useEditorStore((s) => s.folders)
   const thumbnails = useEditorStore((s) => s.thumbnails)
+  const pinnedIds = useEditorStore((s) => s.pinnedThumbnailIds)
+  const toggleFolderPinned = useEditorStore((s) => s.toggleFolderPinned)
   const clipboard = useEditorStore((s) => s.clipboard)
   const addThumbnail = useEditorStore((s) => s.addThumbnail)
   const pasteThumbnail = useEditorStore((s) => s.pasteThumbnail)
@@ -131,6 +133,7 @@ export function ThumbnailPanel() {
 
       {folders.map((folder) => {
         const children = thumbnails.filter((t) => t.folderId === folder.id)
+        const checkedCount = children.filter((t) => pinnedIds.includes(t.id)).length
         return (
           <FolderDropZone key={folder.id} folderId={folder.id} className={styles.folderGroup}>
             <div
@@ -149,6 +152,19 @@ export function ThumbnailPanel() {
                   styles.folderDropAfter,
               )}
             >
+              <input
+                type="checkbox"
+                className={styles.checkbox}
+                aria-label={`「${folder.name}」内のサムネイルを常時表示`}
+                title="配下のサムネイルの常時表示を一括切り替え"
+                checked={children.length > 0 && checkedCount === children.length}
+                disabled={children.length === 0}
+                ref={(element) => {
+                  if (element)
+                    element.indeterminate = checkedCount > 0 && checkedCount < children.length
+                }}
+                onChange={() => toggleFolderPinned(folder.id)}
+              />
               <button
                 type="button"
                 onClick={() => toggleFolder(folder.id)}

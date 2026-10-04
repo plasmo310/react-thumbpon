@@ -1,9 +1,19 @@
 import type { SliceCreator } from './index'
+import { DEFAULT_GRID, normalizeGrid, type GridSettings } from '@/domain/canvasLayout'
 
 /** 右クリックメニューを出す対象と位置。位置は画面座標(clientX / clientY) */
 export type LayerMenu = { layerId: string; x: number; y: number }
 
 export type UiSlice = {
+  pinnedThumbnailIds: string[]
+  gridSettings: GridSettings
+  toggleThumbnailPinned: (id: string) => void
+  toggleFolderPinned: (folderId: string) => void
+  setGridSettings: (settings: GridSettings) => void
+  restoreCanvasDisplay: (display: {
+    pinnedThumbnailIds?: string[]
+    gridSettings?: GridSettings
+  }) => void
   /** 復元が終わったか。自動保存は これが true の間だけ動く */
   ready: boolean
   snapEnabled: boolean
@@ -27,6 +37,46 @@ export type UiSlice = {
 
 /** スナップの設定やガイド線など、編集内容ではない画面まわりの状態 */
 export const createUiSlice: SliceCreator<UiSlice> = (set, get) => ({
+  pinnedThumbnailIds: [],
+  gridSettings: DEFAULT_GRID,
+
+  /** @param id 常時表示を切り替えるサムネイルのID */
+  toggleThumbnailPinned: (id) =>
+    set((s) => {
+      if (!s.thumbnails.some((t) => t.id === id)) return s
+      return {
+        pinnedThumbnailIds: s.pinnedThumbnailIds.includes(id)
+          ? s.pinnedThumbnailIds.filter((value) => value !== id)
+          : [...s.pinnedThumbnailIds, id],
+      }
+    }),
+
+  /** @param folderId 操作時点で配下にあるサムネイルを一括切り替えするフォルダ */
+  toggleFolderPinned: (folderId) =>
+    set((s) => {
+      const ids = s.thumbnails.filter((t) => t.folderId === folderId).map((t) => t.id)
+      if (ids.length === 0) return s
+      const all = ids.every((id) => s.pinnedThumbnailIds.includes(id))
+      return {
+        pinnedThumbnailIds: all
+          ? s.pinnedThumbnailIds.filter((id) => !ids.includes(id))
+          : [...new Set([...s.pinnedThumbnailIds, ...ids])],
+      }
+    }),
+
+  /** @param settings 指定する方向とセル数 */
+  setGridSettings: (settings) => set({ gridSettings: normalizeGrid(settings) }),
+
+  /** @param display プロジェクトの復元後に適用するブラウザ専用の表示設定 */
+  restoreCanvasDisplay: (display) =>
+    set((s) => ({
+      pinnedThumbnailIds: Array.isArray(display.pinnedThumbnailIds)
+        ? [...new Set(display.pinnedThumbnailIds)].filter((id) =>
+            s.thumbnails.some((t) => t.id === id),
+          )
+        : [],
+      gridSettings: normalizeGrid(display.gridSettings),
+    })),
   ready: false,
   snapEnabled: true,
   guides: { x: [], y: [] },
