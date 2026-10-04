@@ -177,7 +177,9 @@ export function deleteEntry(root: FakeDirHandle, path: string): void {
 export function installPicker(pick: () => FakeDirHandle | null) {
   const target = globalThis as unknown as { window?: unknown }
   target.window = {
-    showDirectoryPicker: async () => {
+    async showDirectoryPicker() {
+      // 本物の Window メソッドと同じ制約を持たせ、呼び出し元を失う不具合も検出する。
+      if (this !== target.window) throw new TypeError('Illegal invocation')
       const picked = pick()
       if (!picked) throw new DOMException('abort', 'AbortError')
       return picked

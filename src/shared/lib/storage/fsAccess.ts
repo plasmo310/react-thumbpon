@@ -55,7 +55,12 @@ export async function pickDirectory(): Promise<DirectoryHandle | null> {
   const picker = (window as WindowWithPicker).showDirectoryPicker
   if (!picker) throw new Error('このブラウザはフォルダの読み書きに対応していません')
   try {
-    return await picker({ mode: 'readwrite', id: 'thumbpon-workspace', startIn: 'documents' })
+    // Window のメソッドは呼び出し元を失うと Illegal invocation になるため、window を渡す。
+    return await picker.call(window, {
+      mode: 'readwrite',
+      id: 'thumbpon-workspace',
+      startIn: 'documents',
+    })
   } catch (error) {
     if (error instanceof DOMException && error.name === 'AbortError') return null
     throw error
