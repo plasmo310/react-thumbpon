@@ -58,8 +58,8 @@ export const englishMessages = {
   '他のレイヤーやキャンバス中央に吸着する（Altを押しながらドラッグで一時的に無効）':
     'Snap to other layers or the canvas center (hold Alt while dragging to temporarily disable)',
   スナップ: 'Snap',
-  '表示を画面に合わせ直す（ホイールでズーム / 中ボタンドラッグで移動）':
-    'Fit to screen (scroll to zoom / middle-drag to pan)',
+  '表示を画面に合わせ直す（ホイール・ピンチでズーム / 2本指スクロール・中ボタン・Space+ドラッグで移動）':
+    'Fit to screen (scroll or pinch to zoom / two-finger scroll, middle-drag or Space+drag to pan)',
   '{0}枚 ・ 全体を画面に合わせる': '{0} thumbnails · Fit all to screen',
   '回転（Shiftで15度スナップ）': 'Rotate (hold Shift to snap to 15°)',
   ドラッグで表示範囲を詰める: 'Drag to adjust the crop',

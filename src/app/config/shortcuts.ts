@@ -1,21 +1,10 @@
 import { t } from '@/shared/lib/i18n'
 import { useEffect } from 'react'
+import { isTyping } from '@/shared/lib/isTyping'
 import { notifyError } from '@/shared/lib/notify'
 import { canUseFileSystemAccess } from '@/shared/lib/storage/fsAccess'
 import { useEditorStore } from '@/app/store'
 import { confirmFolderOverwrite, saveProjectFolder } from '@/features/project'
-
-const EDITABLE = ['INPUT', 'TEXTAREA', 'SELECT']
-
-/**
- * 文字入力中かどうか。入力欄での Delete や矢印キーを奪わないために使う。
- *
- * @param target キーイベントの target
- */
-function isTyping(target: EventTarget | null): boolean {
-  if (!(target instanceof HTMLElement)) return false
-  return EDITABLE.includes(target.tagName) || target.isContentEditable
-}
 
 /**
  * 画面全体のキーボード操作を有効にする。

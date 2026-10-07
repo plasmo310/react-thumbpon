@@ -15,6 +15,10 @@
   background: var(--color-stage);
 }
 
+.panReady {
+  cursor: grab;
+}
+
 .panning {
   cursor: grabbing;
 }

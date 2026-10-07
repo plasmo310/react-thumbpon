@@ -130,7 +130,11 @@ export function CanvasStage() {
   return (
     <div
       ref={view.stageRef}
-      className={cx(styles.stage, view.panning && styles.panning)}
+      className={cx(
+        styles.stage,
+        view.spaceHeld && styles.panReady,
+        view.panning && styles.panning,
+      )}
       onPointerDownCapture={view.startPan}
       onMouseDown={(event) => {
         // 中ボタン押下でブラウザの自動スクロールが始まらないようにする
@@ -256,7 +260,9 @@ export function CanvasStage() {
         <button
           type="button"
           onClick={view.resetView}
-          title={t('表示を画面に合わせ直す（ホイールでズーム / 中ボタンドラッグで移動）')}
+          title={t(
+            '表示を画面に合わせ直す（ホイール・ピンチでズーム / 2本指スクロール・中ボタン・Space+ドラッグで移動）',
+          )}
           className={cx(styles.control, view.adjusted && styles.controlAdjusted)}
         >
           {multiple
