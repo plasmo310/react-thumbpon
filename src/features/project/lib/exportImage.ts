@@ -1,7 +1,8 @@
 import { t } from '@/shared/lib/i18n'
-import { toPng } from 'html-to-image'
+import { toBlob } from 'html-to-image'
 import { sanitizePathName } from '@/domain/project'
-import { downloadDataUrl } from './download'
+import { downloadBlob } from './download'
+import { buildFontEmbedCss } from './fontEmbed'
 import { getSurface } from '@/shared/lib/surfaceRef'
 import type { CanvasSize } from '@/domain/thumbnail'
 import { useEditorStore } from '@/app/store'
@@ -37,6 +38,8 @@ export async function exportPng(canvas: CanvasSize, name: string) {
     // cacheBust を有効にすると html-to-image が URL に ?<timestamp> を付けてしまい、
     // 素材画像の blob: URL が壊れて fetch に失敗する。素材は URL 自体が一意なので不要。
     cacheBust: false,
+    // 使っている文字範囲のフォントだけを渡す。任せると Web フォントを毎回すべて取得して遅い
+    fontEmbedCSS: await buildFontEmbedCss(surface),
     // 表示用の縮小スケールを打ち消して実寸で書き出す
     style: { transform: 'none', transformOrigin: 'top left' },
     // 選択枠などのUIは出力に含めない
@@ -44,8 +47,9 @@ export async function exportPng(canvas: CanvasSize, name: string) {
   }
 
   // 1回目はWebフォントや画像の埋め込みが間に合わないことがあるため捨てる（html-to-imageの既知の挙動）
-  await toPng(surface, options)
-  const dataUrl = await toPng(surface, options)
+  await toBlob(surface, options)
+  const blob = await toBlob(surface, options)
+  if (!blob) throw new Error(t('書き出しに失敗しました'))
 
-  downloadDataUrl(dataUrl, `${toFileName(name)}.png`)
+  downloadBlob(blob, `${toFileName(name)}.png`)
 }

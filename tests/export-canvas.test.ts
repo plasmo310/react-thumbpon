@@ -1,9 +1,13 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
-vi.mock('html-to-image', () => ({ toPng: vi.fn(async () => 'data:image/png;base64,fake') }))
+vi.mock('html-to-image', () => ({ toBlob: vi.fn(async () => new Blob(['fake'])) }))
+// フォント埋め込みは DOM と通信が前提のため、組み立て済みの CSS を返す偽物にする
+vi.mock('@/features/project/lib/fontEmbed', () => ({
+  buildFontEmbedCss: vi.fn(async () => '@font-face{}'),
+}))
 vi.mock('idb-keyval', () => import('./helpers/fakeKv'))
 
-import { toPng } from 'html-to-image'
+import { toBlob } from 'html-to-image'
 import { exportPng } from '@/features/project/lib/exportImage'
 import { getSurface, setSurface } from '@/shared/lib/surfaceRef'
 import { useEditorStore } from '@/app/store'
@@ -34,14 +38,15 @@ describe('複数表示中のPNG書き出し', () => {
       callback(0)
       return 0
     })
+    vi.stubGlobal('URL', { createObjectURL: () => 'blob:fake', revokeObjectURL: vi.fn() })
     await exportPng(b.canvas, b.name)
-    expect(toPng).toHaveBeenCalledTimes(2)
-    expect(toPng).toHaveBeenLastCalledWith(
+    expect(toBlob).toHaveBeenLastCalledWith(
       second,
       expect.objectContaining({
         width: 1080,
         height: 1920,
         pixelRatio: 1,
+        fontEmbedCSS: '@font-face{}',
         style: { transform: 'none', transformOrigin: 'top left' },
       }),
     )
