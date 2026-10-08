@@ -1,3 +1,4 @@
+import { useId } from 'react'
 import type { MouseEvent as ReactMouseEvent, PointerEvent as ReactPointerEvent } from 'react'
 import { snapPosition } from '../lib/snap'
 import { cropImageStyle } from '@/domain/crop'
@@ -18,6 +19,7 @@ import { useEditorStore } from '@/app/store'
 import { collectLayerRects, measureLayerHeight } from '../lib/layerRect'
 import { startPointerDrag } from '@/shared/lib/pointerDrag'
 import { RichTextInput } from '@/shared/ui'
+import { EDGE_KEEPING_BLUR_BASE, EdgeKeepingBlur } from './EdgeKeepingBlur'
 
 /** 画面上でのスナップ距離(px) */
 const SNAP_THRESHOLD = 8
@@ -59,6 +61,8 @@ export function LayerView({
   const undo = useEditorStore((s) => s.undo)
   const redo = useEditorStore((s) => s.redo)
   const { canvas, layers } = thumbnail
+  // useId の値は「:」などを含み url(#...) で参照できないため、英数字だけにする
+  const blurId = `blur-${useId().replace(/[^a-zA-Z0-9]/g, '')}`
   const activate = () => useEditorStore.getState().selectThumbnail(thumbnail.id)
 
   if (!layer.visible) return null
@@ -184,6 +188,7 @@ export function LayerView({
 
   if (layer.type === 'image') {
     const url = getAssetUrl(layer.assetId)
+    const blur = layer.effects?.blur ?? 0
     return (
       // クロップすると画像が枠より大きくなるので、枠の外に出た分はここで切る
       <div
@@ -194,7 +199,14 @@ export function LayerView({
       >
         {url ? (
           // 反転は枠いっぱいの層に掛ける。クロップ後の見た目がそのまま鏡像になる
-          <div style={imageFrameStyle(layer)}>
+          <div
+            style={{
+              ...imageFrameStyle(layer),
+              filter: blur > 0 ? `url(#${blurId})` : undefined,
+              backgroundColor: blur > 0 ? EDGE_KEEPING_BLUR_BASE : undefined,
+            }}
+          >
+            {blur > 0 && <EdgeKeepingBlur id={blurId} blur={blur} />}
             <img
               src={url}
               alt=""

@@ -66,14 +66,18 @@ const GLOW_LAYERS = 3
  * 影と光彩に drop-shadow を使うのは、要素の矩形ではなく中身の形
  * （文字の輪郭・画像の透過・模様の隙間）に沿った影を出すため。
  *
- * @param effects レイヤーまたは背景のエフェクト。古いプロジェクトには無いので undefined を許す
+ * @param effects     レイヤーまたは背景のエフェクト。古いプロジェクトには無いので undefined を許す
+ * @param includeBlur false ならぼかしを含めない。ぼかしを別の層（縁を透けさせない SVG フィルタ）で掛けるとき用
  * @returns filter に渡す文字列。何も有効でなければ undefined（filter を付けない）
  */
-export function effectsFilter(effects: Effects | undefined): string | undefined {
+export function effectsFilter(
+  effects: Effects | undefined,
+  includeBlur = true,
+): string | undefined {
   const e = { ...DEFAULT_EFFECTS, ...effects }
   const parts: string[] = []
 
-  if (e.blur > 0) parts.push(`blur(${e.blur}px)`)
+  if (includeBlur && e.blur > 0) parts.push(`blur(${e.blur}px)`)
   if (e.shadowEnabled) {
     const blur = Math.max(0, e.shadowBlur)
     parts.push(

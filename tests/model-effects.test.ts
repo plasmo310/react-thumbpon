@@ -17,6 +17,11 @@ describe('effectsFilter', () => {
     expect(effectsFilter(effects({ blur: 4 }))).toBe('blur(4px)')
   })
 
+  it('ブラーを別の層で掛けるときは、ブラーだけを除く', () => {
+    expect(effectsFilter(effects({ blur: 4 }), false)).toBeUndefined()
+    expect(effectsFilter(effects({ blur: 4, glowEnabled: true }), false)).not.toContain('blur(')
+  })
+
   it('シャドウは色と濃さを rgba にまとめた drop-shadow になる', () => {
     const filter = effectsFilter(
       effects({

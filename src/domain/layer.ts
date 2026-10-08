@@ -343,8 +343,9 @@ export function layerStyle(layer: Layer): CSSProperties {
     opacity: layer.opacity,
     transform: `rotate(${layer.rotation}deg)`,
     transformOrigin: 'center',
-    // ブラー・影・光彩。影は矩形ではなく中身の形に沿わせたいので drop-shadow を使う
-    filter: effectsFilter(layer.effects),
+    // ブラー・影・光彩。影は矩形ではなく中身の形に沿わせたいので drop-shadow を使う。
+    // 画像のブラーは CSS の blur だと枠の外の透明を混ぜて縁が透けるため、中身の層に別のフィルタで掛ける
+    filter: effectsFilter(layer.effects, layer.type !== 'image'),
     pointerEvents: layer.locked ? 'none' : 'auto',
     cursor: layer.locked ? 'default' : 'move',
   }
