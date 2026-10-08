@@ -8,7 +8,7 @@ vi.mock('@/features/project/lib/fontEmbed', () => ({
 vi.mock('idb-keyval', () => import('./helpers/fakeKv'))
 
 import { toBlob } from 'html-to-image'
-import { exportPng } from '@/features/project/lib/exportImage'
+import { exportPngs } from '@/features/project/lib/exportImage'
 import { getSurface, setSurface } from '@/shared/lib/surfaceRef'
 import { useEditorStore } from '@/app/store'
 import { createThumbnail } from '@/domain/thumbnail'
@@ -39,7 +39,7 @@ describe('複数表示中のPNG書き出し', () => {
       return 0
     })
     vi.stubGlobal('URL', { createObjectURL: () => 'blob:fake', revokeObjectURL: vi.fn() })
-    await exportPng(b.canvas, b.name)
+    await exportPngs([b])
     expect(toBlob).toHaveBeenLastCalledWith(
       second,
       expect.objectContaining({
@@ -52,5 +52,64 @@ describe('複数表示中のPNG書き出し', () => {
     )
     expect(link.download).toBe('縦長.png')
     expect(link.click).toHaveBeenCalledOnce()
+  })
+
+  it('表示中の全枚を表示順に実寸で書き出し、同名は連番で区別する', async () => {
+    const a = createThumbnail('表紙', null, { width: 1920, height: 1080 })
+    const b = createThumbnail('表紙', null, { width: 1080, height: 1920 })
+    useEditorStore
+      .getState()
+      .loadProject({ folders: [], thumbnails: [a, b], currentThumbnailId: a.id })
+    const first = { dataset: {} } as HTMLElement
+    const second = { dataset: {} } as HTMLElement
+    setSurface(a.id, first)
+    setSurface(b.id, second)
+    const downloads: string[] = []
+    vi.stubGlobal('document', {
+      fonts: { ready: Promise.resolve() },
+      createElement: () => ({
+        href: '',
+        download: '',
+        click() {
+          downloads.push(this.download)
+        },
+      }),
+    })
+    vi.stubGlobal('requestAnimationFrame', (callback: FrameRequestCallback) => {
+      callback(0)
+      return 0
+    })
+    vi.stubGlobal('URL', { createObjectURL: () => 'blob:fake', revokeObjectURL: vi.fn() })
+    await exportPngs([a, b])
+    expect(toBlob).toHaveBeenCalledWith(
+      first,
+      expect.objectContaining({ width: 1920, height: 1080 }),
+    )
+    expect(toBlob).toHaveBeenCalledWith(
+      second,
+      expect.objectContaining({ width: 1080, height: 1920 }),
+    )
+    expect(downloads).toEqual(['表紙.png', '表紙 (2).png'])
+  })
+
+  it('描画できない1枚があれば、どれも保存しない', async () => {
+    const a = createThumbnail('表示中', null, { width: 1920, height: 1080 })
+    const b = createThumbnail('未描画', null, { width: 1920, height: 1080 })
+    useEditorStore
+      .getState()
+      .loadProject({ folders: [], thumbnails: [a, b], currentThumbnailId: a.id })
+    setSurface(a.id, { dataset: {} } as HTMLElement)
+    const click = vi.fn()
+    vi.stubGlobal('document', {
+      fonts: { ready: Promise.resolve() },
+      createElement: () => ({ href: '', download: '', click }),
+    })
+    vi.stubGlobal('requestAnimationFrame', (callback: FrameRequestCallback) => {
+      callback(0)
+      return 0
+    })
+    vi.stubGlobal('URL', { createObjectURL: () => 'blob:fake', revokeObjectURL: vi.fn() })
+    await expect(exportPngs([a, b])).rejects.toThrow()
+    expect(click).not.toHaveBeenCalled()
   })
 })

@@ -197,6 +197,7 @@ export const englishMessages = {
   書き出しに失敗しました: 'Failed to export',
   '書き出し中…': 'Exporting…',
   PNG書き出し: 'Export PNG',
+  'PNG書き出し（{0}枚）': 'Export PNG ({0})',
   '未保存の変更を破棄して、プロジェクトを読み込みなおします。よろしいですか？':
     'Discard unsaved changes and reload the project?',
   プロジェクトを読み込みなおせませんでした: 'Failed to reload the project',

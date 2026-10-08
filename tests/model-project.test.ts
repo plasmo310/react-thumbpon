@@ -9,6 +9,7 @@ import {
   findManifestName,
   findMissingFonts,
   normalizeThumbnails,
+  pngFileNames,
   sanitizePathName,
 } from '@/domain/project'
 import type { AssetFolder, AssetMeta } from '@/domain/asset'
@@ -109,6 +110,22 @@ describe('sanitizePathName', () => {
 
   it('使える文字が残らなければ空になる（代替名は呼び出し側の責任）', () => {
     expect(sanitizePathName('///')).toBe('')
+  })
+})
+
+describe('pngFileNames', () => {
+  it('サムネイル名を使える形にして .png を付け、空なら thumbpon で代替する', () => {
+    expect(pngFileNames(['a/b', '///'])).toEqual(['ab.png', 'thumbpon.png'])
+  })
+
+  it('同名は大文字小文字を区別せず、2つ目以降に連番を付けて上書きを防ぐ', () => {
+    expect(pngFileNames(['表紙', 'A', '表紙', 'a', '表紙 (2)'])).toEqual([
+      '表紙.png',
+      'A.png',
+      '表紙 (2).png',
+      'a (2).png',
+      '表紙 (2) (2).png',
+    ])
   })
 })
 

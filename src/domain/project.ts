@@ -95,6 +95,24 @@ export function sanitizePathName(name: string): string {
 }
 
 /**
+ * サムネイル名から PNG の保存名を作る。まとめて書き出すと同名が上書きされるため、
+ * 2つ目以降には OS の重複名と同じ形で「 (2)」などを付けて区別する。
+ *
+ * @param names 書き出す順のサムネイル名。使えない文字だけなら 'thumbpon' で代替する
+ */
+export function pngFileNames(names: string[]): string[] {
+  const used = new Set<string>()
+  return names.map((name) => {
+    const base = sanitizePathName(name) || 'thumbpon'
+    let fileName = `${base}.png`
+    for (let n = 2; used.has(fileName.toLowerCase()); n++) fileName = `${base} (${n}).png`
+    // Windows と macOS の既定では大文字小文字を区別しないため、比較もそろえる
+    used.add(fileName.toLowerCase())
+    return fileName
+  })
+}
+
+/**
  * 素材フォルダのディレクトリ名。
  *
  * @param folder 対象の素材フォルダ。名前が使えない文字だけなら id で代替する

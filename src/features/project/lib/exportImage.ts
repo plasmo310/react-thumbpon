@@ -1,39 +1,27 @@
 import { t } from '@/shared/lib/i18n'
 import { toBlob } from 'html-to-image'
-import { sanitizePathName } from '@/domain/project'
+import { pngFileNames } from '@/domain/project'
 import { downloadBlob } from './download'
 import { buildFontEmbedCss } from './fontEmbed'
 import { getSurface } from '@/shared/lib/surfaceRef'
-import type { CanvasSize } from '@/domain/thumbnail'
+import type { Thumbnail } from '@/domain/thumbnail'
 import { useEditorStore } from '@/app/store'
 
-/**
- * サムネイル名をファイル名として使えるようにする。
- *
- * @param name サムネイルの名前。空になったら 'thumbpon' で代替する
- */
-function toFileName(name: string): string {
-  return sanitizePathName(name) || 'thumbpon'
-}
+/** 連続保存の間隔(ms)。間を空けないと、ブラウザが後続のダウンロードを落とすことがある */
+const DOWNLOAD_INTERVAL = 200
 
 /**
- * 現在のキャンバスを PNG として書き出す。表示は縮小されていても実寸で出力する。
+ * 描画済みのキャンバスを実寸の PNG にする。
  *
- * @param canvas 出力サイズ。キャンバスの実寸をそのまま渡す
- * @param name   ファイル名のもと。サムネイル名をそのまま渡す
+ * @param thumbnail 書き出すサムネイル。canvas を出力サイズにする
  */
-export async function exportPng(canvas: CanvasSize, name: string) {
-  const thumbnailId = useEditorStore.getState().currentThumbnailId
-  // 書き出しにも最終フォントの計測値を使い、描画の反映を待つ。
-  await document.fonts.ready
-  useEditorStore.getState().refreshTextLayout()
-  await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()))
-  const surface = getSurface(thumbnailId)
+async function renderPng(thumbnail: Thumbnail): Promise<Blob> {
+  const surface = getSurface(thumbnail.id)
   if (!surface) throw new Error(t('キャンバスが準備できていません'))
 
   const options = {
-    width: canvas.width,
-    height: canvas.height,
+    width: thumbnail.canvas.width,
+    height: thumbnail.canvas.height,
     pixelRatio: 1,
     // cacheBust を有効にすると html-to-image が URL に ?<timestamp> を付けてしまい、
     // 素材画像の blob: URL が壊れて fetch に失敗する。素材は URL 自体が一意なので不要。
@@ -50,6 +38,27 @@ export async function exportPng(canvas: CanvasSize, name: string) {
   await toBlob(surface, options)
   const blob = await toBlob(surface, options)
   if (!blob) throw new Error(t('書き出しに失敗しました'))
+  return blob
+}
 
-  downloadBlob(blob, `${toFileName(name)}.png`)
+/**
+ * Canvas に表示中のサムネイルを1枚ずつ PNG として書き出す。表示は縮小されていても実寸で出力する。
+ *
+ * @param thumbnails 書き出すサムネイル。Canvas の表示順で渡し、保存もその順で行う
+ */
+export async function exportPngs(thumbnails: Thumbnail[]) {
+  // 書き出しにも最終フォントの計測値を使い、描画の反映を待つ。
+  await document.fonts.ready
+  useEditorStore.getState().refreshTextLayout()
+  await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()))
+
+  // 途中で失敗したときに一部だけ保存されないよう、全部描き終えてから保存する
+  const blobs: Blob[] = []
+  for (const thumbnail of thumbnails) blobs.push(await renderPng(thumbnail))
+
+  const fileNames = pngFileNames(thumbnails.map((thumbnail) => thumbnail.name))
+  for (const [index, blob] of blobs.entries()) {
+    if (index > 0) await new Promise((resolve) => setTimeout(resolve, DOWNLOAD_INTERVAL))
+    downloadBlob(blob, fileNames[index])
+  }
 }
