@@ -100,3 +100,10 @@ export const removeEntry = async (dir: unknown, name: string) => {
   target.files.delete(name)
   target.dirs.delete(name)
 }
+
+// 最近使ったプロジェクトの履歴は workspace-fs.test.ts で本物を検証するので、ここでは空のまま返す
+export const loadRecentProjects = async () => []
+export const loadRecentHandle = async () => null
+export const rememberRecentProject = async () => []
+export const forgetRecentProject = async () => []
+export const requestPersistentStorage = async () => {}

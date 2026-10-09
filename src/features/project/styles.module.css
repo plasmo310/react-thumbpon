@@ -198,6 +198,61 @@
   color: var(--color-accent);
 }
 
+.menuItem:disabled {
+  background: none;
+  color: var(--color-ink-sub);
+  cursor: default;
+}
+
+/* 長いフォルダ名でメニュー幅を押し広げない */
+.menuItemText {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.submenuRoot {
+  position: relative;
+}
+
+/* メニュー本体は画面右端に寄っているので、子メニューは左へ開く */
+.submenu {
+  display: none;
+  top: calc(-1 * var(--space-1));
+  right: 100%;
+  width: 320px;
+  margin-top: 0;
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+.submenuRoot:hover > .submenu,
+.submenuRoot:focus-within > .submenu {
+  display: block;
+}
+
+.submenuArrow {
+  margin-left: auto;
+  color: var(--color-ink-sub);
+}
+
+.recentText {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+}
+
+.recentDetail {
+  font-size: var(--font-mini);
+  color: var(--color-ink-sub);
+}
+
+.menuLabel {
+  padding: var(--space-1) var(--space-3);
+  font-size: var(--font-mini);
+  color: var(--color-ink-sub);
+}
+
 .menuSeparator {
   height: 1px;
   margin: var(--space-1) 0;

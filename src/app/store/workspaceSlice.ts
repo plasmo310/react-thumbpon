@@ -1,3 +1,4 @@
+import type { RecentProject } from '@/shared/lib/storage/fsAccess'
 import type { SliceCreator } from './index'
 
 /**
@@ -20,6 +21,8 @@ export type WorkspaceSlice = {
   missingFontLabels: string[]
   /** 読み込んだプロジェクトに載っているのに、実体が見つからなかった素材のファイル名 */
   missingAssetNames: string[]
+  /** 最近使ったプロジェクトフォルダ。新しい順。ハンドルは fsAccess が IndexedDB に持つ */
+  recentProjects: RecentProject[]
 
   setWorkspace: (
     status: WorkspaceStatus,
@@ -30,6 +33,7 @@ export type WorkspaceSlice = {
   markWorkspaceSaved: () => void
   setMissingFontLabels: (labels: string[]) => void
   setMissingAssetNames: (names: string[]) => void
+  setRecentProjects: (projects: RecentProject[]) => void
 }
 
 /**
@@ -45,6 +49,7 @@ export const createWorkspaceSlice: SliceCreator<WorkspaceSlice> = (set) => ({
   workspaceSavedAt: null,
   missingFontLabels: [],
   missingAssetNames: [],
+  recentProjects: [],
 
   /**
    * 接続状態を差し替える。
@@ -80,4 +85,11 @@ export const createWorkspaceSlice: SliceCreator<WorkspaceSlice> = (set) => ({
    * @param names 見つからなかった素材のファイル名。空配列で告知を消す
    */
   setMissingAssetNames: (missingAssetNames) => set({ missingAssetNames }),
+
+  /**
+   * 最近使ったプロジェクトの一覧を差し替える。
+   *
+   * @param projects 新しい順の履歴
+   */
+  setRecentProjects: (recentProjects) => set({ recentProjects }),
 })

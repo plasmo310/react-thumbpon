@@ -83,6 +83,10 @@ export class FakeDirHandle {
     for (const name of [...this.children.keys()]) yield name
   }
 
+  async isSameEntry(other: unknown) {
+    return other === this
+  }
+
   async queryPermission() {
     return permission.state
   }

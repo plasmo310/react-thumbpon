@@ -244,6 +244,9 @@ Selected folder/
 With **Open project**, select the **folder** containing the `.thumbpon` file and `assets/`, rather than selecting the `.thumbpon` file itself.<br>
 Use **Open project** to switch to another project. Avoid using **Save project** to overwrite a different project's folder with your current work.
 
+Folders you have opened or saved appear under **Project → Open Recent** (up to 10). Unsaved changes are saved to the current folder before switching.<br>
+This list is stored in the browser, so it is not available after clearing site data or in another browser or URL. Open the folder with **Open project** to add it back.
+
 #### Sharing as a file
 
 **Export** packages the manifest and assets into a single `.thumbpon.zip` file. Images are not recompressed, so the archive size is roughly the total size of the assets.<br>

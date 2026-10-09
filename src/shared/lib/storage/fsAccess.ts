@@ -1,8 +1,12 @@
 import { t } from '@/shared/lib/i18n'
 import { del, get, set } from 'idb-keyval'
+import { createId } from '@/domain/id'
 import { kv } from './db'
 
 const HANDLE_KEY = 'handle:workspace'
+const RECENT_KEY = 'handle:recent'
+/** 履歴に残す件数。メニューに並べて選べる程度に抑える */
+const RECENT_LIMIT = 10
 
 /**
  * File System Access API のうち、TypeScript の lib.dom に含まれていない部分。
@@ -14,6 +18,7 @@ type DirectoryHandle = FileSystemDirectoryHandle & {
   entries: () => AsyncIterableIterator<[string, FileSystemHandle]>
   queryPermission: (options: PermissionOptions) => Promise<PermissionState>
   requestPermission: (options: PermissionOptions) => Promise<PermissionState>
+  isSameEntry: (other: FileSystemHandle) => Promise<boolean>
 }
 
 type WindowWithPicker = Window & {
@@ -197,4 +202,90 @@ export async function removeEntry(
     if (error instanceof DOMException && error.name === 'NotFoundError') return
     throw error
   }
+}
+
+/** 最近使ったプロジェクトのうち、store に載せられる部分。ハンドルは含めない */
+export type RecentProject = {
+  id: string
+  folderName: string
+  /** 開いたときのマニフェスト名。同じフォルダに複数あっても同じものを開き直すため。未確認なら空文字 */
+  manifestName: string
+  openedAt: number
+}
+
+type RecentEntry = RecentProject & { handle: DirectoryHandle }
+
+/** ハンドルを除いて、画面に出せる形にする */
+const toRecentProject = ({ handle: _handle, ...project }: RecentEntry): RecentProject => project
+
+async function loadRecentEntries(): Promise<RecentEntry[]> {
+  return (await get<RecentEntry[]>(RECENT_KEY, kv)) ?? []
+}
+
+/** 最近使ったプロジェクトを新しい順に返す */
+export async function loadRecentProjects(): Promise<RecentProject[]> {
+  return (await loadRecentEntries()).map(toRecentProject)
+}
+
+/**
+ * 最近使ったプロジェクトのハンドルを得る。
+ *
+ * @param id 履歴の id
+ * @returns 履歴に無ければ null
+ */
+export async function loadRecentHandle(
+  id: string,
+): Promise<{ handle: DirectoryHandle; manifestName: string } | null> {
+  const found = (await loadRecentEntries()).find((entry) => entry.id === id)
+  return found ? { handle: found.handle, manifestName: found.manifestName } : null
+}
+
+/**
+ * 開いたフォルダを履歴の先頭に記録する。
+ * 同じフォルダは名前ではなく isSameEntry で見分ける（別の場所の同名フォルダを潰さないため）。
+ *
+ * @param handle       開いたフォルダ
+ * @param manifestName 開いたマニフェストのファイル名
+ * @returns 記録後の履歴
+ */
+export async function rememberRecentProject(
+  handle: DirectoryHandle,
+  manifestName: string,
+): Promise<RecentProject[]> {
+  const entries = await loadRecentEntries()
+  const others: RecentEntry[] = []
+  let id: string | null = null
+  for (const entry of entries) {
+    if (id === null && (await handle.isSameEntry(entry.handle))) id = entry.id
+    else others.push(entry)
+  }
+  const next = [
+    { id: id ?? createId(), folderName: handle.name, manifestName, openedAt: Date.now(), handle },
+    ...others,
+  ].slice(0, RECENT_LIMIT)
+  await set(RECENT_KEY, next, kv)
+  return next.map(toRecentProject)
+}
+
+/**
+ * 履歴から外す。フォルダが移動・削除されて開けなくなったときに使う。
+ *
+ * @param id 履歴の id
+ * @returns 外した後の履歴
+ */
+export async function forgetRecentProject(id: string): Promise<RecentProject[]> {
+  const next = (await loadRecentEntries()).filter((entry) => entry.id !== id)
+  await set(RECENT_KEY, next, kv)
+  return next.map(toRecentProject)
+}
+
+/**
+ * ブラウザに保存領域の永続化を求める。
+ * 認められないと、容量が逼迫したときに履歴や作業内容が自動で消されることがある。
+ * 認められなくても動作は変わらないので、結果は見ない。
+ */
+export async function requestPersistentStorage(): Promise<void> {
+  if (typeof navigator === 'undefined' || !navigator.storage?.persist) return
+  if (await navigator.storage.persisted()) return
+  await navigator.storage.persist()
 }

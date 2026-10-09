@@ -2,11 +2,13 @@ import { useTranslation } from '@/shared/lib/i18n'
 import { useEffect, useRef, useState } from 'react'
 import { notifyError } from '@/shared/lib/notify'
 import { canUseFileSystemAccess } from '@/shared/lib/storage/fsAccess'
+import { useEditorStore } from '@/app/store'
 import { PROJECT_ZIP_EXTENSION } from '@/domain/project'
+import { cx } from '@/shared/lib/cx'
 import { Button, useFilePicker } from '@/shared/ui'
 import { exportProjectFile, importProjectFile } from '../lib/projectFile'
 import { confirmFolderOverwrite } from '../lib/confirmOverwrite'
-import { openProjectFolder, saveProjectFolder } from '../lib/projectFolder'
+import { openProjectFolder, saveProjectFolder, switchRecentProject } from '../lib/projectFolder'
 import { newProject } from '../lib/workspace'
 import styles from '../styles.module.css'
 
@@ -25,6 +27,12 @@ export function ProjectMenu() {
   const [busy, setBusy] = useState(false)
   const rootRef = useRef<HTMLDivElement>(null)
   const canUseFolder = canUseFileSystemAccess()
+  const recentProjects = useEditorStore((s) => s.recentProjects)
+  const workspaceStatus = useEditorStore((s) => s.workspaceStatus)
+  const workspaceFolderName = useEditorStore((s) => s.workspaceFolderName)
+  const workspaceFileName = useEditorStore((s) => s.workspaceFileName)
+  const connected = workspaceStatus === 'connected'
+  const locale = useEditorStore((s) => s.locale)
 
   // メニューの外を触ったときと Escape で閉じる。開いている間だけ購読する
   useEffect(() => {
@@ -89,6 +97,18 @@ export function ProjectMenu() {
     await openProjectFolder()
   }
 
+  /**
+   * 最近使ったプロジェクトへ切り替える。
+   * フォルダに繋がっていれば切り替え前に保存されるので確認しない。未接続の作業は
+   * どこにも残らないため、捨ててよいか確かめる。
+   *
+   * @param id 切り替え先の履歴の id
+   */
+  const handleSwitch = async (id: string) => {
+    if (!connected && !confirmDiscard(t('プロジェクトを切り替えます'))) return
+    await switchRecentProject(id)
+  }
+
   return (
     <div className={styles.menuRoot} ref={rootRef}>
       <Button size="md" disabled={busy} onClick={() => setOpen((current) => !current)}>
@@ -123,6 +143,64 @@ export function ProjectMenu() {
               >
                 {t('プロジェクトを開く')}
               </button>
+              {/*
+                「開く」の直後に置き、履歴は子メニューへ畳む。項目数が増えてもメニュー本体の
+                高さが変わらず、空のときも機能の場所が分かるよう常に出しておく。
+                開閉はホバーとフォーカスだけで決まるので CSS で完結させる。
+              */}
+              <div className={styles.submenuRoot}>
+                <button
+                  type="button"
+                  role="menuitem"
+                  aria-haspopup="menu"
+                  className={styles.menuItem}
+                >
+                  {t('最近使ったプロジェクトを開く')}
+                  <span aria-hidden className={styles.submenuArrow}>
+                    ▸
+                  </span>
+                </button>
+                <div role="menu" className={cx(styles.menu, styles.submenu)}>
+                  {recentProjects.length === 0 && (
+                    <div className={styles.menuLabel}>{t('履歴はありません')}</div>
+                  )}
+                  {recentProjects.map((project, index) => {
+                    // 接続のたびに先頭へ記録されるので、接続中のものは必ず先頭にある
+                    const current =
+                      connected &&
+                      index === 0 &&
+                      project.folderName === workspaceFolderName &&
+                      project.manifestName === workspaceFileName
+                    return (
+                      <button
+                        key={project.id}
+                        type="button"
+                        role="menuitem"
+                        className={styles.menuItem}
+                        disabled={current}
+                        onClick={() =>
+                          void run(t('プロジェクトを切り替えられませんでした'), () =>
+                            handleSwitch(project.id),
+                          )
+                        }
+                      >
+                        {/*
+                          ブラウザはフォルダの絶対パスを渡さないので、同名フォルダは
+                          最終使用日時で見分けてもらう
+                        */}
+                        <span className={styles.recentText}>
+                          <span className={styles.menuItemText}>{project.folderName}</span>
+                          <span className={cx(styles.menuItemText, styles.recentDetail)}>
+                            {new Date(project.openedAt).toLocaleString(locale)}
+                          </span>
+                        </span>
+                        {current && <span className={styles.shortcut}>✓</span>}
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+              <div className={styles.menuSeparator} />
               <button
                 type="button"
                 role="menuitem"

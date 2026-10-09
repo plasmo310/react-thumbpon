@@ -4,8 +4,13 @@ import { shallow } from 'zustand/shallow'
 import { kv } from '@/shared/lib/storage/db'
 import { replaceAssets } from '@/shared/lib/storage/assetRepo'
 import { loadStoredFonts } from '@/shared/lib/storage/fontRepo'
+import { canUseFileSystemAccess, requestPersistentStorage } from '@/shared/lib/storage/fsAccess'
 import { pickDocument, useEditorStore, type SavedDocument } from '@/app/store'
-import { disconnectProjectFolder, restoreProjectFolder } from './projectFolder'
+import {
+  disconnectProjectFolder,
+  restoreProjectFolder,
+  restoreRecentProjects,
+} from './projectFolder'
 import type { GridSettings } from '@/domain/canvasLayout'
 
 const WORKSPACE_KEY = 'project:current'
@@ -41,9 +46,22 @@ export async function restoreWorkspace() {
   }
 
   try {
+    await restoreRecentProjects()
+  } catch (error) {
+    console.error(t('最近使ったプロジェクトの復元に失敗しました'), error)
+  }
+
+  try {
     await restoreProjectFolder()
   } catch (error) {
     console.error(t('ワークスペースフォルダの復元に失敗しました'), error)
+  }
+
+  // フォルダの履歴や作業内容が容量逼迫で消されないよう求める。フォルダ連携を使う環境だけで十分
+  if (canUseFileSystemAccess()) {
+    void requestPersistentStorage().catch((error) =>
+      console.error(t('保存領域の永続化に失敗しました'), error),
+    )
   }
 
   try {

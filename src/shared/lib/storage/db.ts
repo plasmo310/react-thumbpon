@@ -11,5 +11,6 @@ import { createStore } from 'idb-keyval'
  *   project:current  作業中プロジェクト
  *   view:canvas      ブラウザ専用の常時表示とグリッド設定
  *   handle:workspace 接続中のワークスペースフォルダのハンドル
+ *   handle:recent    最近使ったプロジェクトフォルダのハンドル一覧
  */
 export const kv = createStore('thumbpon-assets', 'kv')

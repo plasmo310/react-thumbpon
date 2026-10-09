@@ -20,7 +20,8 @@ let picked: ReturnType<typeof makeHandle> | null = null
 installPicker(() => picked)
 
 const { restoreWorkspace } = await import('@/features/project/lib/workspace')
-const { saveProjectFolder } = await import('@/features/project/lib/projectFolder')
+const { openProjectFolder, saveProjectFolder, switchRecentProject } =
+  await import('@/features/project/lib/projectFolder')
 const { getAssetBlob } = await import('@/shared/lib/storage/assetRepo')
 const { setCurrentDirectory } = await import('@/shared/lib/storage/fsAccess')
 const { useEditorStore } = await import('@/app/store')
@@ -55,7 +56,10 @@ function reload() {
     ready: false,
     workspaceStatus: 'none',
     workspaceFolderName: null,
+    workspaceFileName: null,
+    workspaceDirty: false,
     missingFontLabels: [],
+    recentProjects: [],
   })
 }
 
@@ -224,5 +228,86 @@ describe('ワークスペースフォルダ（本物の fsAccess を通す）', 
     reload()
     await restoreWorkspace()
     expect(state().assets).toHaveLength(2)
+  })
+})
+
+describe('最近使ったプロジェクト', () => {
+  /** サムネイル名だけを変えたプロジェクトをフォルダに保存し、そのフォルダを返す */
+  async function saveNamedProject(folder: string, thumbnailName: string) {
+    reload()
+    state().renameThumbnail(state().thumbnails[0].id, thumbnailName)
+    setCurrentDirectory(null)
+    picked = makeHandle(folder)
+    await saveProjectFolder(agree)
+    return picked
+  }
+
+  const names = () => state().recentProjects.map((p) => p.folderName)
+  const idOf = (folder: string) =>
+    state().recentProjects.find((p) => p.folderName === folder)?.id as string
+
+  it('開いたフォルダが新しい順に残り、同じフォルダは重複しない', async () => {
+    const a = await saveNamedProject('A', 'サムネA')
+    await saveNamedProject('B', 'サムネB')
+    expect(names()).toEqual(['B', 'A'])
+
+    picked = a
+    await openProjectFolder()
+    expect(names()).toEqual(['A', 'B'])
+
+    // リロードしても履歴は残る
+    reload()
+    await restoreWorkspace()
+    expect(names()).toEqual(['A', 'B'])
+  })
+
+  it('履歴を持つ前から繋いでいたフォルダは、起動時に履歴へ載る', async () => {
+    await saveNamedProject('A', 'サムネA')
+    kvStore.delete('handle:recent')
+    permission.state = 'prompt'
+
+    reload()
+    await restoreWorkspace()
+    expect(state().workspaceStatus).toBe('needs-permission')
+    expect(names()).toEqual(['A'])
+
+    // マニフェスト名が未確認でも、切り替えの操作で許可を得て開ける
+    expect(await switchRecentProject(idOf('A'))).toBe(true)
+    expect(state().thumbnails[0].name).toBe('サムネA')
+    expect(state().recentProjects[0].manifestName).toBe('A.thumbpon')
+  })
+
+  it('切り替えると、そのプロジェクトの内容が読み込まれる', async () => {
+    await saveNamedProject('A', 'サムネA')
+    await saveNamedProject('B', 'サムネB')
+
+    expect(await switchRecentProject(idOf('A'))).toBe(true)
+    expect(state().workspaceFolderName).toBe('A')
+    expect(state().thumbnails[0].name).toBe('サムネA')
+    expect(names()).toEqual(['A', 'B'])
+  })
+
+  it('未保存の変更は、切り替える前に元のフォルダへ保存される', async () => {
+    await saveNamedProject('A', 'サムネA')
+    const b = await saveNamedProject('B', 'サムネB')
+
+    state().renameThumbnail(state().thumbnails[0].id, 'サムネB 改')
+    state().setWorkspaceDirty(true)
+    await switchRecentProject(idOf('A'))
+
+    const project = JSON.parse((await dumpFiles(b))['B.thumbpon'])
+    expect(project.thumbnails[0].name).toBe('サムネB 改')
+    expect(state().workspaceDirty).toBe(false)
+  })
+
+  it('消えたフォルダは、今の作業に触れず履歴から外す', async () => {
+    const a = await saveNamedProject('A', 'サムネA')
+    await saveNamedProject('B', 'サムネB')
+    deleteEntry(a, 'A.thumbpon')
+
+    await expect(switchRecentProject(idOf('A'))).rejects.toThrow()
+    expect(names()).toEqual(['B'])
+    expect(state().workspaceFolderName).toBe('B')
+    expect(state().thumbnails[0].name).toBe('サムネB')
   })
 })

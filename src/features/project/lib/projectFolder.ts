@@ -4,10 +4,14 @@ import {
   clearHandle,
   getCurrentDirectory,
   getSubDirectory,
+  forgetRecentProject,
   listEntries,
   loadHandle,
+  loadRecentHandle,
+  loadRecentProjects,
   pickDirectory,
   readFile,
+  rememberRecentProject,
   removeEntry,
   saveHandle,
   setCurrentDirectory,
@@ -155,6 +159,25 @@ async function resolveManifestName(dir: Directory, remembered: string | null): P
 }
 
 /**
+ * 接続が確定したフォルダを状態に反映し、最近使ったプロジェクトの先頭に記録する。
+ *
+ * @param dir      接続したフォルダ
+ * @param manifest 正本のマニフェスト名。まだ無い（空のフォルダ）なら null で、履歴には載せない
+ */
+async function markConnected(dir: Directory, manifest: string | null) {
+  const store = useEditorStore.getState()
+  store.setWorkspace('connected', dir.name, manifest)
+  store.markWorkspaceSaved()
+  if (!manifest) return
+  // 履歴は補助的なものなので、記録に失敗しても保存や読み込み自体は成功として扱う
+  try {
+    store.setRecentProjects(await rememberRecentProject(dir, manifest))
+  } catch (error) {
+    console.error(t('最近使ったプロジェクトの記録に失敗しました'), error)
+  }
+}
+
+/**
  * フォルダの内容を読み込んで現在の状態を置き換える。
  *
  * @param dir       読み込み元のワークスペースフォルダ
@@ -236,9 +259,7 @@ async function saveTo(dir: Directory, manifest: string) {
 
   const project = buildProjectFile([...payloads, ...surviving])
   await writeFile(dir, manifest, JSON.stringify(project, null, 2))
-  const store = useEditorStore.getState()
-  store.setWorkspace('connected', dir.name, manifest)
-  store.markWorkspaceSaved()
+  await markConnected(dir, manifest)
 }
 
 /** 保存先に別のプロジェクトがあったときの確認。今の内容で上書きしてよければ true を返す */
@@ -296,9 +317,7 @@ export async function openProjectFolder(): Promise<boolean> {
   setCurrentDirectory(dir)
   await saveHandle(dir)
   await loadFrom(dir, manifest)
-  const store = useEditorStore.getState()
-  store.setWorkspace('connected', dir.name, manifest)
-  store.markWorkspaceSaved()
+  await markConnected(dir, manifest)
   return true
 }
 
@@ -323,9 +342,7 @@ export async function restoreProjectFolder(): Promise<boolean> {
   setCurrentDirectory(dir)
   store.setWorkspace('connected', dir.name)
   const manifest = await loadFrom(dir)
-  const loaded = useEditorStore.getState()
-  loaded.setWorkspace('connected', dir.name, manifest)
-  loaded.markWorkspaceSaved()
+  await markConnected(dir, manifest)
   return manifest !== null
 }
 
@@ -344,9 +361,7 @@ export async function reconnectProjectFolder() {
   setCurrentDirectory(dir)
   useEditorStore.getState().setWorkspace('connected', dir.name)
   const manifest = await loadFrom(dir)
-  const store = useEditorStore.getState()
-  store.setWorkspace('connected', dir.name, manifest)
-  store.markWorkspaceSaved()
+  await markConnected(dir, manifest)
 }
 
 /**
@@ -369,9 +384,7 @@ export async function reloadProjectFolder(): Promise<boolean> {
   const manifest = await loadFrom(dir, workspaceFileName ?? undefined)
   if (!manifest) throw new Error(t('「{0}」にサムネぽんのプロジェクトがありません', dir.name))
 
-  const store = useEditorStore.getState()
-  store.setWorkspace('connected', dir.name, manifest)
-  store.markWorkspaceSaved()
+  await markConnected(dir, manifest)
   return true
 }
 
@@ -393,6 +406,64 @@ export async function saveProjectFolder(confirmOverwrite: ConfirmOverwrite) {
     throw new Error(t('フォルダへの書き込みが許可されませんでした'))
   }
   await saveTo(dir, await resolveManifestName(dir, workspaceFileName))
+}
+
+/** 起動時に、最近使ったプロジェクトの一覧を状態に読み込む */
+export async function restoreRecentProjects() {
+  if (!canUseFileSystemAccess()) return
+  let recent = await loadRecentProjects()
+  // 履歴を持つ前から繋いでいたフォルダを最初の1件にする。権限が切れていても、
+  // 切り替えの操作で許可を求められるので載せてよい。マニフェスト名は開くときに探す
+  const remembered = recent.length === 0 ? await loadHandle() : null
+  if (remembered) recent = await rememberRecentProject(remembered, '')
+  useEditorStore.getState().setRecentProjects(recent)
+}
+
+/**
+ * 最近使ったプロジェクトに切り替える。
+ * 権限ダイアログを出すことがあるため、必ずユーザーの操作から呼ぶこと。
+ *
+ * フォルダに繋がっていて未保存の変更があれば、切り替える前にそのフォルダへ保存する
+ * （切り替えのたびに保存を求めると、履歴から素早く行き来する意味が薄れるため）。
+ * 未接続の作業を捨ててよいかの確認は、ダイアログを層の奥に埋めないよう呼び出し側で行う。
+ *
+ * @param id 切り替え先の履歴の id
+ * @returns 切り替えたか。権限が得られなかった場合は false
+ */
+export async function switchRecentProject(id: string): Promise<boolean> {
+  const store = useEditorStore.getState()
+  const recent = await loadRecentHandle(id)
+  if (!recent) {
+    store.setRecentProjects(await loadRecentProjects())
+    return false
+  }
+  const { handle: dir, manifestName } = recent
+  if (!(await verifyPermission(dir, true))) return false
+
+  // 開けることを先に確かめる。消えていたら、今の作業に手を付ける前に止めて履歴から外す
+  let names: string[]
+  try {
+    names = await listFileNames(dir)
+  } catch (error) {
+    if (!(error instanceof DOMException && error.name === 'NotFoundError')) throw error
+    names = []
+  }
+  const manifest = names.includes(manifestName) ? manifestName : findManifestName(names)
+  if (!manifest) {
+    store.setRecentProjects(await forgetRecentProject(id))
+    throw new Error(t('「{0}」が見つからないため、最近使ったプロジェクトから外しました', dir.name))
+  }
+
+  const current = getCurrentDirectory()
+  const { workspaceStatus, workspaceDirty, workspaceFileName } = useEditorStore.getState()
+  if (current && workspaceStatus === 'connected' && workspaceDirty) {
+    await saveTo(current, await resolveManifestName(current, workspaceFileName))
+  }
+
+  setCurrentDirectory(dir)
+  await saveHandle(dir)
+  await markConnected(dir, await loadFrom(dir, manifest))
+  return true
 }
 
 /** フォルダを切り離して、ブラウザ内(IndexedDB)だけの作業に戻す */
