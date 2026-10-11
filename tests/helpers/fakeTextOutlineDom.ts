@@ -14,6 +14,7 @@ export class FakeContext {
   lineWidth = 0
   strokeStyle = ''
   fillStyle = ''
+  globalCompositeOperation = 'source-over'
   lineJoin = ''
   lineCap = ''
   textAlign = ''
@@ -25,7 +26,13 @@ export class FakeContext {
   }
 
   measureText() {
-    return { fontBoundingBoxAscent: 30 }
+    return {
+      fontBoundingBoxAscent: 30,
+      actualBoundingBoxLeft: 0,
+      actualBoundingBoxRight: 40,
+      actualBoundingBoxAscent: 30,
+      actualBoundingBoxDescent: 5,
+    }
   }
 
   getImageData(_x: number, _y: number, width: number, height: number) {
@@ -34,8 +41,12 @@ export class FakeContext {
 
   putImageData() {}
 
-  drawImage(image: unknown) {
-    this.calls.push({ op: 'image', image })
+  drawImage(image: unknown, x?: number, y?: number) {
+    this.calls.push({ op: 'image', image, x, y })
+  }
+
+  fillRect() {
+    this.calls.push({ op: 'color', color: this.fillStyle })
   }
 
   strokeText(text: string, x: number, y: number) {

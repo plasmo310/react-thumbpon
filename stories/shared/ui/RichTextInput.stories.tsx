@@ -326,3 +326,76 @@ function ThickStrokeExample() {
 }
 
 export const ThickStroke: Story = { render: () => <ThickStrokeExample /> }
+
+function OutlineCountersExample() {
+  const [value, setValue] = useState<TextContent>({ text: 'o O 0 8 B e ロ 回' })
+  const [strokeWidth, setStrokeWidth] = useState(4)
+  const [outerStrokeWidth, setOuterStrokeWidth] = useState(2)
+  const preview = {
+    ...layer,
+    fontFamily: 'Arial, sans-serif',
+    fontSize: 64,
+    fontWeight: 400,
+    color: '#FFFFFF',
+    strokeColor: '#000000',
+    strokeWidth,
+    outerStrokeColor: '#FF8A5B',
+    outerStrokeWidth,
+    textAlign: 'left' as const,
+  }
+  return (
+    <>
+      <p>縁を太くすると穴が自然に閉じ、その後も穴や突起が再出現しないことを確認します。</p>
+      <label>
+        縁1の幅
+        <input
+          type="range"
+          min="0"
+          max="80"
+          value={strokeWidth}
+          onChange={(event) => setStrokeWidth(Number(event.target.value))}
+        />
+      </label>
+      <label>
+        縁2オフセット
+        <input
+          type="range"
+          min="0"
+          max="40"
+          value={outerStrokeWidth}
+          onChange={(event) => setOuterStrokeWidth(Number(event.target.value))}
+        />
+      </label>
+      {[1, 0.5].map((scale) => (
+        <div key={scale} style={{ height: 140 * scale }}>
+          <div
+            style={{
+              ...textStyle(preview),
+              width: 900,
+              padding: 24,
+              background: '#778899',
+              transform: `scale(${scale})`,
+              transformOrigin: 'top left',
+            }}
+          >
+            <RichTextInput
+              canvas
+              editable
+              baseStyle={extractTextStyle(preview)}
+              value={value}
+              onChange={setValue}
+            />
+          </div>
+        </div>
+      ))}
+      <RichTextInput
+        editable
+        previewStyle={extractTextStyle(preview)}
+        value={value}
+        onChange={setValue}
+      />
+    </>
+  )
+}
+
+export const OutlineCounters: Story = { render: () => <OutlineCountersExample /> }

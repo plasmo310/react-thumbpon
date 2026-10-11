@@ -1,5 +1,6 @@
 import { inlineTextCss, textSegments } from '@/domain/text'
 import type { TextContent, TextRange } from '@/domain/text'
+import { drawTextOutline } from './textOutlineCanvas'
 
 /**
  * 入力DOMをプレーンテキストへ直す。ブラウザが挿入する改行要素も扱う。
@@ -149,82 +150,6 @@ type OutlineGlyph = {
 /** 縁1の下描き用 canvas。入力のたびに確保し直さないよう、背面ごとに使い回す */
 const strokeCanvases = new WeakMap<HTMLElement, HTMLCanvasElement>()
 
-/** 縁の隙間を塞ぐ幅の半分(px)。これの2倍までの細い隙間を塞ぐ */
-const SEAM_RADIUS = 2
-
-/**
- * 細い隙間を、まわりの縁の色で塞ぐ（モルフォロジーのクロージング）。
- * 字の穴や字の画どうしの間が縁の幅よりわずかに広いと、両側の縁の間に1〜2pxの筋が残り、線が切れて見える。
- * 透明度に「近くの最大 → 近くの最小」を掛けると、幅 radius×2 までの隙間だけが埋まり、
- * それより広い穴や縁の外形・アンチエイリアスはそのまま残る。
- * @param data 1色の縁を描いた画素（RGBA、書き換える）
- * @param width 画像の幅(px)
- * @param height 画像の高さ(px)
- * @param radius 隙間を塞ぐ幅の半分(px)
- */
-export function closeSeams(data: Uint8ClampedArray, width: number, height: number, radius: number) {
-  if (radius <= 0) return
-  const size = width * height
-  const alpha = new Uint8ClampedArray(size)
-  for (let i = 0; i < size; i++) alpha[i] = data[i * 4 + 3]
-  // 1方向ずつ「近くの最大（または最小）」を取る。画像の外は透明として扱い、端で縁が太らないようにする
-  const sweep = (from: Uint8ClampedArray, horizontal: boolean, pickMax: boolean) => {
-    const out = new Uint8ClampedArray(size)
-    const length = horizontal ? width : height
-    const lines = horizontal ? height : width
-    const step = horizontal ? 1 : width
-    for (let line = 0; line < lines; line++) {
-      const base = horizontal ? line * width : line
-      for (let i = 0; i < length; i++) {
-        const lo = i - radius
-        const hi = i + radius
-        let best = pickMax ? 0 : 255
-        // 画像の外は透明（0）として扱う。最小を取るときに端の画素が欠けないよう、外にかかるなら 0
-        if (!pickMax && (lo < 0 || hi >= length)) best = 0
-        else {
-          const start = lo < 0 ? 0 : lo
-          const end = hi >= length ? length - 1 : hi
-          for (let j = start; j <= end; j++) {
-            const value = from[base + j * step]
-            if (pickMax ? value > best : value < best) best = value
-          }
-        }
-        out[base + i * step] = best
-      }
-    }
-    return out
-  }
-  const dilated = sweep(sweep(alpha, true, true), false, true)
-  const closed = sweep(sweep(dilated, true, false), false, false)
-  for (let i = 0; i < size; i++) {
-    if (closed[i] <= alpha[i]) continue
-    const at = i * 4
-    // 元が透明だった画素は色を持たないので、近くでいちばん濃い画素の色にする（埋まる画素はわずかなので、ここだけ探す）
-    if (alpha[i] === 0) {
-      const x = i % width
-      const y = (i - x) / width
-      let best = -1
-      let from = at
-      for (let dy = -radius; dy <= radius; dy++) {
-        for (let dx = -radius; dx <= radius; dx++) {
-          const nx = x + dx
-          const ny = y + dy
-          if (nx < 0 || ny < 0 || nx >= width || ny >= height) continue
-          const value = alpha[ny * width + nx]
-          if (value > best) {
-            best = value
-            from = (ny * width + nx) * 4
-          }
-        }
-      }
-      data[at] = data[from]
-      data[at + 1] = data[from + 1]
-      data[at + 2] = data[from + 2]
-    }
-    data[at + 3] = closed[i]
-  }
-}
-
 /** 前面の文字ノードを、DOM の並び順で集める */
 function textNodes(node: Node, found: Text[] = []): Text[] {
   for (const child of node.childNodes) {
@@ -236,9 +161,8 @@ function textNodes(node: Node, found: Text[] = []): Text[] {
 
 /**
  * 縁1と縁2を、前面の文字と同じ位置に canvas で描く。
- * ブラウザの縁取り（-webkit-text-stroke）は角を尖らせてつなぐため、文字に対して太いと小さな角から突起が出る。
- * SVG の膨張は正方形でしか広げられず丸い字の縁が角ばり、写しを重ねて円に近づけると縮小表示でジャギが出る。
- * canvas の縁取りは角を丸くつなげられ、アンチエイリアスも正しく掛かるので、縁はすべてここで描き、前面は塗りだけにする。
+ * 字形の塗りを円形に広げ、小さい穴に太い輪郭線を引いたときの自己交差を避ける。
+ * 縁はすべて背面で描き、前面は塗りだけにする。
  * 文字の位置は前面の DOM から1字ずつ測るので、折り返し・字間・部分書式・行のトリムはそのまま揃う。
  * @param root 入力中の未確定文字も含む前面DOM
  * @param outline 選択と入力から除外した背面の格納先
@@ -305,13 +229,13 @@ export function paintEditorOutline(
   const width = Math.ceil(Math.max(...glyphs.map((glyph) => glyph.right)) + reach) - left
   const height = Math.ceil(Math.max(...glyphs.map((glyph) => glyph.bottom)) + reach) - top
   // 書き出しは実寸の1倍で使うので、縮小表示に合わせて解像度を落とさない
-  const ratio = Math.max(1, window.devicePixelRatio || 1)
+  const ratio = Math.max(2, window.devicePixelRatio || 1)
   const pixelWidth = Math.ceil(width * ratio)
   const pixelHeight = Math.ceil(height * ratio)
   // 入力のたびに作り直すと大きな画像を毎回確保するため、前の canvas を使い回す
   const previous = outline.firstElementChild
   const canvas = previous instanceof HTMLCanvasElement ? previous : document.createElement('canvas')
-  // 縁1は別の canvas に描き、隙間を塞いでから縁2の上に重ねる
+  // 縁1は別の canvas に描き、縁2の上に重ねる
   const strokeCanvas = strokeCanvases.get(outline) ?? document.createElement('canvas')
   strokeCanvases.set(outline, strokeCanvas)
   for (const target of [canvas, strokeCanvas]) {
@@ -325,8 +249,8 @@ export function paintEditorOutline(
     width: `${width}px`,
     height: `${height}px`,
   })
-  const outerContext = canvas.getContext('2d', { willReadFrequently: true })
-  const strokeContext = strokeCanvas.getContext('2d', { willReadFrequently: true })
+  const outerContext = canvas.getContext('2d')
+  const strokeContext = strokeCanvas.getContext('2d')
   if (!outerContext || !strokeContext) return
   // 縁は字の外側の輪郭にも、字の穴（o の内側など）の輪郭にも同じ幅で付く
   const draw = (
@@ -334,8 +258,6 @@ export function paintEditorOutline(
     pick: (glyph: OutlineGlyph) => { width: number; color: string } | null,
   ) => {
     context.setTransform(ratio, 0, 0, ratio, -left * ratio, -top * ratio)
-    context.lineJoin = 'round'
-    context.lineCap = 'round'
     context.textAlign = 'left'
     context.textBaseline = 'alphabetic'
     for (const glyph of glyphs) {
@@ -344,15 +266,8 @@ export function paintEditorOutline(
       context.font = glyph.font
       // 文字の箱の上端から、フォントの上側の高さだけ下がった位置がベースライン
       const baseline = glyph.top + context.measureText(glyph.text).fontBoundingBoxAscent
-      context.lineWidth = band.width
-      context.strokeStyle = band.color
-      context.fillStyle = band.color
-      context.strokeText(glyph.text, glyph.x, baseline)
-      context.fillText(glyph.text, glyph.x, baseline)
+      drawTextOutline(context, glyph.text, glyph.x, baseline, band.width, band.color, ratio)
     }
-    const image = context.getImageData(0, 0, pixelWidth, pixelHeight)
-    closeSeams(image.data, pixelWidth, pixelHeight, Math.round(SEAM_RADIUS * ratio))
-    context.putImageData(image, 0, 0)
   }
   draw(outerContext, (glyph) =>
     glyph.outerWidth > 0 ? { width: glyph.outerWidth, color: glyph.outerColor } : null,
