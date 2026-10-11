@@ -328,14 +328,15 @@ function ThickStrokeExample() {
 
 export const ThickStroke: Story = { render: () => <ThickStrokeExample /> }
 
-function OutlineCountersExample() {
-  const [value, setValue] = useState<TextContent>({ text: 'o O A M 0 8 ロ 回' })
-  const [strokeWidth, setStrokeWidth] = useState(4)
+function OutlineCountersExample({ sharp = false }: { sharp?: boolean }) {
+  const [value, setValue] = useState<TextContent>({ text: 'o O AV MW 0 8 ロ 回' })
+  const [strokeWidth, setStrokeWidth] = useState(sharp ? 24 : 4)
   const [outerStrokeWidth, setOuterStrokeWidth] = useState(2)
-  const [strokeJoin, setStrokeJoin] = useState<TextStrokeJoin>('round')
+  const [strokeJoin, setStrokeJoin] = useState<TextStrokeJoin>(sharp ? 'miter' : 'round')
+  const [fontFamily, setFontFamily] = useState('Arial, sans-serif')
   const preview = {
     ...layer,
-    fontFamily: 'Arial, sans-serif',
+    fontFamily,
     fontSize: 64,
     fontWeight: 400,
     color: '#FFFFFF',
@@ -349,6 +350,14 @@ function OutlineCountersExample() {
   return (
     <>
       <p>縁を太くすると穴が自然に閉じ、その後も穴や突起が再出現しないことを確認します。</p>
+      <label>
+        フォント
+        <select value={fontFamily} onChange={(event) => setFontFamily(event.target.value)}>
+          <option value="Arial, sans-serif">Arial</option>
+          <option value="'Times New Roman', serif">Times New Roman</option>
+          <option value="'Noto Sans JP', sans-serif">Noto Sans JP</option>
+        </select>
+      </label>
       <label>
         縁の角
         <select
@@ -412,6 +421,7 @@ function OutlineCountersExample() {
 }
 
 export const OutlineCounters: Story = { render: () => <OutlineCountersExample /> }
+export const SharpCorners: Story = { render: () => <OutlineCountersExample sharp /> }
 
 function OutlineScrollExample() {
   const [value, setValue] = useState<TextContent>({

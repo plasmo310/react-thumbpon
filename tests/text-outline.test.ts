@@ -131,7 +131,9 @@ describe('輪郭用canvas', () => {
     draw('o', 20, '#000000', 'miter')
     const [round, sharp] = canvases
     expect(sharp.context.lineJoin).toBe('miter')
-    expect(sharp.context.miterLimit).toBe(4)
+    // 直角は角を保ち、60度以下の鋭角は長い接合線を伸ばさず面取りする。
+    expect(sharp.context.miterLimit).toBeGreaterThanOrEqual(1 / Math.sin(Math.PI / 4))
+    expect(sharp.context.miterLimit).toBeLessThan(1 / Math.sin(Math.PI / 6))
     expect(sharp.context.calls[0]).toMatchObject({ op: 'stroke', text: 'o', width: 20 })
     expect(sharp.context.calls[1]).toMatchObject({ op: 'image', image: round })
     expect(sharp.width).toBeGreaterThan(round.width)

@@ -2,6 +2,7 @@ import { inlineTextCss, textSegments } from '@/domain/text'
 import type { TextContent, TextRange } from '@/domain/text'
 import { drawTextOutline, textOutlineFontRevision } from './textOutlineCanvas'
 import { normalizeStrokeJoin, type TextStrokeJoin } from '@/domain/layer'
+import { TEXT_OUTLINE_MITER_LIMIT } from '@/domain/textOutline'
 
 /**
  * 入力DOMをプレーンテキストへ直す。ブラウザが挿入する改行要素も扱う。
@@ -207,7 +208,7 @@ export function paintEditorOutline(
       strokeJoin: normalizeStrokeJoin(css.getPropertyValue('--text-stroke-join').trim()),
     }
     // 字形は文字の箱から少しはみ出すので、縁の半分に文字の大きさの半分を足した余白を取る
-    const cornerScale = style.strokeJoin === 'miter' ? 4 : 1
+    const cornerScale = style.strokeJoin === 'miter' ? TEXT_OUTLINE_MITER_LIMIT : 1
     reach = Math.max(
       reach,
       (Math.max(strokeWidth, style.outerWidth) / 2) * cornerScale + fontSize / 2,

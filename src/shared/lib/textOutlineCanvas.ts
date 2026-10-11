@@ -1,12 +1,11 @@
 import type { TextStrokeJoin } from '@/domain/layer'
-import { expandTextAlpha } from '@/domain/textOutline'
+import { expandTextAlpha, TEXT_OUTLINE_MITER_LIMIT } from '@/domain/textOutline'
 
 type Mask = { canvas: HTMLCanvasElement; left: number; top: number }
 const cache = new Map<string, Mask>()
 const tinted = new WeakMap<CanvasRenderingContext2D, HTMLCanvasElement>()
 // 大きな文字を編集し続けても古い字形を無制限に保持しない（RGBAで最大32MiB）。
 const MAX_PIXELS = 8 * 1024 * 1024
-const MITER_LIMIT = 4
 let cachedPixels = 0
 let fontRevision = 0
 let owner: Document | undefined
@@ -45,7 +44,7 @@ function glyphMask(
   // 丸いマスクを下地にすることで、角を残す場合も小さい穴の再出現を防ぐ。
   const rounded = join === 'miter' ? glyphMask(context, text, width, ratio, 'round') : null
   const metrics = context.measureText(text)
-  const padding = Math.ceil((width / 2) * (join === 'miter' ? MITER_LIMIT : 1) + 2)
+  const padding = Math.ceil((width / 2) * (join === 'miter' ? TEXT_OUTLINE_MITER_LIMIT : 1) + 2)
   const left = Math.floor(-metrics.actualBoundingBoxLeft) - padding
   const top = Math.floor(-metrics.actualBoundingBoxAscent) - padding
   const right = Math.ceil(metrics.actualBoundingBoxRight) + padding
@@ -62,7 +61,7 @@ function glyphMask(
   ink.fillStyle = '#FFFFFF'
   if (join === 'miter') {
     ink.lineJoin = 'miter'
-    ink.miterLimit = MITER_LIMIT
+    ink.miterLimit = TEXT_OUTLINE_MITER_LIMIT
     ink.lineWidth = width
     ink.strokeStyle = '#FFFFFF'
     ink.strokeText(text, 0, 0)
