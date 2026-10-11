@@ -447,8 +447,10 @@ export function textStyle(layer: TextLayer): CSSProperties {
     // 縁取り。paint-order で文字の外側に描かせる
     WebkitTextStrokeWidth: layer.strokeWidth > 0 ? `${layer.strokeWidth}px` : undefined,
     WebkitTextStrokeColor: layer.strokeColor,
+    // 文字入力欄は縁1を背面で描き直し、前面の縁取りは透明にする。色はこの変数から読む
+    '--text-stroke-color': layer.strokeColor,
     paintOrder: 'stroke fill',
-  }
+  } as CSSProperties
 }
 
 /**

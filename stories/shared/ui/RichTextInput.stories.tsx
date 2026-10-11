@@ -248,3 +248,60 @@ function DoubleOutlineExample() {
 }
 
 export const DoubleOutline: Story = { render: () => <DoubleOutlineExample /> }
+
+function ThickStrokeExample() {
+  const [value, setValue] = useState<TextContent>({
+    text: 'How Do Games\nRun as Programs?',
+    inlineStyles: [
+      { start: 7, end: 12, style: { color: '#FF4A4A', fontSize: 184 } },
+      { start: 20, end: 29, style: { color: '#FFE600', fontSize: 191 } },
+    ],
+  })
+  const preview = {
+    ...layer,
+    fontSize: 92,
+    fontWeight: 900,
+    letterSpacing: 12,
+    lineHeight: 1.1,
+    strokeWidth: 40,
+    strokeColor: '#000000',
+    outerStrokeWidth: 10,
+    outerStrokeColor: '#FFFFFF',
+    color: '#FFFFFF',
+    textAlign: 'center' as const,
+    autoFit: false,
+  }
+  return (
+    <>
+      <p>
+        文字に対して太い縁1でも、角から突起が出ず、丸い字の縁も丸いことを確認できます（小さい字 92px
+        に縁1 40px）。下はキャンバスと同じく CSS transform で縮小した表示です。
+      </p>
+      <div style={{ ...textStyle(preview), width: 1700, background: '#556', padding: 40 }}>
+        <RichTextInput
+          canvas
+          editable
+          baseStyle={extractTextStyle(preview)}
+          value={value}
+          onChange={setValue}
+        />
+      </div>
+      <div style={{ width: 1780 * 0.4, height: 460 * 0.4, overflow: 'hidden' }}>
+        <div
+          style={{
+            ...textStyle(preview),
+            width: 1700,
+            background: '#556',
+            padding: 40,
+            transform: 'scale(0.4)',
+            transformOrigin: '0 0',
+          }}
+        >
+          <RichTextInput canvas baseStyle={extractTextStyle(preview)} value={value} />
+        </div>
+      </div>
+    </>
+  )
+}
+
+export const ThickStroke: Story = { render: () => <ThickStrokeExample /> }

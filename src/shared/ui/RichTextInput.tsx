@@ -1,5 +1,5 @@
 import { useTranslation } from '@/shared/lib/i18n'
-import { useEffect, useId, useLayoutEffect, useRef } from 'react'
+import { useEffect, useLayoutEffect, useRef } from 'react'
 import type { CSSProperties } from 'react'
 import { normalizeTextRange, reconcileText, replaceTextRange } from '@/domain/text'
 import type { InlineTextStyle, TextContent, TextRange } from '@/domain/text'
@@ -52,7 +52,6 @@ export function RichTextInput(props: Props) {
 
   const rootRef = useRef<HTMLDivElement>(null)
   const outlineRef = useRef<HTMLDivElement>(null)
-  const outlineId = useId().replace(/:/g, '')
   const latest = useRef(props)
   latest.current = props
   const composing = useRef(false)
@@ -66,27 +65,23 @@ export function RichTextInput(props: Props) {
     const root = rootRef.current
     const outline = outlineRef.current
     if (!root || !outline) return
-    const current = latest.current
-    const enabled =
-      ((current.previewStyle ?? current.baseStyle)?.outerStrokeWidth ?? 0) > 0 ||
-      current.value.inlineStyles?.some((range) => (range.style.outerStrokeWidth ?? 0) > 0)
-    if (!enabled) {
-      outline.replaceChildren()
-      return
-    }
-    paintEditorOutline(
-      root,
-      outline,
-      outlineId,
-      cx(
-        styles.richText,
-        props.canvas && styles.richTextCanvas,
-        (current.previewStyle ?? current.baseStyle)?.fixedLineHeight != null &&
-          styles.richTextFixed,
-      ),
-      current.previewStyle?.fontSize,
-    )
+    // 縁1も背面で描くので、縁2が無くても毎回描き直す（縁が無ければ背面は空になる）
+    paintEditorOutline(root, outline, latest.current.previewStyle?.fontSize)
   }
+
+  // 縁は前面の文字の位置を測って描くため、Webフォントの読み込みで文字幅が変わったら描き直す
+  useEffect(() => {
+    let alive = true
+    const repaint = () => {
+      if (alive) paintOutline()
+    }
+    void document.fonts.ready.then(repaint)
+    document.fonts.addEventListener('loadingdone', repaint)
+    return () => {
+      alive = false
+      document.fonts.removeEventListener('loadingdone', repaint)
+    }
+  }, [])
 
   useLayoutEffect(() => {
     const root = rootRef.current
@@ -236,7 +231,7 @@ export function RichTextInput(props: Props) {
           )}
           style={
             props.previewStyle
-              ? {
+              ? ({
                   color: props.previewStyle.color,
                   fontFamily: props.previewStyle.fontFamily,
                   fontWeight: props.previewStyle.fontWeight,
@@ -248,7 +243,8 @@ export function RichTextInput(props: Props) {
                   paintOrder: 'stroke fill',
                   WebkitTextStrokeWidth: `${props.previewStyle.strokeWidth / props.previewStyle.fontSize}em`,
                   WebkitTextStrokeColor: props.previewStyle.strokeColor,
-                }
+                  '--text-stroke-color': props.previewStyle.strokeColor,
+                } as CSSProperties)
               : props.style
           }
           contentEditable={!!props.editable && !props.disabled}

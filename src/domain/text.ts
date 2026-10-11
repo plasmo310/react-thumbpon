@@ -254,6 +254,7 @@ export function inlineTextCss(style: InlineTextStyle): CSSProperties {
   const { strokeWidth, strokeColor, outerStrokeWidth, outerStrokeColor, ...font } = style
   return {
     ...font,
+    '--text-stroke-color': strokeColor,
     '--text-outer-stroke-width': outerStrokeWidth,
     '--text-outer-stroke-color': outerStrokeColor,
     verticalAlign: 'baseline',

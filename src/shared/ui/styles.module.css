@@ -349,6 +349,13 @@
   z-index: 1;
 }
 
+/* 縁取りは背面で形を広げて描く。ブラウザの縁取りは太いと角に突起が出るため、前面では透明にする。
+   幅は背面の計算に使うので残す。部分書式の span にも直接指定があるため !important で上書きする */
+.richTextFront,
+.richTextFront * {
+  -webkit-text-stroke-color: transparent !important;
+}
+
 .richTextOutline {
   position: absolute;
   top: 0;
