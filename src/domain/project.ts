@@ -8,6 +8,7 @@ import type { BackgroundPreset, TextPreset } from './preset'
 import {
   DEFAULT_IMAGE_OVERLAY,
   normalizeOuterStroke,
+  normalizeStrokeJoin,
   normalizeTextBackground,
   type Layer,
 } from './layer'
@@ -265,6 +266,7 @@ export function normalizeThumbnails(thumbnails: Thumbnail[]): Thumbnail[] {
           ...normalized,
           ...normalizeTextBackground(normalized),
           ...normalizeOuterStroke(normalized),
+          strokeJoin: normalizeStrokeJoin(normalized.strokeJoin),
           autoFit: normalized.autoFit ?? false,
           fixedLineHeight: normalized.fixedLineHeight ?? null,
           inlineStyles: normalizeInlineStyles(normalized.text, normalized.inlineStyles),

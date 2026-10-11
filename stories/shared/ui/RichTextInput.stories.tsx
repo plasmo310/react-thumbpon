@@ -2,6 +2,7 @@ import { useState } from 'react'
 import type { Meta, StoryObj } from '@storybook/react-vite'
 import { RichTextInput } from '@/shared/ui'
 import { createTextLayer, extractTextStyle, textStyle, textFrameStyle } from '@/domain/layer'
+import type { TextStrokeJoin } from '@/domain/layer'
 import { formatTextRange } from '@/domain/text'
 import type { TextContent, TextRange } from '@/domain/text'
 
@@ -328,9 +329,10 @@ function ThickStrokeExample() {
 export const ThickStroke: Story = { render: () => <ThickStrokeExample /> }
 
 function OutlineCountersExample() {
-  const [value, setValue] = useState<TextContent>({ text: 'o O 0 8 B e ロ 回' })
+  const [value, setValue] = useState<TextContent>({ text: 'o O A M 0 8 ロ 回' })
   const [strokeWidth, setStrokeWidth] = useState(4)
   const [outerStrokeWidth, setOuterStrokeWidth] = useState(2)
+  const [strokeJoin, setStrokeJoin] = useState<TextStrokeJoin>('round')
   const preview = {
     ...layer,
     fontFamily: 'Arial, sans-serif',
@@ -339,6 +341,7 @@ function OutlineCountersExample() {
     color: '#FFFFFF',
     strokeColor: '#000000',
     strokeWidth,
+    strokeJoin,
     outerStrokeColor: '#FF8A5B',
     outerStrokeWidth,
     textAlign: 'left' as const,
@@ -346,6 +349,16 @@ function OutlineCountersExample() {
   return (
     <>
       <p>縁を太くすると穴が自然に閉じ、その後も穴や突起が再出現しないことを確認します。</p>
+      <label>
+        縁の角
+        <select
+          value={strokeJoin}
+          onChange={(event) => setStrokeJoin(event.target.value as TextStrokeJoin)}
+        >
+          <option value="round">丸くする</option>
+          <option value="miter">角を残す</option>
+        </select>
+      </label>
       <label>
         縁1の幅
         <input
@@ -399,3 +412,73 @@ function OutlineCountersExample() {
 }
 
 export const OutlineCounters: Story = { render: () => <OutlineCountersExample /> }
+
+function OutlineScrollExample() {
+  const [value, setValue] = useState<TextContent>({
+    text: Array.from({ length: 24 }, () => 'o AM ロ 回 折り返しの確認').join('\n'),
+  })
+  const [width, setWidth] = useState(220)
+  return (
+    <>
+      <p>
+        縦スクロールと太い縁がある入力欄です。幅を変更しても点滅せず、横スクロールが出ないことを確認します。
+      </p>
+      <label>
+        入力欄の幅
+        <input
+          type="range"
+          min="160"
+          max="400"
+          value={width}
+          onChange={(event) => setWidth(Number(event.target.value))}
+        />
+      </label>
+      {(['round', 'miter'] as const).map((strokeJoin) => (
+        <div key={strokeJoin} style={{ width }}>
+          <p>{strokeJoin === 'round' ? '丸くする' : '角を残す'}</p>
+          <RichTextInput
+            editable
+            value={value}
+            onChange={setValue}
+            previewStyle={{
+              ...extractTextStyle(layer),
+              fontSize: 80,
+              strokeWidth: 40,
+              outerStrokeWidth: 10,
+              strokeJoin,
+            }}
+          />
+        </div>
+      ))}
+    </>
+  )
+}
+
+export const OutlineScroll: Story = {
+  render: () => <OutlineScrollExample />,
+  play: async ({ canvasElement }) => {
+    await document.fonts.ready
+    const frame = () => new Promise<void>((resolve) => requestAnimationFrame(() => resolve()))
+    // 初期レイアウトと最初のResizeObserver通知が完了してから、複数フレームの安定性を確認する。
+    for (let i = 0; i < 4; i++) await frame()
+    const fields = [...canvasElement.querySelectorAll<HTMLElement>('[role="textbox"]')].map(
+      (input) => input.parentElement!.parentElement!,
+    )
+    if (fields.length !== 2) throw new Error('確認対象の入力欄がありません')
+    const sizes = fields.map((field) => [field.clientWidth, field.clientHeight, field.scrollHeight])
+    for (let i = 0; i < 20; i++) {
+      await frame()
+      fields.forEach((field, index) => {
+        if (field.scrollWidth > field.clientWidth + 1)
+          throw new Error('輪郭が横スクロール範囲を広げています')
+        if (field.scrollHeight <= field.clientHeight)
+          throw new Error('縦スクロールの確認条件を満たしていません')
+        if (
+          JSON.stringify([field.clientWidth, field.clientHeight, field.scrollHeight]) !==
+          JSON.stringify(sizes[index])
+        )
+          throw new Error('入力欄の大きさが再描画で変動しています')
+      })
+    }
+  },
+}

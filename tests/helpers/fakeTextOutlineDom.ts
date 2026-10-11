@@ -16,6 +16,7 @@ export class FakeContext {
   fillStyle = ''
   globalCompositeOperation = 'source-over'
   lineJoin = ''
+  miterLimit = 10
   lineCap = ''
   textAlign = ''
   textBaseline = ''
@@ -40,6 +41,7 @@ export class FakeContext {
   }
 
   putImageData() {}
+  clearRect() {}
 
   drawImage(image: unknown, x?: number, y?: number) {
     this.calls.push({ op: 'image', image, x, y })
@@ -138,7 +140,14 @@ export function fakeTextOutlineDom(offset = 5) {
   const outline = new FakeElement('div')
   const styles = new Map<
     FakeElement,
-    { offset: number; color: string; stroke: number; strokeColor: string; fontSize: number }
+    {
+      offset: number
+      color: string
+      stroke: number
+      strokeColor: string
+      fontSize: number
+      strokeJoin?: string
+    }
   >([
     [root, { offset, color: '#FFFFFF', stroke: 20, strokeColor: '#000000', fontSize: 100 }],
     [
@@ -165,6 +174,7 @@ export function fakeTextOutlineDom(offset = 5) {
   const canvases: FakeCanvas[] = []
   return {
     root,
+    styles,
     outline,
     canvases,
     window: { devicePixelRatio: 1 },
@@ -204,6 +214,7 @@ export function fakeTextOutlineDom(offset = 5) {
             '--text-outer-stroke-width': String(style.offset),
             '--text-outer-stroke-color': style.color,
             '--text-stroke-color': style.strokeColor,
+            '--text-stroke-join': style.strokeJoin ?? 'round',
           })[key] ?? '',
       }
     },

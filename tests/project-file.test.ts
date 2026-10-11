@@ -59,6 +59,7 @@ const textLayer = (fontFamily: string): TextLayer => ({
   fixedLineHeight: null,
   color: '#000000',
   strokeWidth: 0,
+  strokeJoin: 'round',
   strokeColor: '#ffffff',
   outerStrokeWidth: 0,
   outerStrokeColor: '#ffffff',
@@ -132,9 +133,10 @@ describe('exportProjectFile', () => {
 })
 
 describe('往復', () => {
-  it('version 7の部分書式・二重縁・背景・四隅の角丸・固定行高をZIPで往復できる', async () => {
+  it('version 7の部分書式・二重縁・縁の角・背景・四隅の角丸・固定行高をZIPで往復できる', async () => {
     const layer = {
       ...textLayer(BUILTIN_FONTS[0].family),
+      strokeJoin: 'miter' as const,
       outerStrokeWidth: 6,
       outerStrokeColor: '#FFFFFF',
       autoFit: true,
@@ -161,6 +163,7 @@ describe('往復', () => {
             fontSize: 120,
             fontFamily: 'Custom',
             strokeWidth: 4,
+            strokeJoin: 'round' as const,
             strokeColor: '#FFFFFF',
             outerStrokeWidth: 2,
             outerStrokeColor: '#000000',
@@ -188,6 +191,7 @@ describe('往復', () => {
     await importProjectFile(file)
     expect(useEditorStore.getState().thumbnails[0].layers[0]).toMatchObject({
       text: layer.text,
+      strokeJoin: 'miter',
       fixedLineHeight: 150,
       inlineStyles: layer.inlineStyles,
       outerStrokeWidth: 6,

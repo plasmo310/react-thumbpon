@@ -3,6 +3,7 @@ import { createPatchers } from './patch'
 import { DEFAULT_BACKGROUND } from '@/domain/background'
 import {
   normalizeOuterStroke,
+  normalizeStrokeJoin,
   normalizeTextBackground,
   extractTextStyle,
   type TextStyle,
@@ -60,6 +61,7 @@ export const createPresetSlice: SliceCreator<PresetSlice> = (set, get) => {
                   fixedLineHeight: preset.style.fixedLineHeight ?? null,
                   ...normalizeTextBackground(preset.style),
                   ...normalizeOuterStroke(preset.style),
+                  strokeJoin: normalizeStrokeJoin(preset.style.strokeJoin),
                 }),
                 inlineStyles: [],
               }

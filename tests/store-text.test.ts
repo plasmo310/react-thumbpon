@@ -27,6 +27,20 @@ beforeEach(() => {
 })
 
 describe('文字編集ストア', () => {
+  it('縁の角の切り替えはUndo/Redoとプリセットで保持する', () => {
+    const store = useEditorStore.getState(),
+      id = current().id
+    store.formatText(id, { strokeJoin: 'miter' })
+    expect(current().strokeJoin).toBe('miter')
+    store.undo()
+    expect(current().strokeJoin).toBe('round')
+    store.redo()
+    expect(current().strokeJoin).toBe('miter')
+    store.addTextPreset('sharp', { ...current() })
+    store.formatText(id, { strokeJoin: 'round' })
+    store.applyTextPreset(useEditorStore.getState().textPresets[0].id, id)
+    expect(current().strokeJoin).toBe('miter')
+  })
   it('外側の部分縁をUndo/Redoし、プリセットとして保存・適用する', () => {
     const store = useEditorStore.getState(),
       id = current().id
@@ -55,12 +69,13 @@ describe('文字編集ストア', () => {
   it('旧プリセットの適用と読み込みでは外側の縁を無効にする', () => {
     const store = useEditorStore.getState(),
       id = current().id
-    const { outerStrokeWidth, outerStrokeColor, ...oldStyle } = current()
+    const { outerStrokeWidth, outerStrokeColor, strokeJoin, ...oldStyle } = current()
     const preset = { id: 'legacy', name: 'legacy', style: oldStyle as TextLayer }
     useEditorStore.setState({ textPresets: [preset] })
-    store.formatText(id, { outerStrokeWidth: 8 })
+    store.formatText(id, { outerStrokeWidth: 8, strokeJoin: 'miter' })
     store.applyTextPreset(preset.id, id)
     expect(current().outerStrokeWidth).toBe(0)
+    expect(current().strokeJoin).toBe('round')
     store.loadProject({
       folders: [],
       thumbnails: useEditorStore.getState().thumbnails,
@@ -70,6 +85,7 @@ describe('文字編集ストア', () => {
     expect(useEditorStore.getState().textPresets[0].style).toMatchObject({
       outerStrokeWidth: 0,
       outerStrokeColor: '#FFFFFF',
+      strokeJoin: 'round',
     })
   })
   it('範囲選択で部分書式に切り替わり、全体指定は明示的に選べる', () => {

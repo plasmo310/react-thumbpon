@@ -1,6 +1,7 @@
 import { inlineTextCss, textSegments } from '@/domain/text'
 import type { TextContent, TextRange } from '@/domain/text'
-import { drawTextOutline } from './textOutlineCanvas'
+import { drawTextOutline, textOutlineFontRevision } from './textOutlineCanvas'
+import { normalizeStrokeJoin, type TextStrokeJoin } from '@/domain/layer'
 
 /**
  * 入力DOMをプレーンテキストへ直す。ブラウザが挿入する改行要素も扱う。
@@ -145,10 +146,12 @@ type OutlineGlyph = {
   strokeColor: string
   outerWidth: number
   outerColor: string
+  strokeJoin: TextStrokeJoin
 }
 
 /** 縁1の下描き用 canvas。入力のたびに確保し直さないよう、背面ごとに使い回す */
 const strokeCanvases = new WeakMap<HTMLElement, HTMLCanvasElement>()
+const outlineSignatures = new WeakMap<HTMLElement, string>()
 
 /** 前面の文字ノードを、DOM の並び順で集める */
 function textNodes(node: Node, found: Text[] = []): Text[] {
@@ -201,9 +204,14 @@ export function paintEditorOutline(
         css.getPropertyValue('--text-stroke-color').trim() || String(css.webkitTextStrokeColor),
       outerWidth: offset > 0 ? strokeWidth + offset * 2 : 0,
       outerColor: css.getPropertyValue('--text-outer-stroke-color').trim(),
+      strokeJoin: normalizeStrokeJoin(css.getPropertyValue('--text-stroke-join').trim()),
     }
     // 字形は文字の箱から少しはみ出すので、縁の半分に文字の大きさの半分を足した余白を取る
-    reach = Math.max(reach, Math.max(strokeWidth, style.outerWidth) / 2 + fontSize / 2)
+    const cornerScale = style.strokeJoin === 'miter' ? 4 : 1
+    reach = Math.max(
+      reach,
+      (Math.max(strokeWidth, style.outerWidth) / 2) * cornerScale + fontSize / 2,
+    )
     for (const { index, segment } of segmenter.segment(node.data)) {
       if (!segment.trim()) continue
       range.setStart(node, index)
@@ -222,6 +230,7 @@ export function paintEditorOutline(
   }
   if (glyphs.length === 0) {
     outline.replaceChildren()
+    outlineSignatures.delete(outline)
     return
   }
   const left = Math.floor(Math.min(...glyphs.map((glyph) => glyph.x)) - reach)
@@ -234,6 +243,8 @@ export function paintEditorOutline(
   const pixelHeight = Math.ceil(height * ratio)
   // 入力のたびに作り直すと大きな画像を毎回確保するため、前の canvas を使い回す
   const previous = outline.firstElementChild
+  const signature = JSON.stringify([glyphs, ratio, textOutlineFontRevision()])
+  if (previous instanceof HTMLCanvasElement && outlineSignatures.get(outline) === signature) return
   const canvas = previous instanceof HTMLCanvasElement ? previous : document.createElement('canvas')
   // 縁1は別の canvas に描き、縁2の上に重ねる
   const strokeCanvas = strokeCanvases.get(outline) ?? document.createElement('canvas')
@@ -266,7 +277,16 @@ export function paintEditorOutline(
       context.font = glyph.font
       // 文字の箱の上端から、フォントの上側の高さだけ下がった位置がベースライン
       const baseline = glyph.top + context.measureText(glyph.text).fontBoundingBoxAscent
-      drawTextOutline(context, glyph.text, glyph.x, baseline, band.width, band.color, ratio)
+      drawTextOutline(
+        context,
+        glyph.text,
+        glyph.x,
+        baseline,
+        band.width,
+        band.color,
+        ratio,
+        glyph.strokeJoin,
+      )
     }
   }
   draw(outerContext, (glyph) =>
@@ -279,4 +299,5 @@ export function paintEditorOutline(
   outerContext.setTransform(1, 0, 0, 1, 0, 0)
   outerContext.drawImage(strokeCanvas, 0, 0)
   if (canvas !== previous) outline.replaceChildren(canvas)
+  outlineSignatures.set(outline, signature)
 }

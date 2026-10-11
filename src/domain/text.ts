@@ -12,6 +12,7 @@ export type InlineTextStyle = Partial<
     | 'fontStyle'
     | 'strokeWidth'
     | 'strokeColor'
+    | 'strokeJoin'
     | 'outerStrokeWidth'
     | 'outerStrokeColor'
   >
@@ -28,6 +29,7 @@ const INLINE_STYLE_KEYS = [
   'fontStyle',
   'strokeWidth',
   'strokeColor',
+  'strokeJoin',
   'outerStrokeWidth',
   'outerStrokeColor',
 ] as const
@@ -69,6 +71,7 @@ function cleanStyle(style: InlineTextStyle): InlineTextStyle {
     )
       continue
     if (key === 'fontStyle' && value !== 'normal' && value !== 'italic') continue
+    if (key === 'strokeJoin' && value !== 'round' && value !== 'miter') continue
     if (
       (key === 'color' ||
         key === 'strokeColor' ||
@@ -251,10 +254,12 @@ export function reconcileText(
  * @param style 上書きする書式
  */
 export function inlineTextCss(style: InlineTextStyle): CSSProperties {
-  const { strokeWidth, strokeColor, outerStrokeWidth, outerStrokeColor, ...font } = style
+  const { strokeWidth, strokeColor, strokeJoin, outerStrokeWidth, outerStrokeColor, ...font } =
+    style
   return {
     ...font,
     '--text-stroke-color': strokeColor,
+    '--text-stroke-join': strokeJoin,
     '--text-outer-stroke-width': outerStrokeWidth,
     '--text-outer-stroke-color': outerStrokeColor,
     verticalAlign: 'baseline',

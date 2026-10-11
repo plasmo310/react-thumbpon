@@ -77,6 +77,7 @@ export function sampleTextLayer(overrides: Partial<TextLayer> = {}): TextLayer {
     fixedLineHeight: null,
     color: '#25282D',
     strokeWidth: 8,
+    strokeJoin: 'round',
     strokeColor: '#FFFFFF',
     ...overrides,
   }
@@ -172,6 +173,7 @@ export function sampleTextPresets(): TextPreset[] {
         fixedLineHeight: null,
         color: '#25282D',
         strokeWidth: 8,
+        strokeJoin: 'round',
         strokeColor: '#FFFFFF',
       },
     },
@@ -191,6 +193,7 @@ export function sampleTextPresets(): TextPreset[] {
         fixedLineHeight: null,
         color: '#7A8088',
         strokeWidth: 0,
+        strokeJoin: 'round',
         strokeColor: '#FFFFFF',
       },
     },

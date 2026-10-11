@@ -86,18 +86,100 @@ describe('字形からの距離で縁を広げる', () => {
 })
 
 describe('輪郭用canvas', () => {
-  it('strokeText を使わず塗りマスクを拡張し、指定色・位置で合成する', () => {
-    const mask = new FakeCanvas()
-    vi.stubGlobal('document', { createElement: () => mask })
+  function setup() {
+    const canvases: FakeCanvas[] = []
+    const fonts = new EventTarget()
+    vi.stubGlobal('document', {
+      fonts,
+      createElement: () => {
+        const canvas = new FakeCanvas()
+        canvases.push(canvas)
+        return canvas
+      },
+    })
     const context = new FakeContext()
     context.font = 'normal 400 64px Arial'
-    drawTextOutline(context as unknown as CanvasRenderingContext2D, 'o', 20, 50, 20, '#123456', 2)
+    const draw = (text = 'o', width = 20, color = '#123456', join: 'round' | 'miter' = 'round') =>
+      drawTextOutline(
+        context as unknown as CanvasRenderingContext2D,
+        text,
+        20,
+        50,
+        width,
+        color,
+        2,
+        join,
+      )
+    return { canvases, fonts, context, draw }
+  }
+
+  it('丸い縁は塗りマスクを拡張し、指定色・位置で合成する', () => {
+    const { canvases, context, draw } = setup()
+    draw()
+    const [mask, colored] = canvases
     expect(mask.context.calls[0]).toMatchObject({ op: 'fill', text: 'o', font: context.font })
     expect(mask.context.calls.some((call) => call.op === 'stroke')).toBe(false)
-    expect(mask.context.globalCompositeOperation).toBe('source-in')
-    expect(mask.context.calls.at(-1)).toEqual({ op: 'color', color: '#123456' })
-    expect(context.calls).toEqual([{ op: 'image', image: mask, x: 8, y: 8 }])
+    expect(colored.context.globalCompositeOperation).toBe('source-in')
+    expect(colored.context.calls.at(-1)).toEqual({ op: 'color', color: '#123456' })
+    expect(context.calls).toEqual([{ op: 'image', image: colored, x: 8, y: 8 }])
     expect(mask.width).toBe(128)
     expect(mask.height).toBe(118)
+  })
+
+  it('角を残す縁はマイターで描き、小さい穴が再出現しない丸い下地を重ねる', () => {
+    const { canvases, draw } = setup()
+    draw('o', 20, '#000000', 'miter')
+    const [round, sharp] = canvases
+    expect(sharp.context.lineJoin).toBe('miter')
+    expect(sharp.context.miterLimit).toBe(4)
+    expect(sharp.context.calls[0]).toMatchObject({ op: 'stroke', text: 'o', width: 20 })
+    expect(sharp.context.calls[1]).toMatchObject({ op: 'image', image: round })
+    expect(sharp.width).toBeGreaterThan(round.width)
+  })
+
+  it('同じ字形は100回描画・色変更しても画素計算は初回だけ。幅・フォント・解像度は別に計算する', () => {
+    const { context, draw } = setup()
+    const read = vi.spyOn(FakeContext.prototype, 'getImageData')
+    try {
+      for (let i = 0; i < 100; i++) draw('o', 20, i % 2 ? '#ffffff' : '#000000')
+      expect(read).toHaveBeenCalledTimes(1)
+      draw('o', 22)
+      context.font = 'normal 900 64px Arial'
+      draw('o', 22)
+      drawTextOutline(context as unknown as CanvasRenderingContext2D, 'o', 0, 0, 22, '#000000', 3)
+      expect(read).toHaveBeenCalledTimes(4)
+    } finally {
+      read.mockRestore()
+    }
+  })
+
+  it('別レイヤーでも字形を共有し、フォント読み込み後は古い字形を破棄する', () => {
+    const { context, fonts, draw } = setup()
+    const read = vi.spyOn(FakeContext.prototype, 'getImageData')
+    try {
+      draw()
+      const other = new FakeContext()
+      other.font = context.font
+      drawTextOutline(other as unknown as CanvasRenderingContext2D, 'o', 300, 50, 20, '#ff0000', 2)
+      expect(read).toHaveBeenCalledTimes(1)
+      fonts.dispatchEvent(new Event('loadingdone'))
+      draw()
+      expect(read).toHaveBeenCalledTimes(2)
+    } finally {
+      read.mockRestore()
+    }
+  })
+
+  it('大量の字形を描いた場合は容量を超えた古いキャッシュを破棄する', () => {
+    const { draw } = setup()
+    const read = vi.spyOn(FakeContext.prototype, 'getImageData')
+    try {
+      draw('old')
+      for (let i = 0; i < 600; i++) draw(String(i))
+      draw('old')
+      expect(read).toHaveBeenCalledTimes(602)
+    } finally {
+      read.mockRestore()
+    }
   })
 })

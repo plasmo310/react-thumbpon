@@ -377,6 +377,14 @@
   min-height: 4em;
 }
 
+/* 輪郭canvasの透明な余白までスクロール範囲に入ると、スクロールバーの出入りで
+   文字の幅が変わり、ResizeObserverによる再描画が循環する。入力欄だけ描画範囲を隔離する。 */
+.richTextField .richTextOutline {
+  height: 100%;
+  overflow: clip;
+  overflow-clip-margin: var(--space-2);
+}
+
 /* 行間は行同士にだけ残す。文字の下降部分も含め、最初と最後の行の外側を詰める。 */
 .richTextCanvas {
   text-box-trim: trim-both;

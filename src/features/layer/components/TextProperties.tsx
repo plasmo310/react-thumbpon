@@ -240,6 +240,17 @@ export function TextProperties({ layer }: { layer: TextLayer }) {
           onChange={(color) => format({ color })}
         />
       </Row>
+      <Row label={label(t('縁の角'), 'strokeJoin')}>
+        <Select
+          value={value.strokeJoin}
+          mixed={mixed('strokeJoin')}
+          options={[
+            { label: t('丸くする'), value: 'round' },
+            { label: t('角を残す'), value: 'miter' },
+          ]}
+          onChange={(strokeJoin) => format({ strokeJoin })}
+        />
+      </Row>
       <Row label={label(t('縁取り1（内側）'), 'strokeWidth')}>
         <NumberInput
           value={value.strokeWidth}

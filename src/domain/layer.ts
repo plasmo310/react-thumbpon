@@ -7,6 +7,15 @@ import type { CanvasSize } from './thumbnail'
 import type { InlineStyleRange } from './text'
 
 export type TextAlign = 'left' | 'center' | 'right'
+export type TextStrokeJoin = 'round' | 'miter'
+
+/**
+ * 未指定の保存データは現在の丸い縁を維持する。
+ * @param value 保存データやCSSから取得した角の形
+ */
+export function normalizeStrokeJoin(value: unknown): TextStrokeJoin {
+  return value === 'miter' ? 'miter' : 'round'
+}
 export type ShapeKind = 'rectangle' | 'ellipse'
 export type ShapeFillType = 'color' | 'gradient' | 'pattern'
 export type ShapePattern = 'dots' | 'lines' | 'checker'
@@ -118,6 +127,7 @@ export type TextLayer = LayerBase &
     /** 縁取り。0で無効 */
     strokeWidth: number
     strokeColor: string
+    strokeJoin: TextStrokeJoin
   }
 
 /** 配置できる図形。ellipse は通常のリサイズで楕円にもなる「円」の実体。 */
@@ -155,6 +165,7 @@ export type TextStyle = Pick<
   | 'color'
   | 'strokeWidth'
   | 'strokeColor'
+  | 'strokeJoin'
   | 'outerStrokeWidth'
   | 'outerStrokeColor'
   | keyof typeof DEFAULT_TEXT_BACKGROUND
@@ -173,6 +184,7 @@ export const TEXT_STYLE_KEYS: (keyof TextStyle)[] = [
   'color',
   'strokeWidth',
   'strokeColor',
+  'strokeJoin',
   'outerStrokeWidth',
   'outerStrokeColor',
   ...(Object.keys(DEFAULT_TEXT_BACKGROUND) as (keyof typeof DEFAULT_TEXT_BACKGROUND)[]),
@@ -250,6 +262,7 @@ export function createTextLayer(canvas: CanvasSize): TextLayer {
     color: '#25282D',
     strokeWidth: 0,
     strokeColor: '#FFFFFF',
+    strokeJoin: 'round',
   }
 }
 

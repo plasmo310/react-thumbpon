@@ -3,7 +3,10 @@ import { paintEditorOutline } from '@/shared/lib/textEditorDom'
 import { FakeCanvas, fakeTextOutlineDom } from './helpers/fakeTextOutlineDom'
 import { drawTextOutline } from '@/shared/lib/textOutlineCanvas'
 
-vi.mock('@/shared/lib/textOutlineCanvas', () => ({ drawTextOutline: vi.fn() }))
+vi.mock('@/shared/lib/textOutlineCanvas', () => ({
+  drawTextOutline: vi.fn(),
+  textOutlineFontRevision: () => 0,
+}))
 
 afterEach(() => {
   vi.unstubAllGlobals()
@@ -77,6 +80,25 @@ describe('縁の背面描画（canvas）', () => {
     paint(5, undefined, dom)
     expect(dom.outline.childNodes[0]).toBe(canvas)
     expect(dom.canvases).toHaveLength(2)
+    expect(drawTextOutline).toHaveBeenCalledTimes(6)
+  })
+
+  it('角・幅・色の変更時は描き直し、新しい設定を描画へ渡す', () => {
+    const dom = fakeTextOutlineDom()
+    paint(5, undefined, dom)
+    Object.assign(dom.styles.get(dom.root)!, {
+      strokeJoin: 'miter',
+      stroke: 30,
+      strokeColor: '#abcdef',
+    })
+    paint(5, undefined, dom)
+    expect(drawTextOutline).toHaveBeenCalledTimes(12)
+    expect(vi.mocked(drawTextOutline).mock.calls.at(-3)?.slice(4)).toEqual([
+      30,
+      '#abcdef',
+      2,
+      'miter',
+    ])
   })
 
   it('サイドバーではオフセットも文字と同じ比率に縮小する（縁1の幅は計算値で縮小済み）', () => {

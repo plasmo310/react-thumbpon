@@ -21,6 +21,20 @@ const content: TextContent = {
 }
 
 describe('部分書式', () => {
+  it('縁の角を部分指定でき、全体変更では部分指定を解除する', () => {
+    const formatted = formatTextRange(content, { start: 3, end: 5 }, { strokeJoin: 'miter' })
+    expect(formatted.inlineStyles?.[0].style.strokeJoin).toBe('miter')
+    expect(inlineTextCss({ strokeJoin: 'miter' })).toMatchObject({ '--text-stroke-join': 'miter' })
+    const layer = { ...createTextLayer({ width: 1280, height: 720 }), ...formatted }
+    expect(
+      formatWholeText(layer, { strokeJoin: 'round' }).inlineStyles?.[0].style.strokeJoin,
+    ).toBeUndefined()
+    expect(
+      normalizeInlineStyles('o', [
+        { start: 0, end: 1, style: { strokeJoin: 'invalid' as 'round' } },
+      ]),
+    ).toEqual([])
+  })
   it('外側の縁を部分指定し、入力で継承し、全体変更と解除を適用する', () => {
     const patch = { outerStrokeWidth: 6, outerStrokeColor: '#FFFFFF' }
     const formatted = formatTextRange(content, { start: 3, end: 5 }, patch)
@@ -140,7 +154,7 @@ describe('部分書式', () => {
 
 describe('部分書式の互換性', () => {
   it('旧データは外側なしで復元し、新データはJSON往復と複製で保持する', () => {
-    const { outerStrokeWidth, outerStrokeColor, ...old } = createTextLayer({
+    const { outerStrokeWidth, outerStrokeColor, strokeJoin, ...old } = createTextLayer({
       width: 100,
       height: 100,
     })
@@ -149,6 +163,7 @@ describe('部分書式の互換性', () => {
     expect(normalizeThumbnails([thumbnail])[0].layers[0]).toMatchObject({
       outerStrokeWidth: 0,
       outerStrokeColor: '#FFFFFF',
+      strokeJoin: 'round',
     })
     const layer = {
       ...createTextLayer({ width: 100, height: 100 }),

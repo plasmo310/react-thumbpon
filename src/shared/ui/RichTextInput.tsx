@@ -12,6 +12,7 @@ import {
   restoreEditorSelection,
 } from '@/shared/lib/textEditorDom'
 import { cx } from '@/shared/lib/cx'
+import { textOutlineFontRevision } from '@/shared/lib/textOutlineCanvas'
 import styles from './styles.module.css'
 
 type Props = {
@@ -60,13 +61,29 @@ export function RichTextInput(props: Props) {
   const wasActive = useRef(false)
   const revision = useRef(props.revision)
   const selectionRef = useRef(props.selection)
+  const outlineSignature = useRef('')
 
   const paintOutline = () => {
     const root = rootRef.current
     const outline = outlineRef.current
     if (!root || !outline) return
-    // 縁1も背面で描くので、縁2が無くても毎回描き直す（縁が無ければ背面は空になる）
+    const current = latest.current
+    // 移動・選択・ズームでは字形が変わらない。各文字のDOM計測や画素処理に入る前に止める。
+    // 未確定の入力はpropsへまだ反映されないため、DOMの文字列も含める。
+    const signature = JSON.stringify([
+      root.textContent,
+      current.value.inlineStyles,
+      current.previewStyle,
+      current.baseStyle,
+      current.style,
+      root.offsetWidth,
+      root.offsetHeight,
+      window.devicePixelRatio,
+      textOutlineFontRevision(),
+    ])
+    if (outlineSignature.current === signature) return
     paintEditorOutline(root, outline, latest.current.previewStyle?.fontSize)
+    outlineSignature.current = signature
   }
 
   // 縁は前面の文字の位置を測って描くため、Webフォントの読み込みで文字幅が変わったら描き直す
@@ -77,9 +94,12 @@ export function RichTextInput(props: Props) {
     }
     void document.fonts.ready.then(repaint)
     document.fonts.addEventListener('loadingdone', repaint)
+    const observer = new ResizeObserver(repaint)
+    if (rootRef.current) observer.observe(rootRef.current)
     return () => {
       alive = false
       document.fonts.removeEventListener('loadingdone', repaint)
+      observer.disconnect()
     }
   }, [])
 
@@ -209,6 +229,7 @@ export function RichTextInput(props: Props) {
             (props.previewStyle ?? props.baseStyle)?.outerStrokeWidth ?? 0,
           '--text-outer-stroke-color':
             (props.previewStyle ?? props.baseStyle)?.outerStrokeColor ?? '#FFFFFF',
+          '--text-stroke-join': (props.previewStyle ?? props.baseStyle)?.strokeJoin ?? 'round',
         } as CSSProperties
       }
     >

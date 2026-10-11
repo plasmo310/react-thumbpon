@@ -64,6 +64,7 @@ const textLayer = (fontFamily: string): TextLayer => ({
   fixedLineHeight: null,
   color: '#000',
   strokeWidth: 0,
+  strokeJoin: 'round',
   strokeColor: '#fff',
 })
 
