@@ -184,7 +184,6 @@ export function fakeTextOutlineDom(offset = 5) {
       return {
         fontStyle: 'normal',
         fontWeight: '900',
-        color: '#FFFFFF',
         fontSize: `${style.fontSize}px`,
         fontFamily: 'Test',
         webkitTextStrokeWidth: `${style.stroke}px`,

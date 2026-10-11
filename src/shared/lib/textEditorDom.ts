@@ -140,92 +140,88 @@ type OutlineGlyph = {
   top: number
   bottom: number
   right: number
-  /** 前面の文字の塗りの色。縁1の無い文字でも、字の穴を見分けるために形を描く */
-  color: string
   strokeWidth: number
   strokeColor: string
   outerWidth: number
   outerColor: string
 }
 
-/** 字の穴の判定に使う、縁1の下描き用 canvas。入力のたびに確保し直さないよう背面ごとに使い回す */
-const innerCanvases = new WeakMap<HTMLElement, HTMLCanvasElement>()
+/** 縁1の下描き用 canvas。入力のたびに確保し直さないよう、背面ごとに使い回す */
+const strokeCanvases = new WeakMap<HTMLElement, HTMLCanvasElement>()
+
+/** 縁の隙間を塞ぐ幅の半分(px)。これの2倍までの細い隙間を塞ぐ */
+const SEAM_RADIUS = 2
 
 /**
- * 字の穴（o の内側など）の中に縁2を出さない。
- * 縁1と縁2は字の内側の輪郭にも付くため、穴の中で縁1の内側に縁2の白い輪が覗いてしまう。
- * 縁1と文字の形（inner）の空いた所のうち、画像の外周から塗りつぶしで届かない所を穴とみなし、
- * そこの縁2（outer）を消す。縁1の幅に比べてごく小さい穴は、点のように見えるので縁1の色で埋める。
- * @param inner 縁1と文字の形の画素（RGBA、書き換える）
- * @param outer 縁2の画素（RGBA、書き換える）
+ * 細い隙間を、まわりの縁の色で塞ぐ（モルフォロジーのクロージング）。
+ * 字の穴や字の画どうしの間が縁の幅よりわずかに広いと、両側の縁の間に1〜2pxの筋が残り、線が切れて見える。
+ * 透明度に「近くの最大 → 近くの最小」を掛けると、幅 radius×2 までの隙間だけが埋まり、
+ * それより広い穴や縁の外形・アンチエイリアスはそのまま残る。
+ * @param data 1色の縁を描いた画素（RGBA、書き換える）
  * @param width 画像の幅(px)
  * @param height 画像の高さ(px)
- * @param minHoleArea これより小さい穴は埋める(px²)
+ * @param radius 隙間を塞ぐ幅の半分(px)
  */
-export function resolveCounters(
-  inner: Uint8ClampedArray,
-  outer: Uint8ClampedArray,
-  width: number,
-  height: number,
-  minHoleArea: number,
-) {
+export function closeSeams(data: Uint8ClampedArray, width: number, height: number, radius: number) {
+  if (radius <= 0) return
   const size = width * height
-  // 縁1の不透明な所だけを壁にする。アンチエイリアスの半透明な画素は穴の側に含めて縁2を消す
-  const open = (index: number) => inner[index * 4 + 3] < 255
-  // 0: 未判定、1: 外側、2: 穴
-  const region = new Uint8Array(size)
-  const queue = new Int32Array(size)
-  let tail = 0
-  const reach = (index: number) => {
-    if (region[index] === 0 && open(index)) {
-      region[index] = 1
-      queue[tail++] = index
-    }
-  }
-  for (let x = 0; x < width; x++) {
-    reach(x)
-    reach((height - 1) * width + x)
-  }
-  for (let y = 0; y < height; y++) {
-    reach(y * width)
-    reach(y * width + width - 1)
-  }
-  const neighbors = (index: number, visit: (next: number) => void) => {
-    const x = index % width
-    if (x > 0) visit(index - 1)
-    if (x < width - 1) visit(index + 1)
-    if (index >= width) visit(index - width)
-    if (index < size - width) visit(index + width)
-  }
-  for (let head = 0; head < tail; head++) neighbors(queue[head], reach)
-  for (let start = 0; start < size; start++) {
-    if (region[start] !== 0 || !open(start)) continue
-    // 穴を1つずつ集め、まわりの縁1の色を覚えておく（小さい穴を埋める色）
-    tail = 0
-    region[start] = 2
-    queue[tail++] = start
-    let wall = -1
-    for (let head = 0; head < tail; head++) {
-      neighbors(queue[head], (next) => {
-        if (open(next)) {
-          if (region[next] === 0) {
-            region[next] = 2
-            queue[tail++] = next
+  const alpha = new Uint8ClampedArray(size)
+  for (let i = 0; i < size; i++) alpha[i] = data[i * 4 + 3]
+  // 1方向ずつ「近くの最大（または最小）」を取る。画像の外は透明として扱い、端で縁が太らないようにする
+  const sweep = (from: Uint8ClampedArray, horizontal: boolean, pickMax: boolean) => {
+    const out = new Uint8ClampedArray(size)
+    const length = horizontal ? width : height
+    const lines = horizontal ? height : width
+    const step = horizontal ? 1 : width
+    for (let line = 0; line < lines; line++) {
+      const base = horizontal ? line * width : line
+      for (let i = 0; i < length; i++) {
+        const lo = i - radius
+        const hi = i + radius
+        let best = pickMax ? 0 : 255
+        // 画像の外は透明（0）として扱う。最小を取るときに端の画素が欠けないよう、外にかかるなら 0
+        if (!pickMax && (lo < 0 || hi >= length)) best = 0
+        else {
+          const start = lo < 0 ? 0 : lo
+          const end = hi >= length ? length - 1 : hi
+          for (let j = start; j <= end; j++) {
+            const value = from[base + j * step]
+            if (pickMax ? value > best : value < best) best = value
           }
-        } else if (wall < 0) wall = next
-      })
-    }
-    const fill = tail < minHoleArea && wall >= 0
-    for (let i = 0; i < tail; i++) {
-      const at = queue[i] * 4
-      outer[at + 3] = 0
-      if (fill) {
-        inner[at] = inner[wall * 4]
-        inner[at + 1] = inner[wall * 4 + 1]
-        inner[at + 2] = inner[wall * 4 + 2]
-        inner[at + 3] = 255
+        }
+        out[base + i * step] = best
       }
     }
+    return out
+  }
+  const dilated = sweep(sweep(alpha, true, true), false, true)
+  const closed = sweep(sweep(dilated, true, false), false, false)
+  for (let i = 0; i < size; i++) {
+    if (closed[i] <= alpha[i]) continue
+    const at = i * 4
+    // 元が透明だった画素は色を持たないので、近くでいちばん濃い画素の色にする（埋まる画素はわずかなので、ここだけ探す）
+    if (alpha[i] === 0) {
+      const x = i % width
+      const y = (i - x) / width
+      let best = -1
+      let from = at
+      for (let dy = -radius; dy <= radius; dy++) {
+        for (let dx = -radius; dx <= radius; dx++) {
+          const nx = x + dx
+          const ny = y + dy
+          if (nx < 0 || ny < 0 || nx >= width || ny >= height) continue
+          const value = alpha[ny * width + nx]
+          if (value > best) {
+            best = value
+            from = (ny * width + nx) * 4
+          }
+        }
+      }
+      data[at] = data[from]
+      data[at + 1] = data[from + 1]
+      data[at + 2] = data[from + 2]
+    }
+    data[at + 3] = closed[i]
   }
 }
 
@@ -276,7 +272,6 @@ export function paintEditorOutline(
     const fontSize = parseFloat(css.fontSize) || 0
     const style = {
       font: `${css.fontStyle} ${css.fontWeight} ${css.fontSize} ${css.fontFamily}`,
-      color: css.color,
       strokeWidth,
       strokeColor:
         css.getPropertyValue('--text-stroke-color').trim() || String(css.webkitTextStrokeColor),
@@ -316,9 +311,10 @@ export function paintEditorOutline(
   // 入力のたびに作り直すと大きな画像を毎回確保するため、前の canvas を使い回す
   const previous = outline.firstElementChild
   const canvas = previous instanceof HTMLCanvasElement ? previous : document.createElement('canvas')
-  const inner = innerCanvases.get(outline) ?? document.createElement('canvas')
-  innerCanvases.set(outline, inner)
-  for (const target of [canvas, inner]) {
+  // 縁1は別の canvas に描き、隙間を塞いでから縁2の上に重ねる
+  const strokeCanvas = strokeCanvases.get(outline) ?? document.createElement('canvas')
+  strokeCanvases.set(outline, strokeCanvas)
+  for (const target of [canvas, strokeCanvas]) {
     target.width = pixelWidth
     target.height = pixelHeight
   }
@@ -330,10 +326,13 @@ export function paintEditorOutline(
     height: `${height}px`,
   })
   const outerContext = canvas.getContext('2d', { willReadFrequently: true })
-  const innerContext = inner.getContext('2d', { willReadFrequently: true })
-  if (!outerContext || !innerContext) return
-  type Band = { width: number; stroke: string; fill: string }
-  const draw = (context: CanvasRenderingContext2D, pick: (glyph: OutlineGlyph) => Band | null) => {
+  const strokeContext = strokeCanvas.getContext('2d', { willReadFrequently: true })
+  if (!outerContext || !strokeContext) return
+  // 縁は字の外側の輪郭にも、字の穴（o の内側など）の輪郭にも同じ幅で付く
+  const draw = (
+    context: CanvasRenderingContext2D,
+    pick: (glyph: OutlineGlyph) => { width: number; color: string } | null,
+  ) => {
     context.setTransform(ratio, 0, 0, ratio, -left * ratio, -top * ratio)
     context.lineJoin = 'round'
     context.lineCap = 'round'
@@ -345,33 +344,24 @@ export function paintEditorOutline(
       context.font = glyph.font
       // 文字の箱の上端から、フォントの上側の高さだけ下がった位置がベースライン
       const baseline = glyph.top + context.measureText(glyph.text).fontBoundingBoxAscent
-      if (band.width > 0) {
-        context.lineWidth = band.width
-        context.strokeStyle = band.stroke
-        context.strokeText(glyph.text, glyph.x, baseline)
-      }
-      context.fillStyle = band.fill
+      context.lineWidth = band.width
+      context.strokeStyle = band.color
+      context.fillStyle = band.color
+      context.strokeText(glyph.text, glyph.x, baseline)
       context.fillText(glyph.text, glyph.x, baseline)
     }
+    const image = context.getImageData(0, 0, pixelWidth, pixelHeight)
+    closeSeams(image.data, pixelWidth, pixelHeight, Math.round(SEAM_RADIUS * ratio))
+    context.putImageData(image, 0, 0)
   }
   draw(outerContext, (glyph) =>
-    glyph.outerWidth > 0
-      ? { width: glyph.outerWidth, stroke: glyph.outerColor, fill: glyph.outerColor }
-      : null,
+    glyph.outerWidth > 0 ? { width: glyph.outerWidth, color: glyph.outerColor } : null,
   )
-  draw(innerContext, (glyph) =>
-    glyph.strokeWidth > 0
-      ? { width: glyph.strokeWidth, stroke: glyph.strokeColor, fill: glyph.strokeColor }
-      : { width: 0, stroke: '', fill: glyph.color },
+  draw(strokeContext, (glyph) =>
+    glyph.strokeWidth > 0 ? { width: glyph.strokeWidth, color: glyph.strokeColor } : null,
   )
-  const outerImage = outerContext.getImageData(0, 0, pixelWidth, pixelHeight)
-  const innerImage = innerContext.getImageData(0, 0, pixelWidth, pixelHeight)
-  const thickest = Math.max(...glyphs.map((glyph) => glyph.strokeWidth)) * ratio
-  resolveCounters(innerImage.data, outerImage.data, pixelWidth, pixelHeight, (thickest * 0.6) ** 2)
-  outerContext.putImageData(outerImage, 0, 0)
-  innerContext.putImageData(innerImage, 0, 0)
   // 縁2をすべて描いてから縁1を重ねる。隣の文字の縁2が縁1の上に被らないようにするため
   outerContext.setTransform(1, 0, 0, 1, 0, 0)
-  outerContext.drawImage(inner, 0, 0)
+  outerContext.drawImage(strokeCanvas, 0, 0)
   if (canvas !== previous) outline.replaceChildren(canvas)
 }

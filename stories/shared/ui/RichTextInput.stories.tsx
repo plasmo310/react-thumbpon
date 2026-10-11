@@ -300,6 +300,27 @@ function ThickStrokeExample() {
           <RichTextInput canvas baseStyle={extractTextStyle(preview)} value={value} />
         </div>
       </div>
+      <p>字の穴（ロ・o の内側）にも、外側と同じ縁1・縁2が付きます。</p>
+      <div
+        style={{
+          ...textStyle({ ...preview, fontSize: 80, strokeWidth: 24 }),
+          width: 1700,
+          background: '#556',
+          padding: 40,
+        }}
+      >
+        <RichTextInput
+          canvas
+          baseStyle={extractTextStyle({ ...preview, fontSize: 80, strokeWidth: 24 })}
+          value={{
+            text: 'ゲームは プログラムで\nどう動く？',
+            inlineStyles: [
+              { start: 5, end: 10, style: { color: '#FF4A4A', fontSize: 160, strokeWidth: 40 } },
+              { start: 14, end: 17, style: { color: '#FFE600', fontSize: 167, strokeWidth: 40 } },
+            ],
+          }}
+        />
+      </div>
     </>
   )
 }

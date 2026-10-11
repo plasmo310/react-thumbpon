@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { paintEditorOutline, resolveCounters } from '@/shared/lib/textEditorDom'
+import { closeSeams, paintEditorOutline } from '@/shared/lib/textEditorDom'
 import { FakeCanvas, fakeTextOutlineDom } from './helpers/fakeTextOutlineDom'
 
 afterEach(() => vi.unstubAllGlobals())
@@ -16,13 +16,13 @@ function paint(offset = 5, previewBaseSize?: number, dom = fakeTextOutlineDom(of
   )
   // 背面に置くのは縁2の canvas。縁1は別の canvas に描いてから重ねる
   const canvas = dom.outline.childNodes[0] as unknown as FakeCanvas | undefined
-  const inner = dom.canvases.find((value) => value !== canvas)
+  const stroke = dom.canvases.find((value) => value !== canvas)
   return {
     ...dom,
     canvas,
+    stroke,
     outerCalls: canvas?.context.calls ?? [],
-    innerCalls: inner?.context.calls ?? [],
-    inner,
+    strokeCalls: stroke?.context.calls ?? [],
   }
 }
 
@@ -31,25 +31,24 @@ const strokes = (calls: ReturnType<typeof paint>['outerCalls']) =>
 
 describe('縁の背面描画（canvas）', () => {
   it('縁2と縁1を別々に描き、縁1を縁2の上に重ねる。角を丸くつなぎ、縁の無い文字と空白は描かない', () => {
-    const { canvas, inner, outerCalls, innerCalls } = paint()
+    const { canvas, stroke, outerCalls, strokeCalls } = paint()
     expect(canvas!.context.lineJoin).toBe('round')
-    expect(inner!.context.lineJoin).toBe('round')
+    expect(stroke!.context.lineJoin).toBe('round')
     // 縁2: 縁1の幅 + オフセット×2
     expect(strokes(outerCalls)).toEqual([
       ['A', 30, '#FFFFFF'],
       ['b', 30, '#FFFFFF'],
       ['C', 14, '#FF0000'],
     ])
-    expect(strokes(innerCalls)).toEqual([
+    expect(strokes(strokeCalls)).toEqual([
       ['A', 20, '#000000'],
       ['b', 20, '#000000'],
       ['C', 10, '#0000FF'],
     ])
-    expect(outerCalls.at(-1)).toMatchObject({ op: 'image', image: inner })
-    expect(
-      [...outerCalls, ...innerCalls].some((call) => call.text === 'D' || call.text === ' '),
-    ).toBe(false)
-    expect(innerCalls.find((call) => call.text === 'C')!.font).toBe('normal 900 150px Test')
+    expect(outerCalls.at(-1)).toMatchObject({ op: 'image', image: stroke })
+    const all = [...outerCalls, ...strokeCalls]
+    expect(all.some((call) => call.text === 'D' || call.text === ' ')).toBe(false)
+    expect(strokeCalls.find((call) => call.text === 'C')!.font).toBe('normal 900 150px Test')
   })
 
   it('位置は前面の文字の箱から測り、表示の縮小を打ち消して実寸にする', () => {
@@ -77,9 +76,9 @@ describe('縁の背面描画（canvas）', () => {
   })
 
   it('縁2が無くても、縁1は描く', () => {
-    const { outerCalls, innerCalls } = paint(0)
+    const { outerCalls, strokeCalls } = paint(0)
     expect(strokes(outerCalls)).toEqual([])
-    expect(strokes(innerCalls)).toHaveLength(3)
+    expect(strokes(strokeCalls)).toHaveLength(3)
   })
 
   it('前面には触らない', () => {
@@ -97,52 +96,50 @@ describe('縁の背面描画（canvas）', () => {
 })
 
 /**
- * 9×9 の画像に、縁1の四角い輪（外周 1〜7、穴 3〜5）を描く。縁2は全面に白。
+ * 横 width × 縦 5 の画像に、列 filled の範囲だけ色 (10, 20, 30) を不透明に塗る
+ * @param width 画像の幅
+ * @param filled 塗る列の判定
  */
-function ring() {
-  const width = 9
-  const inner = new Uint8ClampedArray(width * width * 4)
-  const outer = new Uint8ClampedArray(width * width * 4)
-  for (let y = 0; y < width; y++) {
+function strip(width: number, filled: (x: number) => boolean) {
+  const height = 5
+  const data = new Uint8ClampedArray(width * height * 4)
+  for (let y = 0; y < height; y++) {
     for (let x = 0; x < width; x++) {
-      const at = (y * width + x) * 4
-      outer.set([255, 255, 255, 255], at)
-      const inRing = x >= 1 && x <= 7 && y >= 1 && y <= 7
-      const inHole = x >= 3 && x <= 5 && y >= 3 && y <= 5
-      if (inRing && !inHole) inner.set([10, 20, 30, 255], at)
+      if (filled(x)) data.set([10, 20, 30, 255], (y * width + x) * 4)
     }
   }
-  const alpha = (data: Uint8ClampedArray, x: number, y: number) => data[(y * width + x) * 4 + 3]
-  return { width, inner, outer, alpha }
+  const pixel = (x: number) => [...data.slice((2 * width + x) * 4, (2 * width + x) * 4 + 4)]
+  return { data, width, height, pixel }
 }
 
-describe('字の穴の中の縁2', () => {
-  it('外周から届かない空き（字の穴）の縁2を消し、外側の縁2は残す', () => {
-    const { width, inner, outer, alpha } = ring()
-    resolveCounters(inner, outer, width, width, 0)
-    expect(alpha(outer, 4, 4)).toBe(0)
-    expect(alpha(outer, 3, 5)).toBe(0)
-    expect(alpha(outer, 0, 0)).toBe(255)
-    expect(alpha(outer, 8, 4)).toBe(255)
-    // 大きい穴は埋めない
-    expect(alpha(inner, 4, 4)).toBe(0)
+describe('縁の細い隙間を塞ぐ', () => {
+  it('幅 radius×2 までの隙間は、まわりの縁の色で埋める', () => {
+    // 列 5〜6 が 2px の隙間
+    const { data, width, height, pixel } = strip(
+      14,
+      (x) => (x >= 1 && x <= 4) || (x >= 7 && x <= 12),
+    )
+    closeSeams(data, width, height, 2)
+    expect(pixel(5)).toEqual([10, 20, 30, 255])
+    expect(pixel(6)).toEqual([10, 20, 30, 255])
   })
 
-  it('縁1の幅に比べて小さい穴は、まわりの縁1の色で埋める', () => {
-    const { width, inner, outer, alpha } = ring()
-    resolveCounters(inner, outer, width, width, 10)
-    expect(alpha(inner, 4, 4)).toBe(255)
-    expect([...inner.slice((4 * width + 4) * 4, (4 * width + 4) * 4 + 3)]).toEqual([10, 20, 30])
-    expect(alpha(outer, 4, 4)).toBe(0)
+  it('それより広い隙間（大きい字の穴）はそのまま残す', () => {
+    // 列 5〜10 が 6px の隙間
+    const { data, width, height, pixel } = strip(
+      16,
+      (x) => (x >= 1 && x <= 4) || (x >= 11 && x <= 14),
+    )
+    closeSeams(data, width, height, 2)
+    expect(pixel(7)[3]).toBe(0)
+    expect(pixel(8)[3]).toBe(0)
   })
 
-  it('外とつながった空き（c の開いた所など）は穴とみなさない', () => {
-    const { width, inner, outer, alpha } = ring()
-    // 輪の右側を切って外とつなげる
-    for (let y = 3; y <= 5; y++) inner.set([0, 0, 0, 0], (y * width + 6) * 4)
-    for (let y = 3; y <= 5; y++) inner.set([0, 0, 0, 0], (y * width + 7) * 4)
-    resolveCounters(inner, outer, width, width, 100)
-    expect(alpha(outer, 4, 4)).toBe(255)
-    expect(alpha(inner, 4, 4)).toBe(0)
+  it('縁の外形は太らせない', () => {
+    const { data, width, height, pixel } = strip(12, (x) => x >= 4 && x <= 7)
+    closeSeams(data, width, height, 2)
+    expect(pixel(3)[3]).toBe(0)
+    expect(pixel(8)[3]).toBe(0)
+    expect(pixel(4)[3]).toBe(255)
   })
 })
