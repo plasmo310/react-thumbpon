@@ -4,6 +4,8 @@ import pkg from './package.json' with { type: 'json' }
 
 export default defineConfig({
   plugins: [react()],
+  // 公開先のパスはツール側で決めない。相対にしておけば、どの階層に置いても資産を読める
+  base: './',
   resolve: {
     // '/src' はプロジェクトルート起点として解決される。
     // fileURLToPath を使うと @types/node が要るので、依存を増やさずに済むこの形にしている。
