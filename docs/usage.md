@@ -10,7 +10,9 @@
 - 起動は `npm install`（初回のみ）→ `npm run dev`（http://localhost:5173、Chrome / Edge）
 - マニフェストは素の JSON。読むのは自由だが、**直接書き換えるのは最後の手段**
   （ブラウザが同じフォルダに接続中だと保存で上書きされる。書き換えたら「プロジェクトを開く」で読み直す）
-- **PNG 書き出しはブラウザ専用**。CLI では出せない。確認と完成は人がブラウザで行う
+- **PNG 書き出しはコマンドだけでできる**（画面は開かない）。`npm run build`（初回・コード変更後）→
+  `npm run export -- --project <プロジェクトのフォルダ> --out <出力先> [--thumbnail <名前>]...`。
+  詳細は `docs/usage.md` の「コマンドで書き出す」。見た目の最終確認は人がブラウザで行ってもよい
 - ツール本体（コード）を直すときは `CLAUDE.md` / `AGENTS.md` → `docs/instructions/agent-guide.md` の順に読む
 
 ## 起動
@@ -172,4 +174,19 @@ Thumbpon/
   - 素材を足すなら、ファイルを `assets/<フォルダ名>/<id>.<拡張子>` に置き、`assets[]` に `meta` と `file` を足す（`folderId` は `assetFolders` の id）
   - `id` は UUID。新規レイヤーは新しい UUID を振る
   - テキストの `fontFamily` は引用符つき（`"\"M PLUS 2\", sans-serif"`）。PC フォントなら `fonts[]` の `family` と一致させる
-- **PNG 書き出しはブラウザ専用**（`html-to-image`）。CLI で書き出す手段は無い。画像の確認や完成は人がブラウザで行う
+## コマンドで書き出す
+
+画面を開かずに PNG にできる。ヘッドレスの Chrome でアプリを開き、ZIP インポート → 画面の「PNG書き出し」と同じ処理でダウンロードを受け取る。見た目は画面の書き出しと一致する。
+
+```bash
+npm run build      # 初回と、アプリのコードを直したあと（dist/ が古いと反映されない）
+npm run export -- --project <フォルダ|.thumbpon.zip> --out <出力先> [--thumbnail <名前>]... [--lang ja|en]
+```
+
+- `--project`: マニフェスト（`*.thumbpon`）と `assets/` があるフォルダ。バックアップ（`*.thumbpon.before-…`）は読まない
+- `--thumbnail`: サムネイル名。省略すると全部。**同名が複数あるときは上から順に `名前.png`、`名前 (2).png`…** になる
+  （同じ名前を 2 回指定すると 1 つ目・2 つ目を出す）。無い名前はエラーで、あるものを一覧する
+- 人が開いているサムネぽんには触れない（一時プロファイルで動く）。保存済みのマニフェストの内容が出力になる
+- ブラウザは入っている Chrome。`THUMBPON_BROWSER_CHANNEL=msedge` で Edge にもできる
+- フォントは Google Fonts から取るのでネットワークが要る
+- 全 64 枚のような大きいプロジェクトでも、ZIP は一時ファイル経由で渡すので動く
