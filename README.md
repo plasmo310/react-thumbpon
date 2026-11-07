@@ -20,7 +20,26 @@ Built-in web fonts are fetched from Google Fonts, so loading them involves a con
 - Use local assets, fonts, and text
 - Export PNG files
 - Import and export project files, or save to a local folder (Chromium browsers only)
-- When cloned locally: delegate work to AI agents ([details](#local-use-delegating-to-ai-agents))
+
+## Local use: delegating to AI agents
+
+This works only when you have cloned the repository locally. The hosted web version alone cannot do it.
+
+You can ask an AI agent such as Claude Code to:
+
+- Add assets (place images in `assets/` and register them in the manifest)
+- Edit layers, text, and backgrounds (the manifest is plain JSON)
+- Export PNG files without opening the UI
+
+```bash
+npm install     # First time only
+npm run build   # First time, and after changing the app code
+npm run export -- --project <folder|.thumbpon.zip> --out <output folder> [--thumbnail <name>]...
+```
+
+Without `--thumbnail`, every thumbnail is exported (duplicate names become `name (2).png`). Chrome is required, and fonts are fetched over the network. A ThumbPon window you have open is not affected.
+
+Point the agent to [`.claude/skills/thumbpon-usage/SKILL.md`](.claude/skills/thumbpon-usage/SKILL.md) and the [detailed usage guide](docs/usage.md), which also cover the manifest structure and cautions for editing it directly.
 
 ## Interface
 
@@ -255,26 +274,6 @@ You can open an extracted folder with **Open project**, and import a ZIP made fr
 Importing disconnects the existing workspace to prevent accidentally overwriting its contents.
 
 While a folder is connected, its contents are treated as the source of truth and loaded when the app starts.
-
-## Local use: delegating to AI agents
-
-This works only when you have cloned the repository locally. The hosted web version alone cannot do it.
-
-You can ask an AI agent such as Claude Code to:
-
-- Add assets (place images in `assets/` and register them in the manifest)
-- Edit layers, text, and backgrounds (the manifest is plain JSON)
-- Export PNG files without opening the UI
-
-```bash
-npm install     # First time only
-npm run build   # First time, and after changing the app code
-npm run export -- --project <folder|.thumbpon.zip> --out <output folder> [--thumbnail <name>]...
-```
-
-Without `--thumbnail`, every thumbnail is exported (duplicate names become `name (2).png`). Chrome is required, and fonts are fetched over the network. A ThumbPon window you have open is not affected.
-
-Point the agent to [`.claude/skills/thumbpon-usage/SKILL.md`](.claude/skills/thumbpon-usage/SKILL.md) and the [detailed usage guide](docs/usage.md), which also cover the manifest structure and cautions for editing it directly.
 
 ## Development
 
