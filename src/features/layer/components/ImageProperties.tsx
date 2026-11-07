@@ -2,9 +2,8 @@ import { useTranslation } from '@/shared/lib/i18n'
 import { useEditorStore } from '@/app/store'
 import type { ImageLayer } from '@/domain/layer'
 import { NumberInput, PercentRow, Row, Select } from '@/shared/ui'
-import { pivotOf, resizeKeepingPivot } from '@/domain/pivot'
+import { resizeKeepingPivot } from '@/domain/pivot'
 import { CropSection } from './CropSection'
-import { PivotPicker } from './PivotPicker'
 import styles from '../styles.module.css'
 
 /**
@@ -44,12 +43,6 @@ export function ImageProperties({ layer }: { layer: ImageLayer }) {
           />
         </Row>
       </div>
-      <Row label={t('基準点')}>
-        <PivotPicker
-          value={pivotOf(layer)}
-          onChange={(pivot) => updateLayer(layer.id, { pivot })}
-        />
-      </Row>
       <Row label={t('回転')}>
         <NumberInput
           value={layer.rotation}

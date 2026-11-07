@@ -1,5 +1,5 @@
 import { useTranslation } from '@/shared/lib/i18n'
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { Thumbnail } from '@/domain/thumbnail'
 import { useEditorStore } from '@/app/store'
 import { cx } from '@/shared/lib/cx'
@@ -33,10 +33,16 @@ export function ThumbnailRow({ thumbnail, depth }: { thumbnail: Thumbnail; depth
   const [dropPosition, setDropPosition] = useState<'before' | 'after' | null>(null)
 
   const active = currentId === thumbnail.id
+  const rowRef = useRef<HTMLLIElement>(null)
+  // 起動・読み込み直後に、編集中のサムネイルが一覧の見える位置に来るようにする
+  useEffect(() => {
+    if (active) rowRef.current?.scrollIntoView?.({ block: 'nearest' })
+    // 初回の描画時だけ。クリックで選んだときは行がすでに見えているので動かさない
+  }, [])
   const indent = { paddingLeft: depth * 12 }
 
   return (
-    <li className={cx(styles.row, active && styles.rowActive)}>
+    <li ref={rowRef} className={cx(styles.row, active && styles.rowActive)}>
       <div
         draggable={!editing}
         onDragStart={(event) => {

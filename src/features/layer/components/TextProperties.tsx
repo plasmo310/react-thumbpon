@@ -17,6 +17,8 @@ import {
   RichTextInput,
   Button,
 } from '@/shared/ui'
+import { measureLayerHeight } from '@/shared/lib/layerMeasure'
+import { resizeKeepingPivot } from '@/domain/pivot'
 import { FontLoader } from './FontLoader'
 import styles from '../styles.module.css'
 
@@ -79,7 +81,15 @@ export function TextProperties({ layer }: { layer: TextLayer }) {
           <NumberInput
             value={layer.width}
             min={1}
-            onChange={(width) => patch({ width: Math.max(1, width), autoFit: false })}
+            onChange={(width) =>
+              patch({
+                ...resizeKeepingPivot(
+                  { ...layer, height: measureLayerHeight(layer.id) },
+                  { width: Math.max(1, width) },
+                ),
+                autoFit: false,
+              })
+            }
           />
         </Row>
         <Row label={t('回転')}>
@@ -206,6 +216,30 @@ export function TextProperties({ layer }: { layer: TextLayer }) {
           />
         </Row>
       </div>
+      {partial && (
+        <div className={styles.pair}>
+          <Row label={label(t('文字オフセットX (em)'), 'offsetX')}>
+            <NumberInput
+              value={value.offsetX ?? 0}
+              mixed={mixed('offsetX')}
+              min={-MAX_OFFSET}
+              max={MAX_OFFSET}
+              step={0.05}
+              onChange={(offsetX) => format({ offsetX })}
+            />
+          </Row>
+          <Row label={label(t('文字オフセットY (em)'), 'offsetY')}>
+            <NumberInput
+              value={value.offsetY ?? 0}
+              mixed={mixed('offsetY')}
+              min={-MAX_OFFSET}
+              max={MAX_OFFSET}
+              step={0.05}
+              onChange={(offsetY) => format({ offsetY })}
+            />
+          </Row>
+        </div>
+      )}
       <Row label={t('行の高さ')}>
         <SegmentedControl
           value={layer.fixedLineHeight == null ? 'auto' : 'fixed'}
@@ -288,30 +322,6 @@ export function TextProperties({ layer }: { layer: TextLayer }) {
             onChange={(outerStrokeColor) => format({ outerStrokeColor })}
           />
         </Row>
-      )}
-      {partial && (
-        <div className={styles.pair}>
-          <Row label={label(t('文字ずらしX (em)'), 'offsetX')}>
-            <NumberInput
-              value={value.offsetX ?? 0}
-              mixed={mixed('offsetX')}
-              min={-MAX_OFFSET}
-              max={MAX_OFFSET}
-              step={0.05}
-              onChange={(offsetX) => format({ offsetX })}
-            />
-          </Row>
-          <Row label={label(t('文字ずらしY (em)'), 'offsetY')}>
-            <NumberInput
-              value={value.offsetY ?? 0}
-              mixed={mixed('offsetY')}
-              min={-MAX_OFFSET}
-              max={MAX_OFFSET}
-              step={0.05}
-              onChange={(offsetY) => format({ offsetY })}
-            />
-          </Row>
-        </div>
       )}
       <Row label={t('部分書式')}>
         <Button onClick={() => formatText(layer.id, null)}>{t('部分書式を解除')}</Button>

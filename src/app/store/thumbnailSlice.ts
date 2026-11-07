@@ -300,8 +300,10 @@ export const createThumbnailSlice: SliceCreator<ThumbnailSlice> = (set, get) => 
       const wanted = list.find((t) => t.id === currentThumbnailId)
       // 保存時に何も表示していなかったファイルは、その状態のまま開く
       const nothing = currentThumbnailId === null
+      const startFolderId = nothing ? null : (wanted ?? list[0]).folderId
       set((s) => ({
-        folders,
+        // 開いた直後に編集中のサムネイルが一覧で見えるよう、そのフォルダは開いておく
+        folders: folders.map((f) => (f.id === startFolderId ? { ...f, collapsed: false } : f)),
         pinnedThumbnailIds: [],
         thumbnails: list.map((thumbnail) => ({
           ...thumbnail,

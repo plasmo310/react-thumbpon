@@ -2,6 +2,7 @@ import { useTranslation } from '@/shared/lib/i18n'
 import { useEditorStore } from '@/app/store'
 import type { ShapeFillType, ShapeKind, ShapeLayer, ShapePattern } from '@/domain/layer'
 import { ColorInput, NumberInput, PercentRow, Row, Select, SliderRow } from '@/shared/ui'
+import { resizeKeepingPivot } from '@/domain/pivot'
 import { EffectsSection } from './EffectsSection'
 import styles from '../styles.module.css'
 
@@ -18,10 +19,18 @@ export function ShapeProperties({ layer }: { layer: ShapeLayer }) {
     <>
       <div className={styles.pair}>
         <Row label={t('幅')}>
-          <NumberInput value={layer.width} min={1} onChange={(width) => patch({ width })} />
+          <NumberInput
+            value={layer.width}
+            min={1}
+            onChange={(width) => patch(resizeKeepingPivot(layer, { width }))}
+          />
         </Row>
         <Row label={t('高さ')}>
-          <NumberInput value={layer.height} min={1} onChange={(height) => patch({ height })} />
+          <NumberInput
+            value={layer.height}
+            min={1}
+            onChange={(height) => patch(resizeKeepingPivot(layer, { height }))}
+          />
         </Row>
       </div>
       <Row label={t('形状')}>

@@ -36,11 +36,7 @@ export function ExportButton() {
         disabled={busy || visible.length === 0}
         className={styles.export}
       >
-        {busy
-          ? t('書き出し中…')
-          : visible.length > 1
-            ? t('PNG書き出し（{0}枚）', visible.length)
-            : t('PNG書き出し')}
+        {busy ? t('書き出し中…') : t('PNG書き出し')}
       </button>
       {choosing && (
         <ExportDialog

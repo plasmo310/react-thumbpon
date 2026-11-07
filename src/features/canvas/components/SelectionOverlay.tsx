@@ -18,8 +18,8 @@ import { GroupScaleBox } from './GroupScaleBox'
 import { getAssetUrl } from '@/shared/lib/storage/assetRepo'
 import { startPointerDrag } from '@/shared/lib/pointerDrag'
 import { useCurrentThumbnail, useEditorStore, useSelectedLayer } from '@/app/store'
-import { useLayerHeight } from '../hooks/useLayerHeight'
-import { measureLayerHeight } from '../lib/layerRect'
+import { useLayerHeight } from '@/shared/lib/useLayerHeight'
+import { measureLayerHeight } from '@/shared/lib/layerMeasure'
 
 const ACCENT = '#FF8A5B'
 /* クロップ中は枠の意味が変わる（掴むと中身が切れる）ので、色も変えて区別する */
@@ -251,7 +251,7 @@ export function SelectionOverlay({ scale }: { scale: number }) {
       <div style={{ position: 'absolute', inset: 0, border: `${px(1.5)}px solid ${accent}` }} />
 
       {/* 基準点。X/Y とサイズ変更の基準になる位置を示す（掴めない） */}
-      {layer.type === 'image' && !image && (
+      {!image && (
         <div
           style={{
             position: 'absolute',

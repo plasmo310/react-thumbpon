@@ -84,14 +84,14 @@ npm run dev        # http://localhost:5173
 ### 画像
 
 - 透明度・左右反転（枠は動かさず中身だけ鏡像）・ブラー／シャドウ／光彩
-- **基準点（pivot）**: 画像は `pivot{x,y}`（0..1、左上=0,0。省略は左上）を持てる。`x,y,width,height` は常に左上基準のままで、基準点は「X/Y の入力欄の意味」と「サイズ変更で動かさない点」を決める（保存データの座標の意味は変わらない）
+- **基準点（pivot）**: 全レイヤー共通で `pivot{x,y}`（0..1、左上=0,0。省略は左上）を持てる。`x,y,width,height` は常に左上基準のままで、基準点は「X/Y の入力欄の意味」と「サイズ変更で動かさない点」を決める（保存データの座標の意味は変わらない）
 - **クロップ**: プロパティの `枠で調整`（キャンバス上の枠をドラッグ）、`上/下/左/右を切る` のスライダー、または右クリック。割合で持つのでリサイズしても崩れない
 
 ### テキスト
 
 - 内容・フォント・サイズ・太さ・揃え・色・字間・行間・縁取り・エフェクト
 - キャンバス上でダブルクリックして直接入力（`Enter` 改行、`Esc` か外クリックで終了）
-- 範囲選択して適用先を「選択部分」にすると、色・サイズ・フォント・太さ・斜体・縁取りを**部分的に**変えられる。`文字ずらしX/Y`（em、右・下が正）で選んだ文字だけ位置もずらせる（`inlineStyles[].style.offsetX/offsetY`。レイアウトは動かさない）
+- 範囲選択して適用先を「選択部分」にすると、色・サイズ・フォント・太さ・斜体・縁取りを**部分的に**変えられる。`文字オフセットX/Y`（em、右・下が正）で選んだ文字だけ位置もずらせる（`inlineStyles[].style.offsetX/offsetY`。レイアウトは動かさない）
 - 左右ハンドルで折り返し幅、角ハンドルで文字サイズ（部分サイズも比例）
 - 高さは持たず内容に応じて伸びる
 
@@ -152,11 +152,11 @@ Thumbpon/
 
 - `layers[0]` が最背面。`zIndex` は無い
 - 座標・サイズはキャンバス実寸 px、**レイヤー左上基準**。`rotation` は度、`opacity` は 0..1
-- 共通: `id, name, x, y, width, rotation, opacity, visible, locked, effects`
+- 共通: `id, name, x, y, width, rotation, opacity, visible, locked, effects, pivot?{x,y}`
 
 | `type`  | 追加のキー                                                                                                                                                                                       |
 | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `image` | `assetId, height, crop{top,right,bottom,left}, flipX, pivot?{x,y}`                                                                                                                               |
+| `image` | `assetId, height, crop{top,right,bottom,left}, flipX`                                                                                                                                            |
 | `text`  | `text`（改行は `\n`）, `inlineStyles?`, `fontFamily`, `fontSize`, `fontWeight`, `fontStyle`, `textAlign`, `letterSpacing`, `lineHeight`, `color`, `strokeWidth`（0 で縁取りなし）, `strokeColor` |
 | `shape` | `height, shape(rectangle\|ellipse), cornerRadius, fillType(color\|gradient\|pattern), color, gradientFrom/To/Angle, pattern, patternColor/Size/Weight/Angle`                                     |
 

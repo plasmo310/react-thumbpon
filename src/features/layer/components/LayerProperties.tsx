@@ -3,7 +3,9 @@ import { EffectsSection } from './EffectsSection'
 import { useEditorStore } from '@/app/store'
 import type { Layer } from '@/domain/layer'
 import { ColorInput, NumberInput, PercentRow, Row } from '@/shared/ui'
-import { pivotPoint, placeByPivot } from '@/domain/pivot'
+import { pivotOf, pivotPoint, placeByPivot } from '@/domain/pivot'
+import { PivotPicker } from './PivotPicker'
+import { useLayerHeight } from '@/shared/lib/useLayerHeight'
 import { ImageProperties } from './ImageProperties'
 import { ShapeProperties } from './ShapeProperties'
 import { TextProperties } from './TextProperties'
@@ -21,11 +23,13 @@ export function LayerProperties({ layer }: { layer: Layer }) {
   const updateLayer = useEditorStore((s) => s.updateLayer)
   const updateLayerEffects = useEditorStore((s) => s.updateLayerEffects)
 
-  // 画像は基準点の位置を X/Y に出す。枠の x/y は常に左上なので、入力時に左上へ直す
-  const origin = layer.type === 'image' ? pivotPoint(layer) : { x: layer.x, y: layer.y }
+  // X/Y は基準点の位置を出す。保存する x/y は常に左上なので、入力時に左上へ直す。
+  // テキストは高さを持たないので、画面に出ている実寸の高さを使う
+  const height = useLayerHeight(layer)
+  const box = { x: layer.x, y: layer.y, width: layer.width, height, pivot: layer.pivot }
+  const origin = pivotPoint(box)
   const moveTo = (point: { x: number; y: number }) => {
-    if (layer.type !== 'image') return point
-    const { x, y } = placeByPivot(layer, point)
+    const { x, y } = placeByPivot(box, point)
     return { x, y }
   }
 
@@ -48,6 +52,16 @@ export function LayerProperties({ layer }: { layer: Layer }) {
           />
         </Row>
       </div>
+
+      <Row label={t('基準点')}>
+        <PivotPicker
+          value={pivotOf(layer)}
+          onChange={(pivot) =>
+            // 基準点を変えても見た目の位置は動かさない。X/Y の表示だけがその点の座標に変わる
+            updateLayer(layer.id, { pivot })
+          }
+        />
+      </Row>
 
       {layer.type === 'image' && <ImageProperties layer={layer} />}
       {layer.type === 'text' && <TextProperties layer={layer} />}

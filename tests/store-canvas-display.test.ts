@@ -101,6 +101,18 @@ describe('常時表示と編集対象', () => {
     expect(state().gridSettings).toEqual(DEFAULT_GRID)
   })
 
+  it('読み込み直後は、編集中のサムネイルがあるフォルダを開いておく', () => {
+    state().loadProject({
+      folders: [
+        { id: 'f1', name: 'f1', collapsed: true },
+        { id: 'f2', name: 'f2', collapsed: true },
+      ],
+      thumbnails: [createThumbnail('a', 'f1'), createThumbnail('b', 'f2')],
+      currentThumbnailId: undefined,
+    })
+    expect(state().folders.map((f) => f.collapsed)).toEqual([false, true])
+  })
+
   it('すべて外すと何も表示せず、選び直すと戻る', () => {
     const [a, b] = state().thumbnails
     state().toggleThumbnailPinned(b.id)

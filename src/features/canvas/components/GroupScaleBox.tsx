@@ -13,7 +13,8 @@ import {
 import { startPointerDrag } from '@/shared/lib/pointerDrag'
 import { useCurrentThumbnail, useEditorStore } from '@/app/store'
 import { SNAP_THRESHOLD } from '../lib/snap'
-import { collectLayerRects, findLayerElement } from '../lib/layerRect'
+import { collectLayerRects } from '../lib/layerRect'
+import { findLayerElement } from '@/shared/lib/layerMeasure'
 
 const ACCENT = '#FF8A5B'
 const HANDLE_SIZE = 10
