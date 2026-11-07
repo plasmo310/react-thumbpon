@@ -18,8 +18,9 @@ If you clone the repository locally, you can also delegate creating thumbnails a
 
 - Create multiple thumbnails and organize them in folders
 - Place and edit images, text, and backgrounds on the canvas
-- Move, resize, rotate, crop, and reorder layers
-- Use local assets, fonts, and text
+- Move, resize, rotate, crop, and reorder layers (with undo and redo)
+- Zoom and pan the canvas, and snap to edges and other layers
+- Use local assets and fonts, and style text with outlines, backgrounds, and per-character formatting
 - Export PNG files
 - Import and export project files, or save to a local folder (Chromium browsers only)
 - Delegate work to AI agents
@@ -40,7 +41,7 @@ This works only when you have cloned the repository locally.<br>
 - **Thumbnails**: Switch between designs, add thumbnails, organize folders, and change canvas sizes
 - **Layers**: Select, reorder, and edit backgrounds, images, and text
 - **Assets**: Import images and organize them in folders
-- **Canvas**: Arrange, resize, rotate, and crop layers directly
+- **Canvas**: Arrange, resize, rotate, and crop layers directly. Zoom with the wheel or pinch; pan with two-finger scroll, the middle button, or `Space` + drag; use the button at the bottom right to fit the view to the screen
 
 ## Getting started
 
@@ -54,7 +55,7 @@ The URL setting takes priority over the saved preference and is saved for your n
 
 #### 1. Choose a thumbnail and canvas size
 
-<img src="docs/readme/en/03_usage_step1_thumbnail.png" alt="Selecting a thumbnail and canvas size" width="640">
+<img src="docs/readme/en/03_usage_step1_thumbnail.png" alt="Selecting a thumbnail and canvas size" width="360">
 
 - Select the thumbnail you want to edit in the **Thumbnails** panel at the top left.
 - Add one with `＋` if needed, then choose a canvas size in the selected row.
@@ -62,25 +63,26 @@ The URL setting takes priority over the saved preference and is saved for your n
 
 #### 2. Add assets
 
-<img src="docs/readme/en/04_usage_step2_assets.png" alt="Adding assets" width="640">
+<img src="docs/readme/en/04_usage_step2_assets.png" alt="Adding assets" width="360">
 
-| Asset | How to add it |
-| --- | --- |
+| Asset | How to add it                                                                                                                  |
+| ----- | ------------------------------------------------------------------------------------------------------------------------------ |
 | Image | Drag and drop onto the canvas. Click an image in the Assets panel to place it in the center, or drag it to a specific position |
-| Text | Click `＋ Text` in the Layers panel, then set the content, font, size, and color in its properties |
-| Shape | Click `＋ Shape` in the Layers panel, then set the shape and fill in its properties |
+| Text  | Click `＋ Text` in the Layers panel, then set the content, font, size, and color in its properties                             |
+| Shape | Click `＋ Shape` in the Layers panel, then set the shape and fill in its properties                                            |
 
 #### 3. Adjust the layout and appearance
 
-<img src="docs/readme/en/05_usage_step3_layout.png" alt="Adjusting a layer on the canvas" width="640">
+<img src="docs/readme/en/05_usage_step3_layout.png" alt="Handles on the selected layer" width="480">
 
 - Drag layers on the canvas to move them.
-- Use the selection handles to resize or rotate a layer, and drag layers in the list to change their stacking order.
+- Use the selection handles (shown above) to resize a layer and the round handle above it to rotate. Drag layers in the list to change their stacking order.
+- Undo with `Ctrl` / `⌘` + `Z` and redo with `Ctrl` / `⌘` + `Shift` + `Z`.
 - Edit the background through `BG Background` at the top of the layer list.
 
 #### 4. Export the image
 
-<img src="docs/readme/en/06_usage_step4_export.png" alt="Export PNG button" width="640">
+<img src="docs/readme/en/06_usage_step4_export.png" alt="Export PNG button" width="440">
 
 - Images can be exported as PNG files.
 - Click `⊘` in the thumbnail list to hide every thumbnail and show nothing on the canvas. Select a thumbnail again to bring it back.
@@ -88,14 +90,14 @@ The URL setting takes priority over the saved preference and is saved for your n
 
 ### Saving projects
 
-<img src="docs/readme/en/11_detail_project.png" alt="Project menu" width="640">
+<img src="docs/readme/en/11_detail_project.png" alt="Project menu" width="400">
 
 There are two ways to save a project.
 
-| Method | Details |
-| --- | --- |
+| Method                 | Details                                                                                                                |
+| ---------------------- | ---------------------------------------------------------------------------------------------------------------------- |
 | Save to a local folder | Save directly to a working folder and reopen that folder to resume. **Chromium browsers such as Chrome and Edge only** |
-| Export / Import | Save as a `.thumbpon.zip` file and import it to resume. Available in all browsers |
+| Export / Import        | Save as a `.thumbpon.zip` file and import it to resume. Available in all browsers                                      |
 
 #### Save to a local folder (Chromium browsers only)
 
@@ -112,45 +114,46 @@ There are two ways to save a project.
 
 ### Organizing thumbnails and assets
 
-<img src="docs/readme/en/04_usage_step2_assets.png" alt="Thumbnail and asset panels" width="640">
+<img src="docs/readme/en/03_usage_step1_thumbnail.png" alt="Thumbnails panel" width="340"> <img src="docs/readme/en/04_usage_step2_assets.png" alt="Assets panel" width="340">
 
 Each design is a thumbnail. You can create multiple thumbnails and organize them in folders.
 
-| Action | How |
-| --- | --- |
-| Switch | Click a row |
-| Rename | Double-click a row |
-| Add | Click `＋` at the top right of the panel. The `＋` on a folder row adds a thumbnail inside that folder |
-| Duplicate | Hover over a row and click `⧉` |
-| Copy / Paste | Use `📋` on a row to copy, then `📥` at the top right of the panel or on a folder row to paste |
-| Move to a folder | Drag a row into a folder |
-| Delete | Click `🗑` on the row. The thumbnail above it becomes active after deletion |
+| Action           | How                                                                                                    |
+| ---------------- | ------------------------------------------------------------------------------------------------------ |
+| Switch           | Click a row                                                                                            |
+| Rename           | Double-click a row                                                                                     |
+| Add              | Click `＋` at the top right of the panel. The `＋` on a folder row adds a thumbnail inside that folder |
+| Duplicate        | Hover over a row and click `⧉`                                                                         |
+| Copy / Paste     | Use `📋` on a row to copy, then `📥` at the top right of the panel or on a folder row to paste         |
+| Move to a folder | Drag a row into a folder                                                                               |
+| Delete           | Click `🗑` on the row. The thumbnail above it becomes active after deletion                             |
 
 Canvas sizes are saved per thumbnail. Change the size using `Size` below the selected row.
 
 #### Canvas sizes
 
-| Use | Size |
-| --- | --- |
-| Full HD | `1920 × 1080` |
-| HD | `1280 × 720` |
-| 4:3 | `800 × 600` |
+| Use                     | Size          |
+| ----------------------- | ------------- |
+| Full HD                 | `1920 × 1080` |
+| HD                      | `1280 × 720`  |
+| 4:3                     | `800 × 600`   |
+| 1:1                     | `1024 × 1024` |
 | Reels / Shorts / TikTok | `1080 × 1920` |
-| X post | `1600 × 900` |
-| Instagram post | `1080 × 1350` |
-| Instagram square | `1080 × 1080` |
-| OGP / Facebook | `1200 × 630` |
+| X post                  | `1600 × 900`  |
+| Instagram post          | `1080 × 1350` |
+| Instagram square        | `1080 × 1080` |
+| OGP / Facebook          | `1200 × 630`  |
 
 Choose `Custom` to enter a width and height that are not in the preset list.
 
 #### Organizing assets
 
-| Item | Details |
-| --- | --- |
-| Adding images | Drop directly onto the canvas, or add through the Assets panel |
-| Supported formats | PNG, JPEG, WebP, SVG |
-| Storage | IndexedDB (assets persist after reloading) |
-| Folders | Click `📁` at the top right of the panel to add a folder, then drag asset tiles into it |
+| Item              | Details                                                                                 |
+| ----------------- | --------------------------------------------------------------------------------------- |
+| Adding images     | Drop directly onto the canvas, or add through the Assets panel                          |
+| Supported formats | PNG, JPEG, WebP, SVG                                                                    |
+| Storage           | IndexedDB (assets persist after reloading)                                              |
+| Folders           | Click `📁` at the top right of the panel to add a folder, then drag asset tiles into it |
 
 Deleting a folder moves its assets back to the unfiled area without deleting the images. Asset folders are also reflected in the `assets/` directory structure when exporting a project.
 
@@ -160,12 +163,12 @@ Deleting a folder moves its assets back to the unfiled area without deleting the
 
 You can trim the visible area of an image layer. Crop amounts are stored as proportions, so resizing a layer preserves its crop.
 
-| Action | How |
-| --- | --- |
-| Adjust the frame | Click `Adjust frame` in the properties, then drag the eight handles inward on the canvas. The cropped-out area appears faded |
-| Use sliders | Adjust `Crop top`, `Crop bottom`, `Crop left`, and `Crop right`. Click `Reset` to show the whole image |
-| Use the context menu | Right-click the layer in the list or on the canvas, then choose **Adjust crop** |
-| Flip horizontally | Use **Flip → Horizontal**, or choose **Flip horizontally** from the context menu. The frame stays in place while its contents are mirrored, including during cropping |
+| Action               | How                                                                                                                                                                   |
+| -------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Adjust the frame     | Click `Adjust frame` in the properties, then drag the eight handles inward on the canvas. The cropped-out area appears faded                                          |
+| Use sliders          | Adjust `Crop top`, `Crop bottom`, `Crop left`, and `Crop right`. Click `Reset` to show the whole image                                                                |
+| Use the context menu | Right-click the layer in the list or on the canvas, then choose **Adjust crop**                                                                                       |
+| Flip horizontally    | Use **Flip → Horizontal**, or choose **Flip horizontally** from the context menu. The frame stays in place while its contents are mirrored, including during cropping |
 
 ### Pivot
 
@@ -173,58 +176,61 @@ Every layer (image, text, and shape) has a `Pivot` you can pick from nine points
 
 ### Working with layers
 
-<img src="docs/readme/en/08_detail_layers.png" alt="Layer list and selection handles" width="640">
+<img src="docs/readme/en/08_detail_layers.png" alt="Layer list and selection handles" width="400">
 
-| Action | How |
-| --- | --- |
-| Change stacking order | Drag in the list, or choose **Bring to front** / **Send to back** from the context menu. **Layers lower in the list appear in front** |
-| Move | Drag on the canvas, or use the arrow keys for 1 px steps and `Shift` + arrow keys for 10 px steps |
-| Resize / Rotate | Use the eight selection handles to resize, or the handle above the layer to rotate |
-| Scale several layers together | `Shift`-click to select several layers; a bounding box appears, and its four corner handles scale them all keeping proportions (snapping applies) |
-| Delete | `Delete` / `Backspace` |
-| Scale from center | Hold `Alt` while dragging a handle to keep the center fixed and grow on both sides (also for scaling several layers together) |
-| Constrain movement / Preserve aspect ratio | Hold `Shift` while moving, resizing, or rotating (rotation snaps to 15° increments) |
-| Toggle visibility / Lock | Use `👁` / `🔓` on the row |
-| Snap | When enabled, layers snap to the edges and centers of the canvas and other layers, with magenta guides. Hold `Alt` to temporarily disable snapping; toggle it with the button at the bottom right of the canvas |
+| Action                                     | How                                                                                                                                                                                                             |
+| ------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Change stacking order                      | Drag in the list, or choose **Bring to front** / **Send to back** from the context menu. **Layers lower in the list appear in front**                                                                           |
+| Move                                       | Drag on the canvas, or use the arrow keys for 1 px steps and `Shift` + arrow keys for 10 px steps                                                                                                               |
+| Resize / Rotate                            | Use the eight selection handles to resize, or the handle above the layer to rotate                                                                                                                              |
+| Scale several layers together              | `Shift`-click to select several layers; a bounding box appears, and its four corner handles scale them all keeping proportions (snapping applies)                                                               |
+| Delete                                     | `Delete` / `Backspace`                                                                                                                                                                                          |
+| Scale from center                          | Hold `Alt` while dragging a handle to keep the center fixed and grow on both sides (also for scaling several layers together)                                                                                   |
+| Constrain movement / Preserve aspect ratio | Hold `Shift` while moving, resizing, or rotating (rotation snaps to 15° increments)                                                                                                                             |
+| Toggle visibility / Lock                   | Use `👁` / `🔓` on the row                                                                                                                                                                                       |
+| Snap                                       | When enabled, layers snap to the edges and centers of the canvas and other layers, with magenta guides. Hold `Alt` to temporarily disable snapping; toggle it with the button at the bottom right of the canvas |
 
 The context menu provides stacking controls, duplication, visibility, locking, horizontal flipping, cropping, and deletion.<br>
 Locked layers cannot be grabbed on the canvas; use the list to work with them. Rotated layers do not participate in snapping.
 
 ### Images, text, and backgrounds
 
-<img src="docs/readme/en/09_detail_content.png" alt="Text content and formatting properties" width="640">
+<img src="docs/readme/en/09_detail_content.png" alt="Text content and formatting properties" width="400">
 
-| Type | Available settings |
-| --- | --- |
-| Image | Visibility, locking, opacity, horizontal flipping, cropping, blur, shadow, and glow |
-| Text | Content, font, size, weight, alignment, color, letter spacing, line spacing, outlines, and effects |
-| Background | Solid color, gradient, image, or pattern; image backgrounds support `cover`, `contain`, and tiling |
-| Presets | Save named text styles and background settings to reuse in other thumbnails |
+| Type       | Available settings                                                                                                                                           |
+| ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Image      | Visibility, locking, opacity, horizontal flipping, cropping, blur, shadow, and glow                                                                          |
+| Text       | Content, font, size, weight, alignment, color, letter spacing, line spacing, outlines (inner and outer), background (padding and corner radius), and effects |
+| Shape      | Rectangle or ellipse. Fill with a solid color, gradient, or pattern; corner radius                                                                           |
+| Background | Solid color, gradient, image, or pattern; image backgrounds support `cover`, `contain`, and tiling                                                           |
+| Presets    | Save named text styles and background settings to reuse in other thumbnails                                                                                  |
 
-For text layers, the left and right handles change the wrapping width. Corner handles scale the font size proportionally.
+For text layers, double-click on the canvas to type directly (`Enter` for a new line, `Esc` or a click outside to finish). The left and right handles change the wrapping width, and corner handles scale the font size proportionally.
+
+When `Auto fit` is on, text stays on one line and is sized to fit its frame. Adding a `Background` places a colored plate behind the text (with padding and corner radius). `Line height` can be `Auto` or `Fixed` (px).
 
 Select a range of characters and set the target to `Selected text` to move only those characters with `Offset X` / `Offset Y` (in em, relative to the character's font size; right and down are positive). Line wrapping and neighboring characters stay put, and the outlines follow the shifted characters.
 
-<img src="docs/readme/en/10_detail_background.png" alt="Background settings" width="640">
+<img src="docs/readme/en/10_detail_background.png" alt="Background settings" width="400">
 
 Background types provide the following settings.
 
-| Type | Available settings |
-| --- | --- |
-| Solid color | Color |
-| Gradient | Start color, end color, and angle |
-| Image | Asset, `cover` / `contain` / tiling, position, and base color |
-| Pattern | Dots / lines / checkerboard, spacing, color, weight, angle, and base color |
+| Type        | Available settings                                                         |
+| ----------- | -------------------------------------------------------------------------- |
+| Solid color | Color                                                                      |
+| Gradient    | Start color, end color, and angle                                          |
+| Image       | Asset, `cover` / `contain` / tiling, position, and base color              |
+| Pattern     | Dots / lines / checkerboard, spacing, color, weight, angle, and base color |
 
 Blur, shadow, and glow can be applied to images, text, and backgrounds. Shadows and glows follow the shape of the content, such as letters or transparent images, rather than a rectangular bounding box.
 
 ### Fonts
 
-| Item | Details |
-| --- | --- |
-| Built-in web fonts | Noto Sans JP / M PLUS 1p / M PLUS 2 / Roboto. Loaded from Google Fonts and available immediately, even when not installed on your computer |
-| Computer fonts | Chromium browsers can load fonts installed on your computer |
-| Add font files | Add `.ttf`, `.otf`, `.woff`, or `.woff2` files and store them in the browser |
+| Item                | Details                                                                                                                                               |
+| ------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Built-in web fonts  | Noto Sans JP / M PLUS 1p / M PLUS 2 / Roboto. Loaded from Google Fonts and available immediately, even when not installed on your computer            |
+| Computer fonts      | Chromium browsers can load fonts installed on your computer                                                                                           |
+| Add font files      | Add `.ttf`, `.otf`, `.woff`, or `.woff2` files and store them in the browser                                                                          |
 | Project portability | Font files are not bundled with projects. Built-in web fonts load automatically on other devices; computer fonts and added files must be loaded again |
 
 The first web font download requires an internet connection. If loading fails, the browser uses a fallback font. Regular, bold, and black weights (400 / 700 / 900) are loaded; Roboto also includes italic styles. The browser synthesizes italics for M PLUS 1p, M PLUS 2, and Noto Sans JP. Characters absent from Roboto, including Japanese characters, use fallback fonts.
@@ -233,20 +239,16 @@ The Google Fonts versions of these four families use the SIL Open Font License 1
 
 ### Exporting PNG files
 
-<img src="docs/readme/en/06_usage_step4_export.png" alt="Export PNG button" width="640">
-
 Click `Export PNG` at the top right to download the current thumbnail as a PNG. The output uses the actual canvas dimensions regardless of zoom, and the filename is based on the thumbnail name. When several thumbnails are shown, a dialog lets you check them one by one (all selected by default): select all for a batch export, or just one for a single export.
 
 ### Saving and sharing projects
 
-<img src="docs/readme/en/11_detail_project.png" alt="Project menu" width="640">
-
 Automatic browser storage is intended for recovery. It restores your work after reloading, but for backups or transfer to another device, use one of the following methods.
 
-| Browser | Save and resume |
-| --- | --- |
+| Browser                                 | Save and resume                                                                                                     |
+| --------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
 | Chromium browsers such as Chrome / Edge | Use **Save project** to choose a local folder. Save again with `Ctrl` / `⌘` + `S`, and resume with **Open project** |
-| Firefox / Safari and other browsers | Use **Export** to download a `.thumbpon.zip` file, then **Import** to resume |
+| Firefox / Safari and other browsers     | Use **Export** to download a `.thumbpon.zip` file, then **Import** to resume                                        |
 
 Local folder integration uses the File System Access API and is available only in Chromium browsers such as Chrome and Edge.
 
@@ -275,6 +277,19 @@ You can open an extracted folder with **Open project**, and import a ZIP made fr
 Importing disconnects the existing workspace to prevent accidentally overwriting its contents.
 
 While a folder is connected, its contents are treated as the source of truth and loaded when the app starts.
+
+### Keyboard shortcuts
+
+| Action                       | Keys                                                                        |
+| ---------------------------- | --------------------------------------------------------------------------- |
+| Undo / Redo                  | `Ctrl` / `⌘` + `Z` / `Ctrl` / `⌘` + `Shift` + `Z` (`Ctrl` + `Y` also works) |
+| Save project                 | `Ctrl` / `⌘` + `S` (Chromium browsers)                                      |
+| Delete                       | `Delete` / `Backspace`                                                      |
+| Move                         | Arrow keys (1 px) / `Shift` + arrow keys (10 px)                            |
+| Resize / rotate modifiers    | `Shift` (keep proportions, 15° steps), `Alt` (fix the center)               |
+| Temporarily disable snapping | `Alt` while dragging                                                        |
+| Pan the canvas               | `Space` + drag, middle button, two-finger scroll                            |
+| Zoom the canvas              | Wheel, `Ctrl` / `⌘` + wheel, pinch                                          |
 
 ## Development
 
