@@ -24,7 +24,7 @@ export function ExportButton() {
     <button
       type="button"
       onClick={() => void run(t('書き出しに失敗しました'), () => exportPngs(visible))}
-      disabled={busy}
+      disabled={busy || visible.length === 0}
       className={styles.export}
     >
       {busy

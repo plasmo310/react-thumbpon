@@ -101,10 +101,40 @@ describe('常時表示と編集対象', () => {
     expect(state().gridSettings).toEqual(DEFAULT_GRID)
   })
 
+  it('すべて外すと何も表示せず、選び直すと戻る', () => {
+    const [a, b] = state().thumbnails
+    state().toggleThumbnailPinned(b.id)
+    state().addShapeLayer('rectangle')
+    state().clearCanvasDisplay()
+    expect(state().currentThumbnailId).toBeNull()
+    expect(state().pinnedThumbnailIds).toEqual([])
+    expect(state().selectedIds).toEqual([])
+    expect(visible()).toEqual([])
+    // 未選択の間はレイヤー操作が何も起きない
+    const before = state().thumbnails
+    state().addShapeLayer('rectangle')
+    state().addTextLayer()
+    expect(state().thumbnails).toEqual(before)
+    state().selectThumbnail(a.id)
+    expect(visible()).toEqual([a.id])
+  })
+
+  it('未選択のまま保存・読み込みしても未選択のまま', () => {
+    state().clearCanvasDisplay()
+    const doc = pickDocument(state())
+    expect(doc.currentThumbnailId).toBeNull()
+    state().loadProject({
+      folders: doc.folders,
+      thumbnails: doc.thumbnails,
+      currentThumbnailId: null,
+    })
+    expect(state().currentThumbnailId).toBeNull()
+  })
+
   it('同じサムネイルの再選択でレイヤー選択を消さず、切り替え時は編集UIをリセットする', () => {
     state().addShapeLayer('rectangle')
     const selectedId = state().selectedId
-    state().selectThumbnail(state().currentThumbnailId)
+    state().selectThumbnail(state().currentThumbnailId as string)
     expect(state().selectedId).toBe(selectedId)
     state().setCropping(true)
     state().setGuides({ x: [10], y: [20] })

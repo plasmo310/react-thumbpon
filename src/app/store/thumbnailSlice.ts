@@ -12,11 +12,13 @@ import { fitTextLayer } from './textLayout'
 export type ThumbnailSlice = {
   folders: Folder[]
   thumbnails: Thumbnail[]
-  currentThumbnailId: string
+  /** 編集対象。null は「何も表示しない」状態（常時表示もすべて外したとき） */
+  currentThumbnailId: string | null
   /** コピーしたサムネイル。貼り付けるまで保持する */
   clipboard: Thumbnail | null
 
   selectThumbnail: (id: string) => void
+  clearCanvasDisplay: () => void
   addThumbnail: (folderId?: string | null) => void
   renameThumbnail: (id: string, name: string) => void
   duplicateThumbnail: (id: string) => void
@@ -70,6 +72,21 @@ export const createThumbnailSlice: SliceCreator<ThumbnailSlice> = (set, get) => 
         layerMenu: null,
       })
     },
+
+    /**
+     * 常時表示も編集対象もすべて外し、キャンバスに何も出さない状態にする。
+     * サムネイルや履歴は触らない。サムネイルを選び直せば戻る。
+     */
+    clearCanvasDisplay: () =>
+      set({
+        currentThumbnailId: null,
+        pinnedThumbnailIds: [],
+        selectedId: null,
+        selectedIds: [],
+        cropping: false,
+        guides: { x: [], y: [] },
+        layerMenu: null,
+      }),
 
     /**
      * サムネイルを追加して、そのまま編集対象にする。
@@ -281,6 +298,8 @@ export const createThumbnailSlice: SliceCreator<ThumbnailSlice> = (set, get) => 
           ? normalizeThumbnails(thumbnails)
           : [createThumbnail(t('サムネイル 1'))]
       const wanted = list.find((t) => t.id === currentThumbnailId)
+      // 保存時に何も表示していなかったファイルは、その状態のまま開く
+      const nothing = currentThumbnailId === null
       set((s) => ({
         folders,
         pinnedThumbnailIds: [],
@@ -288,7 +307,7 @@ export const createThumbnailSlice: SliceCreator<ThumbnailSlice> = (set, get) => 
           ...thumbnail,
           layers: thumbnail.layers.map((layer) => fitTextLayer(layer)),
         })),
-        currentThumbnailId: (wanted ?? list[0]).id,
+        currentThumbnailId: nothing ? null : (wanted ?? list[0]).id,
         selectedId: null,
         selectedIds: [],
         cropping: false,

@@ -83,6 +83,7 @@ The URL setting takes priority over the saved preference and is saved for your n
 <img src="docs/readme/en/06_usage_step4_export.png" alt="Export PNG button" width="640">
 
 - Images can be exported as PNG files.
+- Click `⊘` in the thumbnail list to hide every thumbnail and show nothing on the canvas. Select a thumbnail again to bring it back.
 - When you are finished, click `Export PNG` at the top right. The downloaded PNG uses the actual canvas dimensions, regardless of the current zoom level.
 
 ### Saving projects

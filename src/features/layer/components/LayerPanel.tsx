@@ -15,7 +15,8 @@ import styles from '../styles.module.css'
 export function LayerPanel() {
   const t = useTranslation()
 
-  const { layers } = useCurrentThumbnail()
+  const thumbnail = useCurrentThumbnail()
+  const layers = thumbnail?.layers ?? []
   const selectedId = useEditorStore((s) => s.selectedId)
   const propertiesOpen = useEditorStore((s) => s.propertiesOpen)
   const select = useEditorStore((s) => s.select)
@@ -58,10 +59,12 @@ export function LayerPanel() {
       title={t('レイヤー')}
       divider
       actions={
-        <>
-          <Button onClick={() => addShapeLayer('rectangle')}>{t('＋ 図形')}</Button>
-          <Button onClick={addTextLayer}>{t('＋ テキスト')}</Button>
-        </>
+        thumbnail && (
+          <>
+            <Button onClick={() => addShapeLayer('rectangle')}>{t('＋ 図形')}</Button>
+            <Button onClick={addTextLayer}>{t('＋ テキスト')}</Button>
+          </>
+        )
       }
       body={{
         onDragEnd: () => {
@@ -70,18 +73,25 @@ export function LayerPanel() {
         },
       }}
     >
-      <div className={cx(styles.row, styles.background, backgroundSelected && styles.rowSelected)}>
-        <button
-          type="button"
-          aria-expanded={backgroundOpen}
-          onClick={() => (backgroundSelected ? toggleProperties() : select(BACKGROUND_ID))}
-          className={styles.backgroundButton}
+      {!thumbnail && (
+        <p className={styles.emptyNotice}>{t('サムネイルを選ぶとレイヤーを編集できます')}</p>
+      )}
+      {thumbnail && (
+        <div
+          className={cx(styles.row, styles.background, backgroundSelected && styles.rowSelected)}
         >
-          <span className={cx(styles.badge, styles.backgroundBadge)}>BG</span>
-          <span className={styles.name}>{t('背景')}</span>
-        </button>
-        {backgroundOpen && <BackgroundProperties />}
-      </div>
+          <button
+            type="button"
+            aria-expanded={backgroundOpen}
+            onClick={() => (backgroundSelected ? toggleProperties() : select(BACKGROUND_ID))}
+            className={styles.backgroundButton}
+          >
+            <span className={cx(styles.badge, styles.backgroundBadge)}>BG</span>
+            <span className={styles.name}>{t('背景')}</span>
+          </button>
+          {backgroundOpen && <BackgroundProperties />}
+        </div>
+      )}
 
       {/* 配列の末尾が最前面。一覧も配列順に並べるので「下が前面」になる */}
       <ul className={styles.list}>

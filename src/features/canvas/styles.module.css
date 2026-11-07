@@ -15,6 +15,12 @@
   background: var(--color-stage);
 }
 
+.emptyNotice {
+  margin: 0;
+  color: var(--color-ink-sub);
+  pointer-events: none;
+}
+
 .panReady {
   cursor: grab;
 }

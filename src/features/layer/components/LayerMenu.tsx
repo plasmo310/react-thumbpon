@@ -13,7 +13,7 @@ import { ContextMenu, type ContextMenuItem } from '@/shared/ui'
 export function LayerMenu() {
   const t = useTranslation()
 
-  const { layers } = useCurrentThumbnail()
+  const layers = useCurrentThumbnail()?.layers ?? []
   const menu = useEditorStore((s) => s.layerMenu)
   const closeLayerMenu = useEditorStore((s) => s.closeLayerMenu)
   const updateLayer = useEditorStore((s) => s.updateLayer)

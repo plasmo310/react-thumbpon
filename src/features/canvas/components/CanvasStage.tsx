@@ -2,6 +2,7 @@ import { useTranslation } from '@/shared/lib/i18n'
 import { useEffect, useRef, useState } from 'react'
 import { useCurrentThumbnail, useEditorStore } from '@/app/store'
 import { canvasLayout, visibleThumbnails } from '@/domain/canvasLayout'
+import { DEFAULT_CANVAS } from '@/domain/thumbnail'
 import { getSurface } from '@/shared/lib/surfaceRef'
 import { NumberInput, SegmentedControl } from '@/shared/ui'
 import { cx } from '@/shared/lib/cx'
@@ -20,7 +21,7 @@ import styles from '../styles.module.css'
 export function CanvasStage() {
   const t = useTranslation()
 
-  const { canvas } = useCurrentThumbnail()
+  const canvas = useCurrentThumbnail()?.canvas ?? DEFAULT_CANVAS
   const thumbnails = useEditorStore((s) => s.thumbnails)
   const folders = useEditorStore((s) => s.folders)
   const pinnedIds = useEditorStore((s) => s.pinnedThumbnailIds)
@@ -81,6 +82,8 @@ export function CanvasStage() {
     const { dataTransfer } = event
     const target = (event.target as Element).closest<HTMLElement>('[data-canvas-thumbnail]')
     const targetId = target?.dataset.canvasThumbnail ?? useEditorStore.getState().currentThumbnailId
+    // 何も表示していないときは、ドロップ先のサムネイルが決まらない
+    if (!targetId) return
     const surface = getSurface(targetId)
     const thumbnail = useEditorStore.getState().thumbnails.find((t) => t.id === targetId)
     if (!thumbnail) return
@@ -219,6 +222,12 @@ export function CanvasStage() {
         })}
       </div>
 
+      {layout.cells.length === 0 && (
+        <p className={styles.emptyNotice}>
+          {t('表示中のサムネイルがありません。サムネイル一覧から選んでください。')}
+        </p>
+      )}
+
       {over && <div className={styles.dropping} />}
 
       {multiple && (
@@ -267,7 +276,9 @@ export function CanvasStage() {
         >
           {multiple
             ? t('{0}枚 ・ 全体を画面に合わせる', layout.cells.length)
-            : `${canvas.width} × ${canvas.height}`}{' '}
+            : layout.cells.length === 0
+              ? t('表示なし')
+              : `${canvas.width} × ${canvas.height}`}{' '}
           ・ {Math.round(view.scale * 100)}%
         </button>
       </div>

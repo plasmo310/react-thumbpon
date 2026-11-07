@@ -106,13 +106,14 @@ export function pickDocument(state: EditorState): SavedDocument {
 }
 
 /**
- * 編集中のサムネイルを購読する。
+ * 編集中のサムネイルを購読する。何も選んでいない（null）ときは null を返す。
  * id が失われていても落ちないよう先頭にフォールバックする。
  */
-export const useCurrentThumbnail = (): Thumbnail => {
+export const useCurrentThumbnail = (): Thumbnail | null => {
   const thumbnails = useEditorStore((s) => s.thumbnails)
   const currentThumbnailId = useEditorStore((s) => s.currentThumbnailId)
-  return thumbnails.find((t) => t.id === currentThumbnailId) ?? thumbnails[0]
+  if (currentThumbnailId === null) return null
+  return thumbnails.find((t) => t.id === currentThumbnailId) ?? thumbnails[0] ?? null
 }
 
 /**
@@ -123,5 +124,5 @@ export const useSelectedLayer = (): Layer | null => {
   const selectedId = useEditorStore((s) => s.selectedId)
   const thumbnail = useCurrentThumbnail()
   if (!selectedId || selectedId === BACKGROUND_ID) return null
-  return thumbnail.layers.find((l) => l.id === selectedId) ?? null
+  return thumbnail?.layers.find((l) => l.id === selectedId) ?? null
 }

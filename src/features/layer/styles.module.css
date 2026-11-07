@@ -1,5 +1,11 @@
 /* --- 一覧 --- */
 
+.emptyNotice {
+  margin: 0;
+  padding: var(--space-2);
+  color: var(--color-ink-sub);
+}
+
 .list {
   display: flex;
   flex-direction: column;

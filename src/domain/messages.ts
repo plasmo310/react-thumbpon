@@ -264,6 +264,11 @@ export const englishMessages = {
   自動保存に失敗しました: 'Autosave failed',
   サムネイル: 'Thumbnails',
   サムネイルを追加: 'Add thumbnail',
+  表示中のサムネイルをすべて外す: 'Hide all thumbnails from the canvas',
+  '表示中のサムネイルがありません。サムネイル一覧から選んでください。':
+    'No thumbnail is shown. Pick one from the thumbnail list.',
+  表示なし: 'Nothing shown',
+  サムネイルを選ぶとレイヤーを編集できます: 'Select a thumbnail to edit its layers',
   '「{0}」を貼り付け': 'Paste “{0}”',
   '「{0}」内のサムネイルを常時表示': 'Keep thumbnails in “{0}” visible',
   配下のサムネイルの常時表示を一括切り替え:

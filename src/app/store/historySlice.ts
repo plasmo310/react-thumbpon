@@ -62,8 +62,7 @@ export const createHistorySlice: SliceCreator<HistorySlice> = (set) => ({
       return {
         folders: previous.folders,
         thumbnails: previous.thumbnails,
-        // 保存データ由来で null もあり得る型なので、その場合は現在の編集対象を保つ
-        currentThumbnailId: previous.currentThumbnailId ?? s.currentThumbnailId,
+        currentThumbnailId: previous.currentThumbnailId,
         textPresets: previous.textPresets,
         backgroundPresets: previous.backgroundPresets,
         snapEnabled: previous.snapEnabled,
@@ -85,7 +84,7 @@ export const createHistorySlice: SliceCreator<HistorySlice> = (set) => ({
       return {
         folders: next.folders,
         thumbnails: next.thumbnails,
-        currentThumbnailId: next.currentThumbnailId ?? s.currentThumbnailId,
+        currentThumbnailId: next.currentThumbnailId,
         textPresets: next.textPresets,
         backgroundPresets: next.backgroundPresets,
         snapEnabled: next.snapEnabled,

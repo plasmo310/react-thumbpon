@@ -1,7 +1,7 @@
 import { useTranslation } from '@/shared/lib/i18n'
 import { useState } from 'react'
 import { useCurrentThumbnail, useEditorStore } from '@/app/store'
-import { CANVAS_PRESETS, CUSTOM_PRESET_ID } from '@/domain/thumbnail'
+import { CANVAS_PRESETS, CUSTOM_PRESET_ID, DEFAULT_CANVAS } from '@/domain/thumbnail'
 import { isMessageKey } from '@/domain/messages'
 import { NumberInput, Select } from '@/shared/ui'
 import styles from '../styles.module.css'
@@ -14,7 +14,7 @@ import styles from '../styles.module.css'
 export function ThumbnailSizeRow() {
   const t = useTranslation()
 
-  const { canvas } = useCurrentThumbnail()
+  const canvas = useCurrentThumbnail()?.canvas ?? DEFAULT_CANVAS
   const setCanvasSize = useEditorStore((s) => s.setCanvasSize)
   const [customMode, setCustomMode] = useState(false)
 

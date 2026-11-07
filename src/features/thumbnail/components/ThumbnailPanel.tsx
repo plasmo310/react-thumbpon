@@ -19,6 +19,7 @@ export function ThumbnailPanel() {
   const pinnedIds = useEditorStore((s) => s.pinnedThumbnailIds)
   const toggleFolderPinned = useEditorStore((s) => s.toggleFolderPinned)
   const clipboard = useEditorStore((s) => s.clipboard)
+  const clearCanvasDisplay = useEditorStore((s) => s.clearCanvasDisplay)
   const addThumbnail = useEditorStore((s) => s.addThumbnail)
   const pasteThumbnail = useEditorStore((s) => s.pasteThumbnail)
   const addFolder = useEditorStore((s) => s.addFolder)
@@ -111,6 +112,9 @@ export function ThumbnailPanel() {
         <>
           <IconButton title={t('サムネイルを追加')} onClick={() => addThumbnail(null)}>
             ＋
+          </IconButton>
+          <IconButton title={t('表示中のサムネイルをすべて外す')} onClick={clearCanvasDisplay}>
+            ⊘
           </IconButton>
           <IconButton title={t('フォルダを追加')} onClick={addFolder}>
             📁

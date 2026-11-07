@@ -67,7 +67,7 @@ export function SelectionOverlay({ scale }: { scale: number }) {
 
   const layer = useSelectedLayer()
   const selectedIds = useEditorStore((s) => s.selectedIds)
-  const { layers } = useCurrentThumbnail()
+  const layers = useCurrentThumbnail()?.layers ?? []
   const updateLayer = useEditorStore((s) => s.updateLayer)
   const updateLayerCrop = useEditorStore((s) => s.updateLayerCrop)
   const cropping = useEditorStore((s) => s.cropping)

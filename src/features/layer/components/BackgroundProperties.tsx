@@ -42,7 +42,7 @@ const patternOptions = (
 export function BackgroundProperties() {
   const t = useTranslation()
 
-  const { background } = useCurrentThumbnail()
+  const background = useCurrentThumbnail()?.background
   const setBackground = useEditorStore((s) => s.setBackground)
   const setBackgroundEffects = useEditorStore((s) => s.setBackgroundEffects)
   const assets = useEditorStore((s) => s.assets)
@@ -50,6 +50,8 @@ export function BackgroundProperties() {
   const addBackgroundPreset = useEditorStore((s) => s.addBackgroundPreset)
   const applyBackgroundPreset = useEditorStore((s) => s.applyBackgroundPreset)
   const removeBackgroundPreset = useEditorStore((s) => s.removeBackgroundPreset)
+
+  if (!background) return null
 
   return (
     <div className={styles.properties}>

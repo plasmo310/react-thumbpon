@@ -18,9 +18,10 @@ type Get = StoreApi<EditorState>['getState']
  * @param get slice に渡される get
  */
 export function createPatchers(set: Set, get: Get) {
-  /** 現在のサムネイル。id が失われていても落ちないよう先頭にフォールバックする */
-  const current = (): Thumbnail => {
+  /** 現在のサムネイル。何も選んでいないときは undefined。id が失われていたら先頭にフォールバックする */
+  const current = (): Thumbnail | undefined => {
     const s = get()
+    if (s.currentThumbnailId === null) return undefined
     return s.thumbnails.find((t) => t.id === s.currentThumbnailId) ?? s.thumbnails[0]
   }
 

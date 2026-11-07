@@ -25,15 +25,15 @@ export function normalizeGrid(value: Partial<GridSettings> | null | undefined): 
  * @param thumbnails 全サムネイル
  * @param folders 一覧のフォルダ順
  * @param pinnedIds 常時表示のID
- * @param currentId 編集対象のID
+ * @param currentId 編集対象のID。null は「何も選んでいない」状態で、常時表示だけを返す
  */
 export function visibleThumbnails(
   thumbnails: Thumbnail[],
   folders: Folder[],
   pinnedIds: string[],
-  currentId: string,
+  currentId: string | null,
 ): Thumbnail[] {
-  const visible = new Set([...pinnedIds, currentId])
+  const visible = new Set(currentId === null ? pinnedIds : [...pinnedIds, currentId])
   const ordered = [
     ...thumbnails.filter((t) => t.folderId === null),
     ...folders.flatMap((folder) => thumbnails.filter((t) => t.folderId === folder.id)),
@@ -48,6 +48,8 @@ export function visibleThumbnails(
  * @param settings 行数か列数の指定
  */
 export function canvasLayout(thumbnails: Thumbnail[], settings: GridSettings) {
+  // 何も表示しないときも、ズームの計算が壊れないよう標準サイズの空の土台を返す
+  if (thumbnails.length === 0) return { ...DEFAULT_CANVAS, rows: 0, columns: 0, cells: [] }
   if (thumbnails.length === 1) {
     const thumbnail = thumbnails[0]
     return {
