@@ -288,6 +288,22 @@ describe('往復', () => {
     expect(state.assets[0].folderId).toBeNull()
   })
 
+  it('このアプリより新しい形式は読み込まず、今の内容を残す', async () => {
+    const before = useEditorStore.getState().thumbnails
+    const newer = {
+      format: 'thumbpon-project',
+      version: 99,
+      folders: [],
+      thumbnails: [thumbnail([])],
+      currentThumbnailId: 'th1',
+      assets: [],
+    }
+    await expect(
+      importProjectFile(zipped({ 'new.thumbpon': strToU8(JSON.stringify(newer)) })),
+    ).rejects.toThrow(/99/)
+    expect(useEditorStore.getState().thumbnails).toBe(before)
+  })
+
   it('使用フォントは名前だけ引き継がれ、解決できないものが告知される', async () => {
     useEditorStore.setState({
       thumbnails: [thumbnail([textLayer('"Mine"')])],

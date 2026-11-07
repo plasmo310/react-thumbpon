@@ -30,6 +30,7 @@ import {
   buildProjectFile,
   collectAssetPayloads,
   isProjectFile,
+  assertSupportedVersion,
 } from './projectData'
 
 type Directory = NonNullable<ReturnType<typeof getCurrentDirectory>>
@@ -194,6 +195,7 @@ async function loadFrom(dir: Directory, preferred?: string): Promise<string | nu
 
   const parsed: unknown = JSON.parse(await file.text())
   if (!isProjectFile(parsed)) throw new Error(t('{0} がサムネぽんの形式ではありません', manifest))
+  assertSupportedVersion(parsed)
 
   const assetsDir = await getSubDirectory(dir, ASSETS_DIR, false)
   const byId = await indexAssetFiles(assetsDir)

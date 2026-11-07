@@ -15,6 +15,7 @@ import {
   buildProjectFile,
   collectAssetPayloads,
   isProjectFile,
+  assertSupportedVersion,
 } from './projectData'
 
 const stamp = () => new Date().toISOString().slice(0, 10)
@@ -77,6 +78,7 @@ export async function importProjectFile(file: File) {
 
   const parsed: unknown = JSON.parse(strFromU8(unzipped[found.path]))
   if (!isProjectFile(parsed)) throw new Error(t('サムネぽんのプロジェクトファイルではありません'))
+  assertSupportedVersion(parsed)
 
   /*
    * 書かれていたパスで引けなかったときの拾い直し用に、入っている素材を id で引けるようにする。

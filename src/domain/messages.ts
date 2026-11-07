@@ -243,6 +243,8 @@ export const englishMessages = {
     '(Asset files not used by the current project will be deleted.)',
   キャンバスが準備できていません: 'The canvas is not ready',
   サムネぽんのプロジェクトファイルではありません: 'This is not a ThumbPon project file',
+  '新しい形式（version {0}）のため開けません。サムネぽんを更新してください':
+    'This project uses a newer format (version {0}). Please update ThumbPon',
   '{0} を作成できませんでした': 'Could not create {0}',
   '{0} がサムネぽんの形式ではありません': '{0} is not in ThumbPon format',
   '{0}/ を作成できませんでした': 'Could not create {0}/',

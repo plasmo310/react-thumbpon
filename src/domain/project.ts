@@ -41,6 +41,9 @@ export type ProjectFontRef = {
   source: 'local' | 'file'
 }
 
+/** このアプリが保存・読み込める最新のプロジェクト形式バージョン */
+export const PROJECT_VERSION = 8
+
 /**
  * プロジェクトファイル(.thumbpon.zip)とワークスペースフォルダのマニフェスト(*.thumbpon)の中身。
  * version 1 は fonts を、version 2 までは背景の模様設定とレイヤーのエフェクトを、

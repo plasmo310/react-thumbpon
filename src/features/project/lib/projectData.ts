@@ -1,5 +1,6 @@
 import { normalizeAssetFolders, normalizeAssets } from '@/domain/asset'
-import { assetPath, collectUsedFonts, findMissingFonts } from '@/domain/project'
+import { assetPath, collectUsedFonts, findMissingFonts, PROJECT_VERSION } from '@/domain/project'
+import { t } from '@/shared/lib/i18n'
 import { getAssetBlob, replaceAssets } from '@/shared/lib/storage/assetRepo'
 import { useEditorStore } from '@/app/store'
 import type { AssetPayload, AssetReference } from '../types'
@@ -41,7 +42,7 @@ export function buildProjectFile(payloads: AssetReference[]): ProjectFile {
 
   return {
     format: 'thumbpon-project',
-    version: 8,
+    version: PROJECT_VERSION,
     folders,
     thumbnails,
     currentThumbnailId,
@@ -66,6 +67,20 @@ export function isProjectFile(value: unknown): value is ProjectFile {
     Array.isArray(candidate.thumbnails) &&
     Array.isArray(candidate.folders)
   )
+}
+
+/**
+ * このアプリより新しい形式のプロジェクトを読み込まない。
+ * 読み込んで保存し直すと、新しい形式の項目を消してしまうため。
+ *
+ * @param project isProjectFile を通ったプロジェクト
+ */
+export function assertSupportedVersion(project: ProjectFile) {
+  const version: unknown = project.version
+  if (typeof version === 'number' && version > PROJECT_VERSION)
+    throw new Error(
+      t('新しい形式（version {0}）のため開けません。サムネぽんを更新してください', version),
+    )
 }
 
 /**
