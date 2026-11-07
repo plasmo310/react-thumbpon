@@ -176,6 +176,7 @@ You can trim the visible area of an image layer. Crop amounts are stored as prop
 | Change stacking order | Drag in the list, or choose **Bring to front** / **Send to back** from the context menu. **Layers lower in the list appear in front** |
 | Move | Drag on the canvas, or use the arrow keys for 1 px steps and `Shift` + arrow keys for 10 px steps |
 | Resize / Rotate | Use the eight selection handles to resize, or the handle above the layer to rotate |
+| Scale several layers together | `Shift`-click to select several layers; a bounding box appears, and its four corner handles scale them all keeping proportions (snapping applies) |
 | Delete | `Delete` / `Backspace` |
 | Constrain movement / Preserve aspect ratio | Hold `Shift` while moving, resizing, or rotating (rotation snaps to 15° increments) |
 | Toggle visibility / Lock | Use `👁` / `🔓` on the row |

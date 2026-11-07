@@ -11,8 +11,9 @@ import {
   type Handle,
 } from '@/domain/geometry'
 import { cropByHandle, cropImageStyle } from '@/domain/crop'
-import { imageFrameStyle } from '@/domain/layer'
-import { formatWholeText } from '@/domain/text'
+import { imageFrameStyle, type Layer } from '@/domain/layer'
+import { scaledTextStyle, type GroupItem } from '@/domain/groupScale'
+import { GroupScaleBox } from './GroupScaleBox'
 import { getAssetUrl } from '@/shared/lib/storage/assetRepo'
 import { startPointerDrag } from '@/shared/lib/pointerDrag'
 import { useCurrentThumbnail, useEditorStore, useSelectedLayer } from '@/app/store'
@@ -81,8 +82,14 @@ export function SelectionOverlay({ scale }: { scale: number }) {
   // 複数選択中は動かす・削除するだけの対象なので、リサイズや回転のハンドルは出さず
   // どれが選ばれているか分かる枠だけを重ねる
   if (selectedIds.length > 1) {
+    // ロック中や非表示のレイヤーは動かせないので、まとめて拡縮する対象から外す
+    const scalable: GroupItem[] = selectedIds
+      .map((id) => layers.find((l) => l.id === id))
+      .filter((l): l is Layer => !!l && l.visible && !l.locked)
+      .map((l) => ({ layer: l, height: l.type === 'text' ? measureLayerHeight(l.id) : l.height }))
     return (
       <>
+        {scalable.length > 1 && <GroupScaleBox items={scalable} scale={scale} />}
         {selectedIds.map((id) => {
           const target = layers.find((l) => l.id === id)
           if (!target || !target.visible) return null
@@ -117,7 +124,6 @@ export function SelectionOverlay({ scale }: { scale: number }) {
   const startResize = (handle: Handle) => (event: ReactPointerEvent) => {
     event.stopPropagation()
     const start = { x: layer.x, y: layer.y, width: layer.width, height: Math.max(height, 1) }
-    const startFontSize = layer.type === 'text' ? layer.fontSize : 0
     const corner = isCornerHandle(handle)
     let historyCommitted = false
 
@@ -141,22 +147,7 @@ export function SelectionOverlay({ scale }: { scale: number }) {
       }
       if (corner) {
         const factor = rect.width / start.width
-        updateLayer(layer.id, {
-          ...common,
-          autoFit: layer.autoFit,
-          fixedLineHeight:
-            layer.fixedLineHeight == null ? null : Math.max(1, layer.fixedLineHeight * factor),
-          paddingTop: layer.paddingTop * factor,
-          paddingRight: layer.paddingRight * factor,
-          paddingBottom: layer.paddingBottom * factor,
-          paddingLeft: layer.paddingLeft * factor,
-          backgroundRadius: layer.backgroundRadius * factor,
-          backgroundRadiusTopLeft: layer.backgroundRadiusTopLeft * factor,
-          backgroundRadiusTopRight: layer.backgroundRadiusTopRight * factor,
-          backgroundRadiusBottomLeft: layer.backgroundRadiusBottomLeft * factor,
-          backgroundRadiusBottomRight: layer.backgroundRadiusBottomRight * factor,
-          ...formatWholeText(layer, { fontSize: Math.max(4, startFontSize * factor) }),
-        })
+        updateLayer(layer.id, { ...common, ...scaledTextStyle(layer, factor) })
       } else if (handle === 'e' || handle === 'w') {
         updateLayer(layer.id, { x: common.x, y: common.y, width: common.width, autoFit: false })
       }

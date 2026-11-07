@@ -1,5 +1,8 @@
 import type { CanvasSize } from '@/domain/thumbnail'
 
+/** 吸着する距離。画面上の px で、使う側が表示倍率で割ってキャンバス実寸に直す */
+export const SNAP_THRESHOLD = 8
+
 export type SnapRect = { x: number; y: number; width: number; height: number }
 
 export type SnapResult = { x: number; y: number; guidesX: number[]; guidesY: number[] }

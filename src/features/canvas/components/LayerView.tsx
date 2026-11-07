@@ -1,6 +1,6 @@
 import { useId } from 'react'
 import type { MouseEvent as ReactMouseEvent, PointerEvent as ReactPointerEvent } from 'react'
-import { snapPosition } from '../lib/snap'
+import { SNAP_THRESHOLD, snapPosition } from '../lib/snap'
 import { cropImageStyle } from '@/domain/crop'
 import {
   imageFrameStyle,
@@ -22,7 +22,6 @@ import { RichTextInput } from '@/shared/ui'
 import { EDGE_KEEPING_BLUR_BASE, EdgeKeepingBlur } from './EdgeKeepingBlur'
 
 /** 画面上でのスナップ距離(px) */
-const SNAP_THRESHOLD = 8
 
 /*
  * 素材が見つからないときの代わり。キャンバスの中に直接描く色は Tailwind の外なので、
