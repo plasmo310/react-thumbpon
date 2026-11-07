@@ -87,6 +87,14 @@ describe('dragFactor / snapFactor', () => {
     expect(dragFactor(box, 'se', 0, 0, 0.1)).toBeCloseTo(1)
   })
 
+  it('中心固定では固定点が外接矩形の中心になる', () => {
+    expect(cornerPoints(box, 'se', true).anchor).toEqual({ x: 250, y: 150 })
+    // 右下 (400,200) を右へ 150 動かすと、中心からの距離が 150→300 で 2 倍弱
+    expect(dragFactor(box, 'se', 150, 50, 0.1, true)).toBeGreaterThan(1.9)
+    const patches = scaleGroup(items, { x: 250, y: 150 }, 2)
+    expect(patches.get(items[0].layer.id)).toMatchObject({ x: -50, y: 50, width: 200 })
+  })
+
   it('小さくしすぎても下限で止まる', () => {
     const floor = factorFloor(items)
     expect(floor).toBeCloseTo(0.08)

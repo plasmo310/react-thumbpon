@@ -18,6 +18,22 @@ import {
 const start: Rect = { x: 0, y: 0, width: 100, height: 50 }
 
 describe('resizeRect', () => {
+  it('中心固定（Alt）では両側へ同じだけ広がり、中心が動かない', () => {
+    expect(resizeRect(start, 0, 'se', 10, 20, false, true)).toEqual({
+      x: -10,
+      y: -20,
+      width: 120,
+      height: 90,
+    })
+  })
+
+  it('中心固定でも回転したレイヤーの中心は動かない', () => {
+    const result = resizeRect(start, 30, 'e', 10, 0, false, true)
+    expect(result.x + result.width / 2).toBeCloseTo(50)
+    expect(result.y + result.height / 2).toBeCloseTo(25)
+    expect(result.width).toBeGreaterThan(100)
+  })
+
   it('se を引くと右下が伸び、対角の左上は動かない', () => {
     expect(resizeRect(start, 0, 'se', 10, 20, false)).toEqual({
       x: 0,

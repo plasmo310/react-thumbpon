@@ -136,7 +136,16 @@ export function SelectionOverlay({ scale }: { scale: number }) {
       const isText = layer.type === 'text'
       // テキストのコーナーは常に比例スケール。画像・図形は Shift でアスペクトを維持する
       const keepAspect = isText ? corner : moveEvent.shiftKey
-      const rect = resizeRect(start, layer.rotation, handle, dx / scale, dy / scale, keepAspect)
+      // Alt を押している間は、対角ではなく中心を固定して両側へ広げる
+      const rect = resizeRect(
+        start,
+        layer.rotation,
+        handle,
+        dx / scale,
+        dy / scale,
+        keepAspect,
+        moveEvent.altKey,
+      )
       const common = {
         x: Math.round(rect.x),
         y: Math.round(rect.y),

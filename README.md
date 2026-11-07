@@ -182,6 +182,7 @@ Every layer (image, text, and shape) has a `Pivot` you can pick from nine points
 | Resize / Rotate | Use the eight selection handles to resize, or the handle above the layer to rotate |
 | Scale several layers together | `Shift`-click to select several layers; a bounding box appears, and its four corner handles scale them all keeping proportions (snapping applies) |
 | Delete | `Delete` / `Backspace` |
+| Scale from center | Hold `Alt` while dragging a handle to keep the center fixed and grow on both sides (also for scaling several layers together) |
 | Constrain movement / Preserve aspect ratio | Hold `Shift` while moving, resizing, or rotating (rotation snaps to 15° increments) |
 | Toggle visibility / Lock | Use `👁` / `🔓` on the row |
 | Snap | When enabled, layers snap to the edges and centers of the canvas and other layers, with magenta guides. Hold `Alt` to temporarily disable snapping; toggle it with the button at the bottom right of the canvas |
@@ -202,7 +203,7 @@ Locked layers cannot be grabbed on the canvas; use the list to work with them. R
 
 For text layers, the left and right handles change the wrapping width. Corner handles scale the font size proportionally.
 
-Select a range of characters and set the target to `Selected text` to move only those characters with `Char offset X` / `Char offset Y` (in em, relative to the character's font size; right and down are positive). Line wrapping and neighboring characters stay put, and the outlines follow the shifted characters.
+Select a range of characters and set the target to `Selected text` to move only those characters with `Offset X` / `Offset Y` (in em, relative to the character's font size; right and down are positive). Line wrapping and neighboring characters stay put, and the outlines follow the shifted characters.
 
 <img src="docs/readme/en/10_detail_background.png" alt="Background settings" width="640">
 

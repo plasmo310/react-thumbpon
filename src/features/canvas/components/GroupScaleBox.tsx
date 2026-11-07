@@ -43,7 +43,6 @@ export function GroupScaleBox({ items, scale }: { items: GroupItem[]; scale: num
   const startScale = (handle: Handle) => (event: ReactPointerEvent) => {
     event.stopPropagation()
     const store = useEditorStore.getState()
-    const { anchor } = cornerPoints(box, handle)
     const floor = factorFloor(items)
     const surface = findLayerElement(items[0].layer.id)?.offsetParent as HTMLElement | null
     const targets = surface
@@ -67,8 +66,11 @@ export function GroupScaleBox({ items, scale }: { items: GroupItem[]; scale: num
           historyCommitted = true
           store.recordHistory()
         }
-        let factor = dragFactor(box, handle, dx / scale, dy / scale, floor)
-        if (store.snapEnabled && !moveEvent.altKey) {
+        // Alt を押している間は、対角ではなく中心を固定して全体を広げる
+        const fromCenter = moveEvent.altKey
+        const { anchor } = cornerPoints(box, handle, fromCenter)
+        let factor = dragFactor(box, handle, dx / scale, dy / scale, floor, fromCenter)
+        if (store.snapEnabled) {
           const snapped = snapFactor(
             box,
             handle,
@@ -77,6 +79,7 @@ export function GroupScaleBox({ items, scale }: { items: GroupItem[]; scale: num
             linesY,
             SNAP_THRESHOLD / scale,
             floor,
+            fromCenter,
           )
           factor = snapped.factor
           store.setGuides({ x: snapped.guidesX, y: snapped.guidesY })
@@ -105,7 +108,7 @@ export function GroupScaleBox({ items, scale }: { items: GroupItem[]; scale: num
         <div
           key={handle}
           onPointerDown={startScale(handle)}
-          title={t('まとめて拡大縮小（Altでスナップを一時無効）')}
+          title={t('まとめて拡大縮小（Altで中心から広げる）')}
           style={{
             position: 'absolute',
             left: CORNER_POSITION[handle].left,

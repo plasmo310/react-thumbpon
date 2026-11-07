@@ -218,7 +218,7 @@ export function TextProperties({ layer }: { layer: TextLayer }) {
       </div>
       {partial && (
         <div className={styles.pair}>
-          <Row label={label(t('文字オフセットX (em)'), 'offsetX')}>
+          <Row label={label(t('オフセット位置X (em)'), 'offsetX')}>
             <NumberInput
               value={value.offsetX ?? 0}
               mixed={mixed('offsetX')}
@@ -228,7 +228,7 @@ export function TextProperties({ layer }: { layer: TextLayer }) {
               onChange={(offsetX) => format({ offsetX })}
             />
           </Row>
-          <Row label={label(t('文字オフセットY (em)'), 'offsetY')}>
+          <Row label={label(t('オフセット位置Y (em)'), 'offsetY')}>
             <NumberInput
               value={value.offsetY ?? 0}
               mixed={mixed('offsetY')}

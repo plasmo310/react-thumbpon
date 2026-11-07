@@ -64,6 +64,8 @@ export function isCornerHandle(handle: Handle): boolean {
  * @param dx         ポインタの移動量X。キャンバス実寸に直したもの(表示px / scale)
  * @param dy         ポインタの移動量Y。同上
  * @param keepAspect 縦横比を保つか。角ハンドルのときだけ効く
+ * @param fromCenter true なら中心を固定して両側へ広げる（Alt を押しながらの拡縮）。
+ *                   片側の移動量が両側に効くので、ポインタが追従する大きさで変わる
  */
 export function resizeRect(
   start: Rect,
@@ -72,14 +74,16 @@ export function resizeRect(
   dx: number,
   dy: number,
   keepAspect: boolean,
+  fromCenter = false,
 ): Rect {
   // 画面座標の移動量をレイヤーのローカル空間へ（＝逆回転）
   const [lx, ly] = rotateVector(dx, dy, -rotation)
   const sx = handleSignX(handle)
   const sy = handleSignY(handle)
 
-  let dw = sx * lx
-  let dh = sy * ly
+  const spread = fromCenter ? 2 : 1
+  let dw = sx * lx * spread
+  let dh = sy * ly * spread
 
   if (keepAspect && sx !== 0 && sy !== 0) {
     const ratio = start.width / start.height
@@ -93,7 +97,7 @@ export function resizeRect(
   dw = width - start.width
   dh = height - start.height
 
-  const [gx, gy] = rotateVector((sx * dw) / 2, (sy * dh) / 2, rotation)
+  const [gx, gy] = fromCenter ? [0, 0] : rotateVector((sx * dw) / 2, (sy * dh) / 2, rotation)
   const cx = start.x + start.width / 2 + gx
   const cy = start.y + start.height / 2 + gy
 

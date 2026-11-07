@@ -88,12 +88,15 @@ export function groupBounds(items: GroupItem[]): Rect | null {
  *
  * @param box    拡縮前の外接矩形
  * @param handle 掴んだ角ハンドル
+ * @param fromCenter true なら固定点を対角ではなく中心にする（Alt を押しながらの拡縮）
  */
-export function cornerPoints(box: Rect, handle: Handle) {
+export function cornerPoints(box: Rect, handle: Handle, fromCenter = false) {
   const sx = handleSignX(handle)
   const sy = handleSignY(handle)
   return {
-    anchor: { x: sx > 0 ? box.x : box.x + box.width, y: sy > 0 ? box.y : box.y + box.height },
+    anchor: fromCenter
+      ? { x: box.x + box.width / 2, y: box.y + box.height / 2 }
+      : { x: sx > 0 ? box.x : box.x + box.width, y: sy > 0 ? box.y : box.y + box.height },
     corner: { x: sx > 0 ? box.x + box.width : box.x, y: sy > 0 ? box.y + box.height : box.y },
   }
 }
@@ -120,9 +123,17 @@ export function factorFloor(items: GroupItem[]): number {
  * @param dx     ポインタの移動量X（キャンバス実寸）
  * @param dy     ポインタの移動量Y（キャンバス実寸）
  * @param floor  倍率の下限（factorFloor）
+ * @param fromCenter 中心を固定するか
  */
-export function dragFactor(box: Rect, handle: Handle, dx: number, dy: number, floor: number) {
-  const { anchor, corner } = cornerPoints(box, handle)
+export function dragFactor(
+  box: Rect,
+  handle: Handle,
+  dx: number,
+  dy: number,
+  floor: number,
+  fromCenter = false,
+) {
+  const { anchor, corner } = cornerPoints(box, handle, fromCenter)
   const diagonalX = corner.x - anchor.x
   const diagonalY = corner.y - anchor.y
   const length2 = diagonalX * diagonalX + diagonalY * diagonalY
@@ -145,6 +156,7 @@ export type FactorSnap = { factor: number; guidesX: number[]; guidesY: number[] 
  * @param linesY    吸着線のY座標
  * @param threshold この距離以内なら吸着する（キャンバス実寸）
  * @param floor     これ以下の倍率には寄せない
+ * @param fromCenter 中心を固定するか
  */
 export function snapFactor(
   box: Rect,
@@ -154,8 +166,9 @@ export function snapFactor(
   linesY: number[],
   threshold: number,
   floor: number,
+  fromCenter = false,
 ): FactorSnap {
-  const { anchor, corner } = cornerPoints(box, handle)
+  const { anchor, corner } = cornerPoints(box, handle, fromCenter)
   const diagonalX = corner.x - anchor.x
   const diagonalY = corner.y - anchor.y
   let best: { distance: number; factor: number; axis: 'x' | 'y'; line: number } | null = null
