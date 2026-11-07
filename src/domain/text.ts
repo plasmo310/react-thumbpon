@@ -16,10 +16,21 @@ export type InlineTextStyle = Partial<
     | 'outerStrokeWidth'
     | 'outerStrokeColor'
   >
->
+> & {
+  /**
+   * 文字の位置のずらし。単位は em（その文字の文字サイズに対する割合）。
+   * 文字サイズが変わっても、また表示の縮小があっても、見た目のずれ方の比が変わらないようにするため。
+   * 正の値で X は右、Y は下。行の折り返しやほかの文字の位置には影響しない。部分書式だけが持つ。
+   */
+  offsetX?: number
+  offsetY?: number
+}
 export type TextRange = { start: number; end: number; backward?: boolean }
 export type InlineStyleRange = TextRange & { style: InlineTextStyle }
 export type TextContent = { text: string; inlineStyles?: InlineStyleRange[] }
+
+/** 文字のずらしの上限(em)。これを超えると別の行の文字と区別がつかなくなる */
+export const MAX_OFFSET = 5
 
 const INLINE_STYLE_KEYS = [
   'color',
@@ -32,6 +43,8 @@ const INLINE_STYLE_KEYS = [
   'strokeJoin',
   'outerStrokeWidth',
   'outerStrokeColor',
+  'offsetX',
+  'offsetY',
 ] as const
 
 /**
@@ -70,6 +83,12 @@ function cleanStyle(style: InlineTextStyle): InlineTextStyle {
       (typeof value !== 'number' || !Number.isFinite(value) || value < 0)
     )
       continue
+    if (key === 'offsetX' || key === 'offsetY') {
+      // 0 は「ずらさない」と同じなので持たない。範囲外の値は極端なずれを避けて丸める
+      if (typeof value === 'number' && Number.isFinite(value) && value !== 0)
+        result[key] = Math.max(-MAX_OFFSET, Math.min(MAX_OFFSET, value))
+      continue
+    }
     if (key === 'fontStyle' && value !== 'normal' && value !== 'italic') continue
     if (key === 'strokeJoin' && value !== 'round' && value !== 'miter') continue
     if (
@@ -254,10 +273,23 @@ export function reconcileText(
  * @param style 上書きする書式
  */
 export function inlineTextCss(style: InlineTextStyle): CSSProperties {
-  const { strokeWidth, strokeColor, strokeJoin, outerStrokeWidth, outerStrokeColor, ...font } =
-    style
+  const {
+    strokeWidth,
+    strokeColor,
+    strokeJoin,
+    outerStrokeWidth,
+    outerStrokeColor,
+    offsetX,
+    offsetY,
+    ...font
+  } = style
+  const shifted = offsetX !== undefined || offsetY !== undefined
   return {
     ...font,
+    // relative はその文字だけを見た目でずらし、行の組みや隣の文字の位置を動かさない
+    ...(shifted
+      ? { position: 'relative', left: `${offsetX ?? 0}em`, top: `${offsetY ?? 0}em` }
+      : {}),
     '--text-stroke-color': strokeColor,
     '--text-stroke-join': strokeJoin,
     '--text-outer-stroke-width': outerStrokeWidth,

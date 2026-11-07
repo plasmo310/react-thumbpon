@@ -202,6 +202,8 @@ Locked layers cannot be grabbed on the canvas; use the list to work with them. R
 
 For text layers, the left and right handles change the wrapping width. Corner handles scale the font size proportionally.
 
+Select a range of characters and set the target to `Selected text` to move only those characters with `Character shift X` / `Character shift Y` (in em, relative to the character's font size; right and down are positive). Line wrapping and neighboring characters stay put, and the outlines follow the shifted characters.
+
 <img src="docs/readme/en/10_detail_background.png" alt="Background settings" width="640">
 
 Background types provide the following settings.

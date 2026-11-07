@@ -5,7 +5,7 @@ import { extractTextStyle } from '@/domain/layer'
 import { useEditorStore } from '@/app/store'
 import { FONT_WEIGHTS } from '@/domain/font'
 import type { TextAlign, TextLayer } from '@/domain/layer'
-import { insertionStyle, textSegments } from '@/domain/text'
+import { MAX_OFFSET, insertionStyle, textSegments } from '@/domain/text'
 import type { InlineTextStyle } from '@/domain/text'
 import {
   ColorInput,
@@ -47,7 +47,7 @@ export function TextProperties({ layer }: { layer: TextLayer }) {
   const recordHistory = useEditorStore((s) => s.recordHistory)
   const session = editing?.layerId === layer.id ? editing : null
   const partial = session?.target === 'selection'
-  const selected =
+  const selected: (TextLayer & InlineTextStyle)[] =
     session && session.range.start !== session.range.end
       ? textSegments(layer)
           .filter((part) => part.start < session.range.end && part.end > session.range.start)
@@ -60,7 +60,7 @@ export function TextProperties({ layer }: { layer: TextLayer }) {
               : {}),
           },
         ]
-  const value = partial ? (selected[0] ?? layer) : layer
+  const value: TextLayer & InlineTextStyle = partial ? (selected[0] ?? layer) : layer
   const mixed = (key: keyof InlineTextStyle) =>
     !!partial && selected.some((part) => part[key] !== value[key])
   const label = (name: string, key: keyof InlineTextStyle) =>
@@ -288,6 +288,30 @@ export function TextProperties({ layer }: { layer: TextLayer }) {
             onChange={(outerStrokeColor) => format({ outerStrokeColor })}
           />
         </Row>
+      )}
+      {partial && (
+        <div className={styles.pair}>
+          <Row label={label(t('文字ずらしX (em)'), 'offsetX')}>
+            <NumberInput
+              value={value.offsetX ?? 0}
+              mixed={mixed('offsetX')}
+              min={-MAX_OFFSET}
+              max={MAX_OFFSET}
+              step={0.05}
+              onChange={(offsetX) => format({ offsetX })}
+            />
+          </Row>
+          <Row label={label(t('文字ずらしY (em)'), 'offsetY')}>
+            <NumberInput
+              value={value.offsetY ?? 0}
+              mixed={mixed('offsetY')}
+              min={-MAX_OFFSET}
+              max={MAX_OFFSET}
+              step={0.05}
+              onChange={(offsetY) => format({ offsetY })}
+            />
+          </Row>
+        </div>
       )}
       <Row label={t('部分書式')}>
         <Button onClick={() => formatText(layer.id, null)}>{t('部分書式を解除')}</Button>

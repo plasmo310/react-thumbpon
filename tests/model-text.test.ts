@@ -211,3 +211,38 @@ describe('部分書式の互換性', () => {
     ])
   })
 })
+
+describe('文字ごとの位置オフセット', () => {
+  const content = { text: 'ABCDE' }
+
+  it('選択範囲の文字だけを em 単位でずらす', () => {
+    const next = formatTextRange(content, { start: 1, end: 3 }, { offsetX: 0.1, offsetY: -0.2 })
+    expect(next.inlineStyles).toEqual([
+      { start: 1, end: 3, style: { offsetX: 0.1, offsetY: -0.2 } },
+    ])
+  })
+
+  it('CSS は relative の left/top で、レイアウトを動かさず見た目だけずらす', () => {
+    expect(inlineTextCss({ offsetX: 0.1, offsetY: -0.2 })).toMatchObject({
+      position: 'relative',
+      left: '0.1em',
+      top: '-0.2em',
+    })
+    expect(inlineTextCss({ offsetX: 0.1 })).not.toHaveProperty('offsetX')
+    expect(inlineTextCss({ color: '#fff' })).not.toHaveProperty('position')
+  })
+
+  it('0 に戻すとずらしを持たず、範囲外は上限に丸める', () => {
+    const shifted = formatTextRange(content, { start: 0, end: 2 }, { offsetX: 0.5 })
+    const reset = formatTextRange(shifted, { start: 0, end: 2 }, { offsetX: 0 })
+    expect(reset.inlineStyles).toEqual([])
+    const clamped = formatTextRange(content, { start: 0, end: 1 }, { offsetY: 99 })
+    expect(clamped.inlineStyles?.[0].style.offsetY).toBe(5)
+  })
+
+  it('ずらしが違う隣の範囲は別々に保つ', () => {
+    const a = formatTextRange(content, { start: 0, end: 2 }, { offsetX: 0.1 })
+    const b = formatTextRange(a, { start: 2, end: 4 }, { offsetX: 0.2 })
+    expect(b.inlineStyles).toHaveLength(2)
+  })
+})
