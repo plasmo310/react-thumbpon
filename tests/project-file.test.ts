@@ -19,7 +19,7 @@ import type { AssetMeta } from '@/domain/asset'
 import { DEFAULT_BACKGROUND } from '@/domain/background'
 import { DEFAULT_EFFECTS } from '@/domain/effects'
 import { BUILTIN_FONTS } from '@/domain/font'
-import { DEFAULT_TEXT_BACKGROUND, type TextLayer } from '@/domain/layer'
+import { DEFAULT_TEXT_BACKGROUND, createImageLayer, type TextLayer } from '@/domain/layer'
 import type { Thumbnail } from '@/domain/thumbnail'
 
 let downloaded: { blob: Blob; filename: string } | null = null
@@ -133,7 +133,7 @@ describe('exportProjectFile', () => {
 })
 
 describe('往復', () => {
-  it('version 7の部分書式・二重縁・縁の角・背景・四隅の角丸・固定行高をZIPで往復できる', async () => {
+  it('version 8の部分書式・二重縁・縁の角・背景・四隅の角丸・固定行高をZIPで往復できる', async () => {
     const layer = {
       ...textLayer(BUILTIN_FONTS[0].family),
       strokeJoin: 'miter' as const,
@@ -185,7 +185,7 @@ describe('往復', () => {
         Object.entries(entries).find(([name]) => name.endsWith('.thumbpon'))![1],
       ),
     )
-    expect(manifest.version).toBe(7)
+    expect(manifest.version).toBe(8)
     expect(manifest.fonts).toEqual([{ family: 'Custom', label: 'Custom', source: 'file' }])
     useEditorStore.setState({ thumbnails: [thumbnail([])] })
     await importProjectFile(file)
@@ -210,6 +210,19 @@ describe('往復', () => {
       backgroundRadiusBottomLeft: 12,
       backgroundRadiusBottomRight: 16,
     })
+  })
+  it('画像の基準点をZIPで往復でき、無い旧データは左上のまま', async () => {
+    const withPivot = createImageLayer('a', 'x', { x: 1, y: 2, width: 30, height: 40 })
+    const without = createImageLayer('b', 'x', { x: 1, y: 2, width: 30, height: 40 })
+    useEditorStore.setState({
+      thumbnails: [thumbnail([{ ...withPivot, pivot: { x: 0.5, y: 1 } }, without])],
+    })
+    const file = await exported()
+    useEditorStore.setState({ thumbnails: [thumbnail([])] })
+    await importProjectFile(file)
+    const [first, second] = useEditorStore.getState().thumbnails[0].layers
+    expect(first).toMatchObject({ pivot: { x: 0.5, y: 1 } })
+    expect(second).not.toHaveProperty('pivot')
   })
   it('サムネイルと素材が書き出し前の状態に戻る', async () => {
     useEditorStore.setState({

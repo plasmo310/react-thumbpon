@@ -84,6 +84,7 @@ npm run dev        # http://localhost:5173
 ### 画像
 
 - 透明度・左右反転（枠は動かさず中身だけ鏡像）・ブラー／シャドウ／光彩
+- **基準点（pivot）**: 画像は `pivot{x,y}`（0..1、左上=0,0。省略は左上）を持てる。`x,y,width,height` は常に左上基準のままで、基準点は「X/Y の入力欄の意味」と「サイズ変更で動かさない点」を決める（保存データの座標の意味は変わらない）
 - **クロップ**: プロパティの `枠で調整`（キャンバス上の枠をドラッグ）、`上/下/左/右を切る` のスライダー、または右クリック。割合で持つのでリサイズしても崩れない
 
 ### テキスト
@@ -155,7 +156,7 @@ Thumbpon/
 
 | `type`  | 追加のキー                                                                                                                                                                                       |
 | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `image` | `assetId, height, crop{top,right,bottom,left}, flipX`                                                                                                                                            |
+| `image` | `assetId, height, crop{top,right,bottom,left}, flipX, pivot?{x,y}`                                                                                                                               |
 | `text`  | `text`（改行は `\n`）, `inlineStyles?`, `fontFamily`, `fontSize`, `fontWeight`, `fontStyle`, `textAlign`, `letterSpacing`, `lineHeight`, `color`, `strokeWidth`（0 で縁取りなし）, `strokeColor` |
 | `shape` | `height, shape(rectangle\|ellipse), cornerRadius, fillType(color\|gradient\|pattern), color, gradientFrom/To/Angle, pattern, patternColor/Size/Weight/Angle`                                     |
 

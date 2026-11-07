@@ -1,6 +1,7 @@
 import { useTranslation } from '@/shared/lib/i18n'
 import { DEFAULT_CROP, MAX_CROP, croppedRatio, isCropped } from '@/domain/crop'
 import type { ImageLayer } from '@/domain/layer'
+import { resizeKeepingPivot } from '@/domain/pivot'
 import { useEditorStore } from '@/app/store'
 import { Button, PercentRow } from '@/shared/ui'
 import styles from '../styles.module.css'
@@ -26,9 +27,12 @@ export function CropSection({ layer }: { layer: ImageLayer }) {
   /** 残った部分が引き伸ばされないよう、枠の高さを表示範囲の縦横比に合わせる */
   const fitToRatio = () => {
     if (!asset) return
-    updateLayer(layer.id, {
-      height: Math.max(1, Math.round(layer.width / croppedRatio(asset, crop))),
-    })
+    updateLayer(
+      layer.id,
+      resizeKeepingPivot(layer, {
+        height: Math.max(1, Math.round(layer.width / croppedRatio(asset, crop))),
+      }),
+    )
   }
 
   return (

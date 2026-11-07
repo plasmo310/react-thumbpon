@@ -5,6 +5,7 @@ import { createId } from './id'
 import { BUILTIN_FONTS } from './font'
 import type { CanvasSize } from './thumbnail'
 import type { InlineStyleRange } from './text'
+import type { Pivot } from './pivot'
 
 export type TextAlign = 'left' | 'center' | 'right'
 export type TextStrokeJoin = 'round' | 'miter'
@@ -54,6 +55,11 @@ export type ImageLayer = LayerBase &
     crop: Crop
     /** 左右反転。枠は動かさず中身だけを鏡像にする */
     flipX: boolean
+    /**
+     * 基準点。X/Y の入力欄とサイズ変更はこの点を基準にする（枠の x/y は常に左上のまま）。
+     * 旧データでは省略され、左上として扱う。
+     */
+    pivot?: Pivot
   }
 
 /** テキスト背景の既定値。余白と角丸はキャンバス実寸px。 */

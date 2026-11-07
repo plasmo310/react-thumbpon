@@ -270,6 +270,8 @@ export const englishMessages = {
   表示なし: 'Nothing shown',
   書き出すサムネイルを選ぶ: 'Choose thumbnails to export',
   'まとめて拡大縮小（Altでスナップを一時無効）': 'Scale together (hold Alt to bypass snapping)',
+  基準点: 'Pivot',
+  '{0}・{1}': '{0} {1}',
   すべて選ぶ: 'Select all',
   すべて外す: 'Select none',
   キャンセル: 'Cancel',

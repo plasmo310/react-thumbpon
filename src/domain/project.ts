@@ -48,11 +48,12 @@ export type ProjectFontRef = {
  * version 4 までは文字範囲ごとの部分書式を持たない。
  * version 5 まではテキストの自動フィットと背景設定を持たない。
  * version 6 まではテキスト背景の角丸モードと四隅の設定を持たない。
+ * version 7 までは画像の基準点（pivot）を持たない（省略は左上）。
  * 読み込み側は無い前提で扱うこと（欠けは normalizeThumbnails が既定値で補う）。
  */
 export type ProjectFile = {
   format: 'thumbpon-project'
-  version: 1 | 2 | 3 | 4 | 5 | 6 | 7
+  version: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8
   folders: Folder[]
   thumbnails: Thumbnail[]
   currentThumbnailId: string | null

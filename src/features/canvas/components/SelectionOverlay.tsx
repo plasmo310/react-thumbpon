@@ -12,6 +12,7 @@ import {
 } from '@/domain/geometry'
 import { cropByHandle, cropImageStyle } from '@/domain/crop'
 import { imageFrameStyle, type Layer } from '@/domain/layer'
+import { pivotOf } from '@/domain/pivot'
 import { scaledTextStyle, type GroupItem } from '@/domain/groupScale'
 import { GroupScaleBox } from './GroupScaleBox'
 import { getAssetUrl } from '@/shared/lib/storage/assetRepo'
@@ -248,6 +249,24 @@ export function SelectionOverlay({ scale }: { scale: number }) {
       )}
 
       <div style={{ position: 'absolute', inset: 0, border: `${px(1.5)}px solid ${accent}` }} />
+
+      {/* 基準点。X/Y とサイズ変更の基準になる位置を示す（掴めない） */}
+      {layer.type === 'image' && !image && (
+        <div
+          style={{
+            position: 'absolute',
+            left: `${pivotOf(layer).x * 100}%`,
+            top: `${pivotOf(layer).y * 100}%`,
+            width: px(8),
+            height: px(8),
+            marginLeft: px(-4),
+            marginTop: px(-4),
+            border: `${px(1.5)}px solid ${ACCENT}`,
+            borderRadius: '50%',
+            background: 'rgb(255 255 255 / 70%)',
+          }}
+        />
+      )}
 
       {/* クロップ中は回転させない。掴む辺の向きが変わって操作が分かりにくくなるため */}
       {!image && (

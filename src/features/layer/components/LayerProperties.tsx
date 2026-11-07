@@ -3,6 +3,7 @@ import { EffectsSection } from './EffectsSection'
 import { useEditorStore } from '@/app/store'
 import type { Layer } from '@/domain/layer'
 import { ColorInput, NumberInput, PercentRow, Row } from '@/shared/ui'
+import { pivotPoint, placeByPivot } from '@/domain/pivot'
 import { ImageProperties } from './ImageProperties'
 import { ShapeProperties } from './ShapeProperties'
 import { TextProperties } from './TextProperties'
@@ -20,6 +21,14 @@ export function LayerProperties({ layer }: { layer: Layer }) {
   const updateLayer = useEditorStore((s) => s.updateLayer)
   const updateLayerEffects = useEditorStore((s) => s.updateLayerEffects)
 
+  // 画像は基準点の位置を X/Y に出す。枠の x/y は常に左上なので、入力時に左上へ直す
+  const origin = layer.type === 'image' ? pivotPoint(layer) : { x: layer.x, y: layer.y }
+  const moveTo = (point: { x: number; y: number }) => {
+    if (layer.type !== 'image') return point
+    const { x, y } = placeByPivot(layer, point)
+    return { x, y }
+  }
+
   return (
     <div
       className={styles.properties}
@@ -27,10 +36,16 @@ export function LayerProperties({ layer }: { layer: Layer }) {
     >
       <div className={styles.pair}>
         <Row label="X">
-          <NumberInput value={layer.x} onChange={(x) => updateLayer(layer.id, { x })} />
+          <NumberInput
+            value={origin.x}
+            onChange={(x) => updateLayer(layer.id, moveTo({ x, y: origin.y }))}
+          />
         </Row>
         <Row label="Y">
-          <NumberInput value={layer.y} onChange={(y) => updateLayer(layer.id, { y })} />
+          <NumberInput
+            value={origin.y}
+            onChange={(y) => updateLayer(layer.id, moveTo({ x: origin.x, y }))}
+          />
         </Row>
       </div>
 

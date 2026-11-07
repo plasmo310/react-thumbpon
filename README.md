@@ -167,6 +167,10 @@ You can trim the visible area of an image layer. Crop amounts are stored as prop
 | Use the context menu | Right-click the layer in the list or on the canvas, then choose **Adjust crop** |
 | Flip horizontally | Use **Flip → Horizontal**, or choose **Flip horizontally** from the context menu. The frame stays in place while its contents are mirrored, including during cropping |
 
+### Pivot
+
+Image layers have a `Pivot` you can pick from nine points, top left to bottom right. The `X` / `Y` fields show the pivot's position, and changing `Width` / `Height` keeps the pivot fixed. Choose the bottom center and the feet stay put even when the asset size changes. The pivot is marked with a small circle on the canvas for the selected image. Switching the pivot does not move the image, and rotation still turns around the image center.
+
 ### Working with layers
 
 <img src="docs/readme/en/08_detail_layers.png" alt="Layer list and selection handles" width="640">
