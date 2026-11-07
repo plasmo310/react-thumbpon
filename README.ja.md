@@ -267,6 +267,7 @@ Claude Code などの AI エージェントに、次の作業を頼めます。
 - 画面を開かない PNG の書き出し
 
 ```bash
+npm install     # 初回のみ
 npm run build   # 初回と、アプリのコードを直したあと
 npm run export -- --project <フォルダ|.thumbpon.zip> --out <出力先> [--thumbnail <名前>]...
 ```

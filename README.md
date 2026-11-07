@@ -267,6 +267,7 @@ You can ask an AI agent such as Claude Code to:
 - Export PNG files without opening the UI
 
 ```bash
+npm install     # First time only
 npm run build   # First time, and after changing the app code
 npm run export -- --project <folder|.thumbpon.zip> --out <output folder> [--thumbnail <name>]...
 ```
