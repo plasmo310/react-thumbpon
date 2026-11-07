@@ -12,6 +12,7 @@ description: サムネぽん（ThumbPon。サムネイル画像を作るブラ�
 - 起動: `npm install`（初回のみ）→ `npm run dev`（http://localhost:5173、Chrome / Edge）
 - マニフェスト（`Thumbpon.thumbpon`）は素の JSON。読むのは自由だが、**直接書き換えるのは最後の手段**
   （ブラウザが同じフォルダに接続中だと保存で上書きされる。書き換えたら「プロジェクトを開く」で読み直す）
+- 書き換える前に `docs/project-format.md` を読む。**`version` が現行より大きいファイルは書き換えない**／知らないキーと既存の `id` は消さない・変えない／`assetId` の参照を壊さない／**先にバックアップを取る**／書き換えたら開き直して確認し、可能なら `npm run export` で PNG まで見る
 - **PNG 書き出しはコマンドだけでできる**（画面は開かない）。`npm run build`（初回・コード変更後）→
   `npm run export -- --project <プロジェクトのフォルダ> --out <出力先> [--thumbnail <名前>]...`。
   詳細は `docs/usage.md` の「コマンドで書き出す」。見た目の最終確認は人がブラウザで行ってもよい
