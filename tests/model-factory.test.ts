@@ -36,6 +36,7 @@ describe('CANVAS_PRESETS', () => {
       { id: 'fhd', label: 'フルHD（1920 × 1080）', width: 1920, height: 1080 },
       { id: 'hd', label: 'HD（1280 × 720）', width: 1280, height: 720 },
       { id: 'svga', label: '4:3（800 × 600）', width: 800, height: 600 },
+      { id: 'square', label: '1:1（1024 × 1024）', width: 1024, height: 1024 },
       {
         id: 'vertical-video',
         label: 'Reels / Shorts / TikTok（1080 × 1920）',
