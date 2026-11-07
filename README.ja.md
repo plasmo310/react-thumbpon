@@ -335,3 +335,7 @@ ThumbPon は読み込み・編集・保存・書き出しがすべてブラウ�
 - [現行仕様](docs/spec/thumbpon-spec.md)
 - [基本コーディング規約](docs/instructions/code_guide.md)
 - [アーキテクチャガイド](docs/instructions/architecture_guide.md)
+
+## ライセンス
+
+ソースコードは [MIT License](LICENSE) で公開しています。サムネぽん／ThumbPon の名前・ロゴ、サンプル素材は対象外です。Web フォントは別に SIL Open Font License 1.1 です（上記参照）。

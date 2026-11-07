@@ -335,3 +335,7 @@ Architecture and coding conventions are documented here (in Japanese):
 - [Current specification](docs/spec/thumbpon-spec.md)
 - [Coding guide](docs/instructions/code_guide.md)
 - [Architecture guide](docs/instructions/architecture_guide.md)
+
+## License
+
+The source code is released under the [MIT License](LICENSE). The ThumbPon name and logo and the sample assets are not covered by it. Web fonts are licensed separately under the SIL Open Font License 1.1 (see above).
