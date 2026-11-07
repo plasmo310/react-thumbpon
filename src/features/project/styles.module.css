@@ -264,3 +264,80 @@
   font-size: var(--font-mini);
   color: var(--color-ink-sub);
 }
+
+/* --- 書き出すサムネイルを選ぶダイアログ --- */
+
+.dialogBackdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgb(0 0 0 / 35%);
+}
+
+.dialog {
+  display: flex;
+  width: min(420px, calc(100vw - 32px));
+  max-height: calc(100vh - 64px);
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  border-radius: var(--radius-lg);
+  background: var(--color-panel);
+  color: var(--color-ink);
+  box-shadow: 0 8px 32px rgb(0 0 0 / 25%);
+}
+
+.dialogTitle {
+  margin: 0;
+  font-size: var(--font-body);
+}
+
+.dialogList {
+  display: flex;
+  min-height: 0;
+  flex-direction: column;
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  list-style: none;
+}
+
+.dialogItem {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 4px var(--space-2);
+  border-radius: var(--radius);
+  font-size: var(--font-body);
+}
+
+.dialogItem:hover {
+  background: var(--color-accent-soft);
+}
+
+.dialogName {
+  min-width: 0;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dialogSize {
+  color: var(--color-ink-sub);
+  font-size: var(--font-label);
+}
+
+.dialogActions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.dialogSpacer {
+  flex: 1;
+}

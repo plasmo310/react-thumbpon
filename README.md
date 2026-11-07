@@ -227,7 +227,7 @@ The Google Fonts versions of these four families use the SIL Open Font License 1
 
 <img src="docs/readme/en/06_usage_step4_export.png" alt="Export PNG button" width="640">
 
-Click `Export PNG` at the top right to download the current thumbnail as a PNG. The output uses the actual canvas dimensions regardless of zoom, and the filename is based on the thumbnail name.
+Click `Export PNG` at the top right to download the current thumbnail as a PNG. The output uses the actual canvas dimensions regardless of zoom, and the filename is based on the thumbnail name. When several thumbnails are shown, a dialog lets you check them one by one (all selected by default): select all for a batch export, or just one for a single export.
 
 ### Saving and sharing projects
 

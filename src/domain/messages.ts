@@ -268,6 +268,11 @@ export const englishMessages = {
   '表示中のサムネイルがありません。サムネイル一覧から選んでください。':
     'No thumbnail is shown. Pick one from the thumbnail list.',
   表示なし: 'Nothing shown',
+  書き出すサムネイルを選ぶ: 'Choose thumbnails to export',
+  すべて選ぶ: 'Select all',
+  すべて外す: 'Select none',
+  キャンセル: 'Cancel',
+  '{0}枚を書き出す': 'Export {0}',
   サムネイルを選ぶとレイヤーを編集できます: 'Select a thumbnail to edit its layers',
   '「{0}」を貼り付け': 'Paste “{0}”',
   '「{0}」内のサムネイルを常時表示': 'Keep thumbnails in “{0}” visible',
